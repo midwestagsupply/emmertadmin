@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Update the site | Badger Grain Supply</title>
+<link rel="stylesheet" href="admin.css">
+<meta name="robots" content="noindex">
+<link rel="icon" href="assets/icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<div class="demo">Mockup of the staff screen. <b>Nothing here saves yet.</b></div>
+
+<header>
+  <div class="wrap">
+    <p class="logo">
+      <img class="ear l" src="assets/corn-left.png" alt="" aria-hidden="true">
+      <span class="wm"><span class="wm1">Badger</span><span class="wmrule"></span><span class="wm2">Grain Supply</span></span>
+      <img class="ear r" src="assets/corn-right.png" alt="" aria-hidden="true">
+      <span class="sr-only">Badger Grain Supply</span>
+    </p>
+    <div class="who">Signed in as <b>Office</b> &middot; <a href="#">Sign out</a></div>
+  </div>
+</header>
+
+<div class="wrap lead">
+  <h1>Update the site</h1>
+  <p>Change what customers see. Everything on this page goes live the moment you press Save.</p>
+</div>
+
+<div class="wrap">
+  <div class="loc">
+    <span class="loc-l">You are editing</span>
+    <div class="loc-tabs">
+      <a class="loc-tab is-on" href="?site=badger">Badger Grain Supply<small>Wheeler</small></a>
+      <a class="loc-tab" href="?site=midwest">Midwest Commodity Service<small>Baldwin</small></a>
+    </div>
+  </div>
+</div>
+
+<form method="post" action="/save">
+  <div class="wrap">
+
+    <!-- ============ TODAY ============ -->
+    <div class="card">
+      <h2>Today&rsquo;s hours <span class="hint">Friday, August 14</span></h2>
+      <div class="body">
+        <p class="help">This is the big box at the top of the site. If nothing changed today, leave it on the first choice and you are done.</p>
+        <fieldset>
+          <legend>Are you open today?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="today" value="usual" checked>
+              <span>Open, usual hours<small>7:00a to 5:00p</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="custom">
+              <span>Open, different hours<small>Set the times below</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="closed">
+              <span>Closed today<small>Shows CLOSED at the top of the site</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="harvest">
+              <span>Harvest hours<small>7:00a to 8:00p</small></span></label>
+          </div>
+        </fieldset>
+        <div class="times">
+          <div><label class="fl" for="o">Opens</label><input id="o" type="time" name="open" value="07:00"></div>
+          <div><label class="fl" for="c">Closes</label><input id="c" type="time" name="close" value="17:00"></div>
+        </div>
+        <div class="prev">
+          <div class="prev-l">What customers will see</div>
+          <div class="prev-today">
+            <div class="l">Open today, Friday</div>
+            <div class="h">7:00a to 5:00p</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ NOTICE ============ -->
+    <div class="card">
+      <h2>Notice banner <span class="hint">The yellow bar</span></h2>
+      <div class="body">
+        <p class="help">Use this for anything a customer needs to know before they haul: harvest hours, a closure, a scale being down, a holiday.</p>
+        <fieldset>
+          <legend>Show the banner?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="banner" value="on" checked>
+              <span>Show the banner<small>Appears under the logo</small></span></label>
+            <label class="choice"><input type="radio" name="banner" value="off">
+              <span>Hide it<small>Site looks normal</small></span></label>
+          </div>
+        </fieldset>
+        <div class="row">
+          <label class="fl" for="msg">Message</label>
+          <textarea id="msg" name="message" maxlength="160">Harvest hours start Monday. We will run until 8:00p and open Sundays as the crop demands.</textarea>
+          <div class="counter">Keep it under 160 characters so it fits on a phone in two lines.</div>
+        </div>
+        <div class="prev">
+          <div class="prev-l">What customers will see</div>
+          <div class="prev-notice">Harvest hours start Monday. We will run until 8:00p and open Sundays as the crop demands.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ WEEKLY ============ -->
+    <div class="card">
+      <h2>Regular weekly hours <span class="hint">Changes rarely</span></h2>
+      <div class="body">
+        <p class="help">The list under today&rsquo;s hours. Only change this when the normal schedule changes for good.</p>
+        <table class="week">
+          <thead><tr><th>Day</th><th>Opens</th><th>Closes</th><th>Closed</th></tr></thead>
+          <tbody>
+            <tr><td>Mon to Fri</td><td><input type="time" value="07:00"></td><td><input type="time" value="17:00"></td>
+                <td><label class="cl"><input type="checkbox"> Closed</label></td></tr>
+            <tr><td>Saturday</td><td><input type="time" value="07:00"></td><td><input type="time" value="12:00"></td>
+                <td><label class="cl"><input type="checkbox"> Closed</label></td></tr>
+            <tr><td>Sunday</td><td><input type="time" value="" disabled></td><td><input type="time" value="" disabled></td>
+                <td><label class="cl"><input type="checkbox" checked> Closed</label></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ============ HARVEST NOTE ============ -->
+    <div class="card">
+      <h2>Small print under the hours</h2>
+      <div class="body">
+        <div class="row">
+          <label class="fl" for="hn">Note</label>
+          <textarea id="hn" name="hoursnote" maxlength="200">Harvest hours run longer and we open Sundays when the crop demands. Updated hours are posted here first. When in doubt, call.</textarea>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="save">
+    <div class="wrap">
+      <button class="btn btn-go" type="submit">Save and put it live</button>
+      <button class="btn" type="reset">Undo</button>
+      <span class="saved">Last saved today at 6:42a by Office</span>
+    </div>
+  </div>
+</form>
+
+<div class="notes">
+  <div class="wrap">
+    <h2>Build notes, for our meeting only</h2>
+    <ul>
+      <li><strong>This is a mockup of the screen, not a working backend yet.</strong> The point is to agree what staff can change before anything gets built. Right now that is four things: today&rsquo;s hours, the notice banner, the regular weekly hours and the small print. Nothing else on the site is editable, on purpose, because every extra field is another thing that can go wrong at 6am in October.</li>
+      <li><strong>How it would work.</strong> A plain HTML form posting to a small server, which writes the page. No dashboard software to learn, no page builder, nothing to break the layout. It works on the office computer and on a phone from the scale house.</li>
+      <li><strong>Prices are deliberately not on this screen.</strong> Those come straight from the Barchart feed. If staff had to key prices in by hand every morning they would go stale, and a wrong price on a website is worse than no price.</li>
+      <li><strong>On a scrolling banner.</strong> The yellow bar is static on purpose. Moving text is genuinely hard to read, it cannot be paused, and it is the first thing people complain about. If they want it to scroll after seeing it, that is easy to add, but I would push back once.</li>
+      <li><strong>Still to decide:</strong> who gets a login and how many, whether changes need a second person to approve, and whether we keep a simple history of who changed what and when. I would keep the history, it costs almost nothing and settles arguments.</li>
+    </ul>
+  </div>
+</div>
+
+</body>
+</html>

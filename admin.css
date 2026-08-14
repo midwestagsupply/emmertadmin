@@ -1,0 +1,154 @@
+/* ===================================================================
+     STAFF SCREEN. Same type system and palette as the public site.
+     One page, big controls, plain words. No dashboards, no menus,
+     no jargon. A person who has never used it should be able to change
+     today's hours in under thirty seconds.
+
+     This is a plain HTML form. It posts to the server and the server
+     writes the page. No JavaScript here either.
+     =================================================================== */
+  /* Same logo face as the public site. See shared/fonts/README.md. */
+  @font-face{
+    font-family:"Wordmark";
+    src:url("fonts/dejavusanscondensed-bold.woff2") format("woff2"),
+        url("fonts/dejavusanscondensed-bold.woff") format("woff");
+    font-weight:700;font-style:normal;font-display:swap;
+  }
+  :root{
+    --font:"Inter","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+    --display:"Wordmark","DejaVu Sans Condensed","Liberation Sans Narrow","Arial Narrow",Arial,sans-serif;
+    --ink:#111;--paper:#fff;--bg:#f2f2f2;--yellow:#f5cf4e;--yellow-dk:#e2b92e;
+    --line:#c8c8c8;--line-lt:#e4e4e4;--grey:#3a3a3a;--band:#f2f2f2;
+    --green:#1d5e3c;--radius:8px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{font-size:19px;-webkit-text-size-adjust:100%}
+  body{font-family:var(--font);background:var(--bg);color:var(--ink);font-weight:500;
+       line-height:1.45;font-size:1.05rem}
+  h1,h2,h3{line-height:1.15;font-weight:700}
+  a{color:var(--ink);font-weight:700;text-decoration:underline;text-underline-offset:2px}
+  .wrap{max-width:860px;margin:0 auto;padding:0 16px}
+
+  .demo{background:#111;color:#eee;text-align:center;padding:9px 16px;font-size:.85rem;font-weight:600}
+  .demo b{color:var(--yellow)}
+
+  header{background:var(--paper);border-bottom:3px solid var(--ink)}
+  header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;
+               padding-top:14px;padding-bottom:14px;flex-wrap:wrap}
+  /* The same lockup as the public site, at a size that does not shout.
+     Whichever location is being edited, this shows that location's mark. */
+  .logo{display:flex;align-items:center;gap:1px;line-height:1;margin:0}
+  .logo .ear{display:block;width:auto;height:46px;flex:0 0 auto}
+  .logo .ear.l{margin-right:-2px} .logo .ear.r{margin-left:-2px}
+  .wm{display:flex;flex-direction:column;align-items:center;line-height:1;min-width:0}
+  .wm1{font-family:var(--display);font-size:1.42rem;font-weight:700;
+       text-transform:uppercase;line-height:.92;letter-spacing:.005em}
+  .wmrule{display:block;width:100%;height:3px;background:var(--yellow);margin:3px 0 2px}
+  .wm2{font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:.085em;
+       text-transform:uppercase;white-space:nowrap;line-height:1}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .who{font-size:.95rem;color:var(--grey)}
+  .who b{color:var(--ink)}
+
+  /* which location am I editing */
+  .loc{background:var(--paper);border:2px solid var(--ink);border-radius:var(--radius);
+       padding:14px 16px;margin-top:14px}
+  .loc-l{display:block;font-size:.82rem;font-weight:700;text-transform:uppercase;
+         letter-spacing:.05em;color:var(--grey);margin-bottom:10px}
+  .loc-tabs{display:grid;grid-template-columns:1fr;gap:10px}
+  .loc-tab{display:block;border:2px solid var(--ink);border-radius:var(--radius);
+           padding:13px 16px;text-decoration:none;color:var(--ink);font-weight:700;font-size:1.05rem}
+  .loc-tab small{display:block;font-weight:500;font-size:.88rem;color:var(--grey);margin-top:2px}
+  .loc-tab:hover{background:var(--band)}
+  .loc-tab.is-on{background:var(--yellow);box-shadow:inset 0 0 0 2px var(--ink)}
+  .loc-tab.is-on small{color:#4a3f14}
+
+  .lead{padding:22px 0 6px}
+  .lead h1{font-size:clamp(1.6rem,1.4rem + .9vw,2.05rem);margin-bottom:6px}
+  .lead p{color:var(--grey)}
+
+  form{padding-bottom:40px}
+  .card{background:var(--paper);border:2px solid var(--ink);border-radius:var(--radius);
+        margin-top:18px;overflow:hidden}
+  .card>h2{background:var(--ink);color:#fff;font-size:1.12rem;padding:13px 18px;
+           display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline}
+  .card>h2 .hint{font-weight:500;font-size:.85rem;color:#bbb}
+  .card .body{padding:18px}
+  .help{color:var(--grey);font-size:.98rem;margin-bottom:14px}
+
+  fieldset{border:0}
+  legend{font-weight:700;font-size:1.05rem;margin-bottom:8px}
+
+  /* big obvious choices instead of dropdowns */
+  .choices{display:grid;grid-template-columns:1fr;gap:10px;margin-bottom:16px}
+  .choice{display:flex;align-items:center;gap:12px;border:2px solid var(--ink);
+          border-radius:var(--radius);padding:14px 16px;cursor:pointer;background:var(--paper);
+          font-weight:700;font-size:1.08rem}
+  .choice:hover{background:var(--band)}
+  .choice input{width:24px;height:24px;accent-color:var(--ink);flex:0 0 auto}
+  .choice span small{display:block;font-weight:500;font-size:.9rem;color:var(--grey);margin-top:2px}
+  .choice:has(input:checked){background:var(--yellow);box-shadow:inset 0 0 0 2px var(--ink)}
+
+  label.fl{display:block;font-weight:700;margin-bottom:6px;font-size:1.02rem}
+  input[type=text],input[type=time],textarea,select{
+    width:100%;font-family:inherit;font-size:1.1rem;font-weight:600;color:var(--ink);
+    padding:13px 14px;border:2px solid var(--ink);border-radius:var(--radius);background:var(--paper)}
+  textarea{min-height:96px;resize:vertical;font-weight:500}
+  input:focus,textarea:focus,select:focus{outline:3px solid var(--ink);outline-offset:2px}
+  .times{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:420px}
+  .row{margin-bottom:16px}
+  .row:last-child{margin-bottom:0}
+
+  /* weekly hours table */
+  .week{width:100%;border-collapse:collapse}
+  .week th{text-align:left;font-size:.82rem;text-transform:uppercase;letter-spacing:.04em;
+           color:var(--grey);padding:8px 10px;border-bottom:2px solid var(--ink)}
+  .week td{padding:10px;border-bottom:1px solid var(--line-lt);vertical-align:middle}
+  .week td:first-child{font-weight:700;white-space:nowrap}
+  .week tr:last-child td{border-bottom:none}
+  .week input[type=time]{padding:9px 10px;font-size:1rem}
+  .week .cl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.95rem;
+            white-space:nowrap;padding:10px 4px;cursor:pointer;min-height:44px}
+  .week .cl input{width:24px;height:24px;accent-color:var(--ink)}
+
+  .counter{font-size:.9rem;color:var(--grey);margin-top:6px}
+
+  /* live preview of what the customer sees */
+  .prev{border:2px dashed var(--line);border-radius:var(--radius);padding:14px;background:var(--bg);
+        margin-top:14px}
+  .prev-l{font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;color:var(--grey);
+          font-weight:700;margin-bottom:8px}
+  .prev-notice{background:var(--yellow);border:2px solid var(--ink);border-radius:6px;padding:10px 12px;
+               font-weight:700}
+  .prev-today{background:var(--yellow);border:2px solid var(--ink);border-radius:6px;padding:12px;text-align:center}
+  .prev-today .l{color:var(--ink);font-weight:800;font-size:.85rem;letter-spacing:.06em;
+                 text-transform:uppercase}
+  .prev-today .h{font-weight:800;font-size:1.7rem;line-height:1.15}
+
+  .save{position:sticky;bottom:0;background:var(--bg);padding:10px 0;
+        border-top:2px solid var(--ink);margin-top:22px}
+  .save .wrap{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:0 16px}
+  .save .saved{grid-column:1 / -1;font-size:.85rem}
+  @media(min-width:700px){
+    .save{padding:16px 0}
+    .save .wrap{display:flex;gap:12px;flex-wrap:wrap}
+    .save .saved{font-size:.95rem}
+  }
+  .btn{font-family:inherit;font-weight:800;font-size:1.05rem;padding:14px 20px;border:2px solid var(--ink);
+       border-radius:var(--radius);background:var(--paper);color:var(--ink);cursor:pointer}
+  .btn-go{background:var(--green);border-color:var(--green);color:#fff;flex:1 1 260px;font-size:1.12rem;padding:15px 24px}
+  .btn-go:hover{background:#164b30}
+  .btn:hover{background:var(--band)}
+  .saved{color:var(--green);font-weight:700}
+
+  .notes{background:#fdf3cf;border-top:4px solid var(--ink);padding:26px 0;margin-top:10px}
+  .notes h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.05em;color:#7a4a10;margin-bottom:12px}
+  .notes ul{margin-left:19px;font-size:.95rem;color:#3f3a30}
+  .notes li{margin-bottom:8px}
+
+  @media(min-width:620px){
+    .loc-tabs{grid-template-columns:1fr 1fr}
+  }
+  @media(min-width:700px){
+    .choices{grid-template-columns:1fr 1fr}
+  }
