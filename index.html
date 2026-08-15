@@ -13,12 +13,21 @@
 
 <header>
   <div class="wrap">
-    <p class="logo">
-      <img class="ear l" src="assets/corn-left.png" alt="" aria-hidden="true">
-      <span class="wm"><span class="wm1">Badger</span><span class="wmrule"></span><span class="wm2">Grain Supply</span></span>
-      <img class="ear r" src="assets/corn-right.png" alt="" aria-hidden="true">
-      <span class="sr-only">Badger Grain Supply</span>
-    </p>
+    <div class="marks">
+      <span class="logo">
+        <img class="ear l" src="assets/corn-left.png" alt="" aria-hidden="true">
+        <span class="wm"><span class="wm1">Badger</span><span class="wmrule"></span><span class="wm2">Grain Supply</span></span>
+        <img class="ear r" src="assets/corn-right.png" alt="" aria-hidden="true">
+        <span class="sr-only">Badger Grain Supply</span>
+      </span>
+      <span class="marks-sep" aria-hidden="true"></span>
+      <span class="logo">
+        <img class="ear l" src="assets/corn-left.png" alt="" aria-hidden="true">
+        <span class="wm"><span class="wm1">Midwest</span><span class="wmrule"></span><span class="wm2">Commodity Service</span></span>
+        <img class="ear r" src="assets/corn-right.png" alt="" aria-hidden="true">
+        <span class="sr-only">Midwest Commodity Service</span>
+      </span>
+    </div>
     <div class="who">Signed in as <b>Office</b> &middot; <a href="#">Sign out</a></div>
   </div>
 </header>
@@ -42,113 +51,102 @@
   <div class="wrap">
 
     <!-- ============ CORN BID ============ -->
+    <!-- Automatic. A Cloudflare Worker reads Big River's board every
+         minute during market hours, checks it, and writes the numbers.
+         Nothing here is typed in the normal course of a day.
+
+         The two editable things are deliberate. The SPREAD is a business
+         decision, not data, and only the owners know when it changes.
+         The BY HAND box is the break-glass for when the feed is down;
+         it is folded away because using it should feel like an
+         exception, which it is. -->
     <div class="card">
-      <h2>Today&rsquo;s corn bid <span class="hint">The number farmers came for</span></h2>
+      <h2>Today&rsquo;s corn bid <span class="hint">Read automatically</span></h2>
       <div class="body">
-        <p class="help">Type what Big River is posting at Boyceville. The site works out what we pay and shows it. If you leave it blank the price panel says <strong>&ldquo;Call for today&rsquo;s price&rdquo;</strong> rather than showing a stale number.</p>
-        <div class="bidgrid">
-          <div>
-            <label class="fl" for="ref">Big River, Boyceville</label>
-            <div class="money"><span>$</span><input id="ref" name="reference" type="text" inputmode="decimal" value="4.38"></div>
+
+        <div class="feed is-ok">
+          <span class="feed-dot" aria-hidden="true"></span>
+          <div class="feed-t">
+            <strong>Reading Big River, Boyceville.</strong>
+            Last read <span class="num">7:48 PM</span>, one minute ago. Checked against USDA&rsquo;s
+            Wisconsin range and against their own basis. Nothing for you to do.
           </div>
-          <div>
-            <label class="fl" for="off">We pay</label>
-            <div class="money"><span>&minus;$</span><input id="off" name="offset" type="text" inputmode="decimal" value="0.10"></div>
-            <div class="counter">Change this only if the spread changes.</div>
-          </div>
-        </div>
-        <div class="sanity">
-          <strong>Sanity check.</strong> USDA reported Wisconsin ethanol plants bidding
-          <span class="num">$4.05</span> to <span class="num">$4.43</span> yesterday. Your number is inside that range.
         </div>
 
-        <!-- Their whole board, as captured by tools/fetch-bid.mjs.
-             Rendered by the backend from data.json reference.board.
-             The futures column is cash minus their basis: their own
-             arithmetic run backwards, so it is what they were pricing
-             against when they last posted. It is labelled implied for
-             that reason, not out of caution: if they update cash and
-             basis at different times or round either one, it drifts. -->
         <div class="board">
           <div class="board-hd">
-            <span>Big River, Boyceville &mdash; posted board</span>
-            <span class="board-as num">read 6:40a</span>
+            <span>Their posted board</span>
+            <a class="board-open" href="https://www.bigriverbids.com/cashbidssingle-2121"
+               target="_blank" rel="noopener noreferrer">Open their page to compare</a>
           </div>
           <table class="bd num">
             <thead>
-              <tr><th>Commodity</th><th>Delivery</th><th>Month</th>
-                  <th class="r">Basis</th><th class="r">Cash</th><th class="r">Implied</th></tr>
+              <tr><th>Month</th><th>Contract</th><th class="r">Their basis</th>
+                  <th class="r">Their cash</th><th class="r">We pay</th></tr>
             </thead>
             <tbody>
-              <tr class="is-ref"><td>Corn</td><td>Spot</td><td>Sep 26</td>
-                  <td class="r">&minus;0.34</td><td class="r">$4.38</td><td class="r">$4.72</td></tr>
-              <tr><td>Corn</td><td>New crop</td><td>Dec 26</td>
-                  <td class="r">&minus;0.42</td><td class="r">$4.22</td><td class="r">$4.64</td></tr>
-              <tr><td>Soybeans</td><td>Spot</td><td>Sep 26</td>
-                  <td class="r">&minus;0.78</td><td class="r">$10.51</td><td class="r">$11.29</td></tr>
+              <tr class="is-ref"><td>August</td><td>Sep 26</td><td class="r">&minus;0.52</td>
+                  <td class="r">$4.07</td><td class="r pay">$3.97</td></tr>
+              <tr><td>September</td><td>Sep 26</td><td class="r">&minus;0.46</td>
+                  <td class="r">$4.13</td><td class="r pay">$4.03</td></tr>
+              <tr><td>October</td><td>Dec 26</td><td class="r">&minus;0.55</td>
+                  <td class="r">$4.2825</td><td class="r pay">$4.18</td></tr>
+              <tr><td>December</td><td>Dec 26</td><td class="r">&minus;0.50</td>
+                  <td class="r">$4.3325</td><td class="r pay">$4.23</td></tr>
+              <tr><td>January</td><td>Mar 27</td><td class="r">&minus;0.60</td>
+                  <td class="r">$4.39</td><td class="r pay">$4.29</td></tr>
             </tbody>
           </table>
-          <p class="board-note">The highlighted row is the one your bid is priced off.
-          <strong>Implied</strong> is their cash less their basis, which is the futures number
-          they were working from when they last posted. It is not a live quote off the board.</p>
+          <p class="board-note"><strong>This table is the check.</strong> Their basis and their
+          cash are exactly what the reader pulled off their page a minute ago, not a picture of
+          it. Open their page beside this and the two should agree line for line. If they ever
+          do not, the reader has gone wrong and the numbers here are what you would have posted,
+          which is the whole reason it is shown.<br>
+          The highlighted row is the nearest delivery, which is what leads on the website.
+          <strong>We pay</strong> is their cash less the spread below.</p>
         </div>
 
-        <!-- Big River's Boyceville bid board, cropped to just the bids.
-
-             THE URL AND THE CROP BOTH NEED SETTING ONCE, against their
-             real page. Neither can be guessed at from outside.
-
-             1. THE URL. Find their bare bids view rather than the whole
-                homepage. Their platform uses paths like
-                  /cashbidssingle-2163
-                  /markets/cashgrid.php
-                  /markets/cash.php
-                Open each, see which one renders the Boyceville grid on
-                its own, and put it in --src below. They have already
-                said yes to all this, so the quickest route is to ask
-                them which URL is the bare board.
-
-             2. THE CROP. The wrapper hides overflow and the frame is
-                oversized and pulled up and left, so only the bid table
-                shows. That is a visual crop of their own rendering, not
-                a read of their page: nothing here can see inside the
-                frame, which is why this is reference only.
-                Tune --top, --left, --w and --h until it sits right.
-
-             If their site refuses to be framed, which is common, the
-             panel stays blank and the button still works. -->
-        <div class="ref" style="--top:-96px;--left:-12px;--w:760px;--h:520px">
-          <div class="ref-hd">
-            <span>Big River, Boyceville</span>
-            <a class="ref-open" href="https://www.bigriverbids.com/" target="_blank" rel="noopener noreferrer">Open full page</a>
-          </div>
-          <div class="ref-crop">
-            <iframe class="ref-frame"
-                    src="https://www.bigriverbids.com/"
-                    title="Big River Resources Boyceville, posted cash bids"
-                    loading="lazy" referrerpolicy="no-referrer" scrolling="no"></iframe>
-          </div>
-          <p class="ref-note">Their posted bids, shown so you are not hunting for them in
-          another tab. Read the corn number and type it above. Blank panel means their site
-          declines to be embedded; use the button instead.</p>
+        <div class="row spread-row">
+          <label class="fl" for="off">Our spread under Big River</label>
+          <div class="money sm"><span>&minus;$</span><input id="off" name="spread" type="text" inputmode="decimal" value="0.10"></div>
+          <div class="counter">The one number here that is a decision rather than a reading.
+          Change it only when the owners change what we pay under the plant, and it applies to
+          every row above straight away.</div>
         </div>
+
+        <details class="byhand">
+          <summary>Post a price by hand instead</summary>
+          <div class="byhand-body">
+            <p class="help">Only for when the automatic reading is down and you have been told
+            so. Anything typed here overrides the feed until you clear it, so clear it once the
+            feed is working or the website will keep showing your number instead of the live one.</p>
+            <div class="bidgrid">
+              <div>
+                <label class="fl" for="mcash">Cash price to post</label>
+                <div class="money"><span>$</span><input id="mcash" name="manual_cash" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
+              </div>
+              <div>
+                <label class="fl" for="mharv">Harvest price, if posting one</label>
+                <div class="money"><span>$</span><input id="mharv" name="manual_harvest" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
+              </div>
+            </div>
+            <div class="sanity">
+              <strong>Sanity check.</strong> USDA reported Wisconsin ethanol plants bidding
+              <span class="num">$4.05</span> to <span class="num">$4.43</span> yesterday. Anything
+              typed outside that range will be refused.
+            </div>
+          </div>
+        </details>
 
         <div class="prev">
           <div class="prev-l">What customers will see</div>
-          <div class="prev-bid">
-            <span class="pb-l">Cash, corn</span>
-            <span class="pb-h num">$4.28</span>
-          </div>
+          <div class="prev-bid"><span class="pb-l">Cash, corn</span><span class="pb-h num">$3.97</span></div>
         </div>
+
         <div class="row">
           <label class="fl" for="pnote">Small print under the price table</label>
           <textarea id="pnote" name="price_note" maxlength="240">Prices change with the market and are not final until you call. Grain is bought subject to the drying and discount schedule below.</textarea>
           <div class="counter">Shows directly under the prices on both sites. Leave the last sentence in; it is what ties a posted price to the drying schedule.</div>
-        </div>
-        <div class="row">
-          <label class="fl" for="harv">Harvest bid, if you are posting one</label>
-          <div class="money"><span>$</span><input id="harv" name="harvest" type="text" inputmode="decimal" value="4.12"></div>
-          <div class="counter">Leave blank and the harvest row disappears from the site.</div>
         </div>
       </div>
     </div>
@@ -162,24 +160,24 @@
           <legend>Are you open today?</legend>
           <div class="choices">
             <label class="choice"><input type="radio" name="today" value="usual" checked>
-              <span>Open, usual hours<small>7:00a to 5:00p</small></span></label>
+              <span>Open, usual hours<small>8:00a to 5:00p weekdays, 8:00a to 12:00p Saturday</small></span></label>
             <label class="choice"><input type="radio" name="today" value="custom">
               <span>Open, different hours<small>Set the times below</small></span></label>
             <label class="choice"><input type="radio" name="today" value="closed">
               <span>Closed today<small>Shows CLOSED at the top of the site</small></span></label>
             <label class="choice"><input type="radio" name="today" value="harvest">
-              <span>Harvest hours<small>7:00a to 8:00p</small></span></label>
+              <span>Harvest hours<small>Wheeler 8:00a to 7:00p &middot; Baldwin 7:00a to 7:00p, seven days</small></span></label>
           </div>
         </fieldset>
         <div class="times">
-          <div><label class="fl" for="o">Opens</label><input id="o" type="time" name="open" value="07:00"></div>
+          <div><label class="fl" for="o">Opens</label><input id="o" type="time" name="open" value="08:00"></div>
           <div><label class="fl" for="c">Closes</label><input id="c" type="time" name="close" value="17:00"></div>
         </div>
         <div class="prev">
           <div class="prev-l">What customers will see</div>
           <div class="prev-today">
             <div class="l">Open today, Friday</div>
-            <div class="h">7:00a to 5:00p</div>
+            <div class="h">8:00a to 5:00p</div>
           </div>
         </div>
       </div>
@@ -219,12 +217,18 @@
         <table class="week">
           <thead><tr><th>Day</th><th>Opens</th><th>Closes</th><th>Closed</th></tr></thead>
           <tbody>
-            <tr><td>Mon to Fri</td><td><input type="time" value="07:00"></td><td><input type="time" value="17:00"></td>
-                <td><label class="cl"><input type="checkbox"> Closed</label></td></tr>
-            <tr><td>Saturday</td><td><input type="time" value="07:00"></td><td><input type="time" value="12:00"></td>
-                <td><label class="cl"><input type="checkbox"> Closed</label></td></tr>
-            <tr><td>Sunday</td><td><input type="time" value="" disabled></td><td><input type="time" value="" disabled></td>
-                <td><label class="cl"><input type="checkbox" checked> Closed</label></td></tr>
+            <tr><td>Mon to Fri</td>
+                <td><input type="time" name="wk_open" value="08:00" aria-label="Monday to Friday, opening time"></td>
+                <td><input type="time" name="wk_close" value="17:00" aria-label="Monday to Friday, closing time"></td>
+                <td><label class="cl"><input type="checkbox" name="wk_closed" value="1"> Closed</label></td></tr>
+            <tr><td>Saturday</td>
+                <td><input type="time" name="sat_open" value="08:00" aria-label="Saturday, opening time"></td>
+                <td><input type="time" name="sat_close" value="12:00" aria-label="Saturday, closing time"></td>
+                <td><label class="cl"><input type="checkbox" name="sat_closed" value="1"> Closed</label></td></tr>
+            <tr><td>Sunday</td>
+                <td><input type="time" name="sun_open" value="" disabled aria-label="Sunday, opening time"></td>
+                <td><input type="time" name="sun_close" value="" disabled aria-label="Sunday, closing time"></td>
+                <td><label class="cl"><input type="checkbox" name="sun_closed" value="1" checked> Closed</label></td></tr>
           </tbody>
         </table>
       </div>
@@ -236,7 +240,7 @@
       <div class="body">
         <div class="row">
           <label class="fl" for="hn">Note</label>
-          <textarea id="hn" name="hoursnote" maxlength="200">Harvest hours run longer and we open Sundays when the crop demands. Updated hours are posted here first. When in doubt, call.</textarea>
+          <textarea id="hn" name="hoursnote" maxlength="200">During harvest we run longer, seven days a week. Outside harvest the hours above hold. Updated hours are posted here first. When in doubt, call.</textarea>
         </div>
       </div>
     </div>

@@ -72,6 +72,11 @@
   .wm2{font-family:var(--display);font-size:.55rem;font-weight:700;letter-spacing:.085em;
        text-transform:uppercase;white-space:nowrap;line-height:1}
   .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* Both marks, because this screen edits both locations. */
+  .marks{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .marks-sep{width:2px;height:34px;background:var(--line);flex:0 0 auto}
+  @media(max-width:620px){ .marks-sep{display:none} .marks{gap:10px} }
+
   .who{font-size:.95rem;color:var(--grey)}
   .who b{color:var(--ink)}
 
@@ -122,6 +127,29 @@
   input:focus,textarea:focus,select:focus{outline:3px solid var(--ink);outline-offset:2px}
   .times{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:420px}
 
+  /* Feed status. Green when it is reading, yellow when it is not. */
+  .feed{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--radius);
+        border:2px solid var(--ink);margin-bottom:16px;background:var(--paper)}
+  .feed-dot{width:14px;height:14px;border-radius:50%;flex:0 0 auto;margin-top:5px;
+            background:var(--green);box-shadow:0 0 0 3px rgba(29,94,60,.18)}
+  .feed.is-down{background:var(--yellow)}
+  .feed.is-down .feed-dot{background:var(--ink);box-shadow:0 0 0 3px rgba(17,17,17,.15)}
+  .feed-t{font-size:1rem;line-height:1.45}
+  .feed-t .num{font-variant-numeric:tabular-nums}
+
+  .board-open{color:var(--yellow);font-weight:700;font-size:.88rem;text-decoration:underline}
+  .bd td.pay{font-weight:800;font-size:1.14rem}
+  .spread-row{max-width:420px}
+  .money.sm input{font-size:1.3rem;padding:9px 11px}
+
+  /* Break-glass. Folded away so using it feels like the exception. */
+  .byhand{border:2px dashed var(--line);border-radius:var(--radius);margin-top:16px;
+          background:var(--band)}
+  .byhand summary{padding:13px 16px;font-weight:700;cursor:pointer;font-size:1rem}
+  .byhand summary::marker{color:var(--grey)}
+  .byhand[open] summary{border-bottom:1px solid var(--line-lt)}
+  .byhand-body{padding:16px}
+
   /* today's corn bid */
   .bidgrid{display:grid;grid-template-columns:1fr;gap:14px;max-width:520px}
   .money{display:flex;align-items:center;gap:6px}
@@ -161,13 +189,19 @@
      box and pulled up and left, so only the bid table is visible. The
      four values live on the .ref element so they can be tuned without
      touching this file. */
+  .ref-note-s{font-weight:400;color:#bbb;font-size:.85rem}
+  .ref-open-btn{display:block;padding:18px 20px;text-decoration:none;color:var(--ink);
+                background:var(--paper);font-weight:800;font-size:1.12rem;text-align:center}
+  .ref-open-btn:hover{background:var(--yellow);text-decoration:none}
+  .ref-sub{display:block;font-weight:500;font-size:.92rem;color:var(--grey);margin-top:4px}
+  .ref-open-btn:hover .ref-sub{color:var(--ink)}
+  /* Only shown if their host ever allowlists us; see the note in the HTML. */
+  .ref[data-frame="off"] .ref-crop{display:none}
   .ref-crop{position:relative;height:var(--h,420px);overflow:hidden;background:var(--band)}
   .ref-frame{position:absolute;top:var(--top,0);left:var(--left,0);
              width:var(--w,900px);height:calc(var(--h,420px) - var(--top,0px));
              border:0;background:transparent}
-  @media(max-width:640px){
-    .ref-crop{height:calc(var(--h,420px) * .7)}
-  }
+  @media(max-width:640px){ .ref-crop{height:calc(var(--h,420px) * .7)} }
   .ref-note{padding:11px 14px;background:var(--band);font-size:.9rem;color:var(--grey);
             border-top:1px solid var(--line-lt)}
   .prev-bid{background:var(--paper);border:2px solid var(--ink);border-radius:6px;padding:12px 14px;
