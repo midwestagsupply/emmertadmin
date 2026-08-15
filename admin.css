@@ -95,6 +95,8 @@
 
   .lead{padding:22px 0 6px}
   .lead h1{font-size:clamp(1.6rem,1.4rem + .9vw,2.05rem);margin-bottom:6px}
+  /* The elevator being edited, so nobody changes the wrong one. */
+  .lead h1 .who-site{border-bottom:4px solid var(--yellow);padding-bottom:1px}
   .lead p{color:var(--grey)}
 
   form{padding-bottom:40px}
@@ -180,28 +182,6 @@
               border-top:1px solid var(--line-lt)}
   @media(max-width:560px){ .bd th:nth-child(3),.bd td:nth-child(3){display:none} }
 
-  /* Big River's own board, embedded for the operator's reference only */
-  .ref{margin-top:16px;border:2px solid var(--ink);border-radius:var(--radius);overflow:hidden}
-  .ref-hd{background:var(--ink);color:#fff;padding:10px 14px;font-weight:700;font-size:.98rem;
-          display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-  .ref-open{color:var(--yellow);font-weight:700;font-size:.9rem;text-decoration:underline}
-  /* Cropping window. The frame inside is deliberately bigger than this
-     box and pulled up and left, so only the bid table is visible. The
-     four values live on the .ref element so they can be tuned without
-     touching this file. */
-  .ref-note-s{font-weight:400;color:#bbb;font-size:.85rem}
-  .ref-open-btn{display:block;padding:18px 20px;text-decoration:none;color:var(--ink);
-                background:var(--paper);font-weight:800;font-size:1.12rem;text-align:center}
-  .ref-open-btn:hover{background:var(--yellow);text-decoration:none}
-  .ref-sub{display:block;font-weight:500;font-size:.92rem;color:var(--grey);margin-top:4px}
-  .ref-open-btn:hover .ref-sub{color:var(--ink)}
-  /* Only shown if their host ever allowlists us; see the note in the HTML. */
-  .ref[data-frame="off"] .ref-crop{display:none}
-  .ref-crop{position:relative;height:var(--h,420px);overflow:hidden;background:var(--band)}
-  .ref-frame{position:absolute;top:var(--top,0);left:var(--left,0);
-             width:var(--w,900px);height:calc(var(--h,420px) - var(--top,0px));
-             border:0;background:transparent}
-  @media(max-width:640px){ .ref-crop{height:calc(var(--h,420px) * .7)} }
   .ref-note{padding:11px 14px;background:var(--band);font-size:.9rem;color:var(--grey);
             border-top:1px solid var(--line-lt)}
   .prev-bid{background:var(--paper);border:2px solid var(--ink);border-radius:6px;padding:12px 14px;

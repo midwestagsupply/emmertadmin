@@ -33,8 +33,11 @@
 </header>
 
 <div class="wrap lead">
-  <h1>Update the site</h1>
-  <p>Change what customers see. Everything on this page goes live the moment you press Save.</p>
+  <h1>Update <span class="who-site" data-badger="Badger Grain Supply" data-midwest="Midwest Commodity Service">Badger Grain Supply</span></h1>
+  <p><span class="who-town" data-badger="Wheeler" data-midwest="Baldwin">Wheeler</span>. Everything
+  on this page goes live the moment you press Save, and it changes
+  <strong><span class="who-site" data-badger="Badger Grain Supply" data-midwest="Midwest Commodity Service">Badger Grain Supply</span> only</strong>.
+  The other elevator is not touched.</p>
 </div>
 
 <div class="wrap">
@@ -61,7 +64,7 @@
          it is folded away because using it should feel like an
          exception, which it is. -->
     <div class="card">
-      <h2>Today&rsquo;s corn bid <span class="hint">Read automatically</span></h2>
+      <h2>Today&rsquo;s corn bid <span class="hint"><span class="who-town" data-badger="Wheeler" data-midwest="Baldwin">Wheeler</span> &middot; read automatically</span></h2>
       <div class="body">
 
         <div class="feed is-ok">
@@ -76,8 +79,8 @@
         <div class="board">
           <div class="board-hd">
             <span>Their posted board</span>
-            <a class="board-open" href="https://www.bigriverbids.com/cashbidssingle-2121"
-               target="_blank" rel="noopener noreferrer">Open their page to compare</a>
+            <a class="board-open" id="brOpen" href="https://www.bigriverbids.com/cashbidssingle-2121"
+               target="_blank" rel="noopener noreferrer">Open their page side by side</a>
           </div>
           <table class="bd num">
             <thead>
@@ -166,7 +169,7 @@
             <label class="choice"><input type="radio" name="today" value="closed">
               <span>Closed today<small>Shows CLOSED at the top of the site</small></span></label>
             <label class="choice"><input type="radio" name="today" value="harvest">
-              <span>Harvest hours<small>Wheeler 8:00a to 7:00p &middot; Baldwin 7:00a to 7:00p, seven days</small></span></label>
+              <span>Harvest hours<small><span class="who-harvest" data-badger="8:00a to 7:00p" data-midwest="7:00a to 7:00p">8:00a to 7:00p</span>, seven days a week</small></span></label>
           </div>
         </fieldset>
         <div class="times">
@@ -257,5 +260,69 @@
 </form>
 
 
+
+<!-- The only JavaScript in this project, and it is on the staff screen
+     rather than either public site. Those stay at zero.
+
+     Their board cannot be embedded: their host sends a Content Security
+     Policy that refuses framing, and our domains are not on its
+     allowlist. A window placed beside this one gets the same result
+     without needing anyone's permission.
+
+     Written as an enhancement, not a dependency. The link works on its
+     own; this only improves where the window lands. If the browser
+     blocks it, refuses to move windows, or JavaScript is off, the
+     normal new tab still opens. -->
+<script>
+// Which elevator is being edited. The Worker sets this server side; this
+// repeats it from the query string so the screen also behaves correctly
+// opened as a plain file, and so nothing looks inert while you are still
+// setting the backend up.
+(function () {
+  var site = (location.search.match(/[?&]site=(\w+)/) || [])[1] === "midwest" ? "midwest" : "badger";
+  document.querySelectorAll(".loc-tab").forEach(function (t) {
+    t.classList.toggle("is-on", (t.getAttribute("href") || "").indexOf(site) > -1);
+  });
+  document.querySelectorAll("[data-" + site + "]").forEach(function (e) {
+    e.textContent = e.getAttribute("data-" + site);
+  });
+  var f = document.querySelector("form[action]");
+  if (f) f.setAttribute("action", "/save?site=" + site);
+  document.title = document.title.replace(/\| .*$/, "| " + (site === "midwest" ? "Midwest Commodity Service" : "Badger Grain Supply"));
+})();
+
+(function () {
+  var a = document.getElementById("brOpen");
+  if (!a || !window.screen) return;
+
+  a.addEventListener("click", function (e) {
+    // Multi-monitor aware where supported, so it lands on the screen
+    // this window is actually on rather than always the primary.
+    var s = window.screen;
+    var availL = s.availLeft || 0, availT = s.availTop || 0;
+    var w = s.availWidth, h = s.availHeight;
+    if (w < 900) return;              // too narrow to split; let the tab open
+
+    var half = Math.floor(w / 2);
+    var win = window.open(
+      a.href, "bigriver",
+      "popup=yes,noopener,width=" + (half - 8) + ",height=" + h +
+      ",left=" + (availL + half) + ",top=" + availT
+    );
+    if (!win && win !== null) return;  // blocked; the normal tab opens
+
+    e.preventDefault();
+    if (win) { try { win.opener = null; } catch (_) {} win.focus(); }
+
+    // Try to take the left half. Browsers only allow this for windows
+    // opened by script, so it usually does nothing. Harmless either way,
+    // and when it works the two sit exactly side by side.
+    try {
+      window.resizeTo(half - 8, h);
+      window.moveTo(availL, availT);
+    } catch (_) {}
+  });
+})();
+</script>
 </body>
 </html>
