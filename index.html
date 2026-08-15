@@ -7,13 +7,9 @@
 <link rel="stylesheet" href="admin.css">
 <meta name="robots" content="noindex">
 <link rel="icon" href="assets/icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="demo">Mockup of the staff screen. <b>Nothing here saves yet.</b></div>
 
 <header>
   <div class="wrap">
@@ -44,6 +40,118 @@
 
 <form method="post" action="/save">
   <div class="wrap">
+
+    <!-- ============ CORN BID ============ -->
+    <div class="card">
+      <h2>Today&rsquo;s corn bid <span class="hint">The number farmers came for</span></h2>
+      <div class="body">
+        <p class="help">Type what Big River is posting at Boyceville. The site works out what we pay and shows it. If you leave it blank the price panel says <strong>&ldquo;Call for today&rsquo;s price&rdquo;</strong> rather than showing a stale number.</p>
+        <div class="bidgrid">
+          <div>
+            <label class="fl" for="ref">Big River, Boyceville</label>
+            <div class="money"><span>$</span><input id="ref" name="reference" type="text" inputmode="decimal" value="4.38"></div>
+          </div>
+          <div>
+            <label class="fl" for="off">We pay</label>
+            <div class="money"><span>&minus;$</span><input id="off" name="offset" type="text" inputmode="decimal" value="0.10"></div>
+            <div class="counter">Change this only if the spread changes.</div>
+          </div>
+        </div>
+        <div class="sanity">
+          <strong>Sanity check.</strong> USDA reported Wisconsin ethanol plants bidding
+          <span class="num">$4.05</span> to <span class="num">$4.43</span> yesterday. Your number is inside that range.
+        </div>
+
+        <!-- Their whole board, as captured by tools/fetch-bid.mjs.
+             Rendered by the backend from data.json reference.board.
+             The futures column is cash minus their basis: their own
+             arithmetic run backwards, so it is what they were pricing
+             against when they last posted. It is labelled implied for
+             that reason, not out of caution: if they update cash and
+             basis at different times or round either one, it drifts. -->
+        <div class="board">
+          <div class="board-hd">
+            <span>Big River, Boyceville &mdash; posted board</span>
+            <span class="board-as num">read 6:40a</span>
+          </div>
+          <table class="bd num">
+            <thead>
+              <tr><th>Commodity</th><th>Delivery</th><th>Month</th>
+                  <th class="r">Basis</th><th class="r">Cash</th><th class="r">Implied</th></tr>
+            </thead>
+            <tbody>
+              <tr class="is-ref"><td>Corn</td><td>Spot</td><td>Sep 26</td>
+                  <td class="r">&minus;0.34</td><td class="r">$4.38</td><td class="r">$4.72</td></tr>
+              <tr><td>Corn</td><td>New crop</td><td>Dec 26</td>
+                  <td class="r">&minus;0.42</td><td class="r">$4.22</td><td class="r">$4.64</td></tr>
+              <tr><td>Soybeans</td><td>Spot</td><td>Sep 26</td>
+                  <td class="r">&minus;0.78</td><td class="r">$10.51</td><td class="r">$11.29</td></tr>
+            </tbody>
+          </table>
+          <p class="board-note">The highlighted row is the one your bid is priced off.
+          <strong>Implied</strong> is their cash less their basis, which is the futures number
+          they were working from when they last posted. It is not a live quote off the board.</p>
+        </div>
+
+        <!-- Big River's Boyceville bid board, cropped to just the bids.
+
+             THE URL AND THE CROP BOTH NEED SETTING ONCE, against their
+             real page. Neither can be guessed at from outside.
+
+             1. THE URL. Find their bare bids view rather than the whole
+                homepage. Their platform uses paths like
+                  /cashbidssingle-2163
+                  /markets/cashgrid.php
+                  /markets/cash.php
+                Open each, see which one renders the Boyceville grid on
+                its own, and put it in --src below. They have already
+                said yes to all this, so the quickest route is to ask
+                them which URL is the bare board.
+
+             2. THE CROP. The wrapper hides overflow and the frame is
+                oversized and pulled up and left, so only the bid table
+                shows. That is a visual crop of their own rendering, not
+                a read of their page: nothing here can see inside the
+                frame, which is why this is reference only.
+                Tune --top, --left, --w and --h until it sits right.
+
+             If their site refuses to be framed, which is common, the
+             panel stays blank and the button still works. -->
+        <div class="ref" style="--top:-96px;--left:-12px;--w:760px;--h:520px">
+          <div class="ref-hd">
+            <span>Big River, Boyceville</span>
+            <a class="ref-open" href="https://www.bigriverbids.com/" target="_blank" rel="noopener noreferrer">Open full page</a>
+          </div>
+          <div class="ref-crop">
+            <iframe class="ref-frame"
+                    src="https://www.bigriverbids.com/"
+                    title="Big River Resources Boyceville, posted cash bids"
+                    loading="lazy" referrerpolicy="no-referrer" scrolling="no"></iframe>
+          </div>
+          <p class="ref-note">Their posted bids, shown so you are not hunting for them in
+          another tab. Read the corn number and type it above. Blank panel means their site
+          declines to be embedded; use the button instead.</p>
+        </div>
+
+        <div class="prev">
+          <div class="prev-l">What customers will see</div>
+          <div class="prev-bid">
+            <span class="pb-l">Cash, corn</span>
+            <span class="pb-h num">$4.28</span>
+          </div>
+        </div>
+        <div class="row">
+          <label class="fl" for="pnote">Small print under the price table</label>
+          <textarea id="pnote" name="price_note" maxlength="240">Prices change with the market and are not final until you call. Grain is bought subject to the drying and discount schedule below.</textarea>
+          <div class="counter">Shows directly under the prices on both sites. Leave the last sentence in; it is what ties a posted price to the drying schedule.</div>
+        </div>
+        <div class="row">
+          <label class="fl" for="harv">Harvest bid, if you are posting one</label>
+          <div class="money"><span>$</span><input id="harv" name="harvest" type="text" inputmode="decimal" value="4.12"></div>
+          <div class="counter">Leave blank and the harvest row disappears from the site.</div>
+        </div>
+      </div>
+    </div>
 
     <!-- ============ TODAY ============ -->
     <div class="card">
@@ -144,18 +252,6 @@
   </div>
 </form>
 
-<div class="notes">
-  <div class="wrap">
-    <h2>Build notes, for our meeting only</h2>
-    <ul>
-      <li><strong>This is a mockup of the screen, not a working backend yet.</strong> The point is to agree what staff can change before anything gets built. Right now that is four things: today&rsquo;s hours, the notice banner, the regular weekly hours and the small print. Nothing else on the site is editable, on purpose, because every extra field is another thing that can go wrong at 6am in October.</li>
-      <li><strong>How it would work.</strong> A plain HTML form posting to a small server, which writes the page. No dashboard software to learn, no page builder, nothing to break the layout. It works on the office computer and on a phone from the scale house.</li>
-      <li><strong>Prices are deliberately not on this screen.</strong> Those come straight from the Barchart feed. If staff had to key prices in by hand every morning they would go stale, and a wrong price on a website is worse than no price.</li>
-      <li><strong>On a scrolling banner.</strong> The yellow bar is static on purpose. Moving text is genuinely hard to read, it cannot be paused, and it is the first thing people complain about. If they want it to scroll after seeing it, that is easy to add, but I would push back once.</li>
-      <li><strong>Still to decide:</strong> who gets a login and how many, whether changes need a second person to approve, and whether we keep a simple history of who changed what and when. I would keep the history, it costs almost nothing and settles arguments.</li>
-    </ul>
-  </div>
-</div>
 
 </body>
 </html>

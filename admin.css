@@ -7,6 +7,33 @@
      This is a plain HTML form. It posts to the server and the server
      writes the page. No JavaScript here either.
      =================================================================== */
+  /* Body text. Self hosted, subset to Latin, four weights.
+     No outside request: these pages call nobody. */
+  @font-face{
+    font-family:"Inter";
+    src:url("fonts/inter-500.woff2") format("woff2"),
+        url("fonts/inter-500.woff") format("woff");
+    font-weight:500;font-style:normal;font-display:swap;
+  }
+  @font-face{
+    font-family:"Inter";
+    src:url("fonts/inter-600.woff2") format("woff2"),
+        url("fonts/inter-600.woff") format("woff");
+    font-weight:600;font-style:normal;font-display:swap;
+  }
+  @font-face{
+    font-family:"Inter";
+    src:url("fonts/inter-700.woff2") format("woff2"),
+        url("fonts/inter-700.woff") format("woff");
+    font-weight:700;font-style:normal;font-display:swap;
+  }
+  @font-face{
+    font-family:"Inter";
+    src:url("fonts/inter-800.woff2") format("woff2"),
+        url("fonts/inter-800.woff") format("woff");
+    font-weight:800;font-style:normal;font-display:swap;
+  }
+
   /* Same logo face as the public site. See shared/fonts/README.md. */
   @font-face{
     font-family:"Wordmark";
@@ -29,8 +56,6 @@
   a{color:var(--ink);font-weight:700;text-decoration:underline;text-underline-offset:2px}
   .wrap{max-width:860px;margin:0 auto;padding:0 16px}
 
-  .demo{background:#111;color:#eee;text-align:center;padding:9px 16px;font-size:.85rem;font-weight:600}
-  .demo b{color:var(--yellow)}
 
   header{background:var(--paper);border-bottom:3px solid var(--ink)}
   header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;
@@ -96,6 +121,60 @@
   textarea{min-height:96px;resize:vertical;font-weight:500}
   input:focus,textarea:focus,select:focus{outline:3px solid var(--ink);outline-offset:2px}
   .times{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:420px}
+
+  /* today's corn bid */
+  .bidgrid{display:grid;grid-template-columns:1fr;gap:14px;max-width:520px}
+  .money{display:flex;align-items:center;gap:6px}
+  .money > span{font-weight:800;font-size:1.35rem;flex:0 0 auto}
+  .money input{width:100%;font-family:inherit;font-size:1.6rem;font-weight:800;color:var(--ink);
+               font-variant-numeric:tabular-nums;padding:11px 12px;border:2px solid var(--ink);
+               border-radius:var(--radius);background:var(--paper)}
+  .money input:focus{outline:3px solid var(--yellow);outline-offset:1px}
+  .sanity{background:var(--band);border-left:5px solid var(--ink);padding:12px 14px;
+          margin-top:14px;font-size:.96rem;border-radius:0 var(--radius) var(--radius) 0}
+  .sanity .num{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
+  .sanity.out{background:var(--yellow);border-left-color:var(--ink)}
+
+  /* Their whole board, captured as data */
+  .board{margin-top:16px;border:2px solid var(--ink);border-radius:var(--radius);overflow:hidden}
+  .board-hd{background:var(--ink);color:#fff;padding:10px 14px;font-weight:700;font-size:.98rem;
+            display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .board-as{font-weight:400;color:#bbb;font-size:.85rem}
+  .bd{width:100%;border-collapse:collapse}
+  .bd th{text-align:left;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;
+         color:var(--grey);font-weight:700;padding:9px 12px;border-bottom:2px solid var(--ink);
+         white-space:nowrap}
+  .bd th.r,.bd td.r{text-align:right}
+  .bd td{padding:10px 12px;border-bottom:1px solid var(--line-lt);font-size:1rem;white-space:nowrap}
+  .bd tr:last-child td{border-bottom:none}
+  .bd .is-ref td{background:var(--yellow);font-weight:800}
+  .board-note{padding:11px 14px;background:var(--band);font-size:.9rem;color:var(--grey);
+              border-top:1px solid var(--line-lt)}
+  @media(max-width:560px){ .bd th:nth-child(3),.bd td:nth-child(3){display:none} }
+
+  /* Big River's own board, embedded for the operator's reference only */
+  .ref{margin-top:16px;border:2px solid var(--ink);border-radius:var(--radius);overflow:hidden}
+  .ref-hd{background:var(--ink);color:#fff;padding:10px 14px;font-weight:700;font-size:.98rem;
+          display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+  .ref-open{color:var(--yellow);font-weight:700;font-size:.9rem;text-decoration:underline}
+  /* Cropping window. The frame inside is deliberately bigger than this
+     box and pulled up and left, so only the bid table is visible. The
+     four values live on the .ref element so they can be tuned without
+     touching this file. */
+  .ref-crop{position:relative;height:var(--h,420px);overflow:hidden;background:var(--band)}
+  .ref-frame{position:absolute;top:var(--top,0);left:var(--left,0);
+             width:var(--w,900px);height:calc(var(--h,420px) - var(--top,0px));
+             border:0;background:transparent}
+  @media(max-width:640px){
+    .ref-crop{height:calc(var(--h,420px) * .7)}
+  }
+  .ref-note{padding:11px 14px;background:var(--band);font-size:.9rem;color:var(--grey);
+            border-top:1px solid var(--line-lt)}
+  .prev-bid{background:var(--paper);border:2px solid var(--ink);border-radius:6px;padding:12px 14px;
+            display:flex;align-items:baseline;justify-content:space-between;gap:12px}
+  .pb-l{font-weight:700}
+  .pb-h{font-weight:800;font-size:1.7rem;font-variant-numeric:tabular-nums}
+  @media(min-width:620px){ .bidgrid{grid-template-columns:1.3fr 1fr} }
   .row{margin-bottom:16px}
   .row:last-child{margin-bottom:0}
 
@@ -141,10 +220,6 @@
   .btn:hover{background:var(--band)}
   .saved{color:var(--green);font-weight:700}
 
-  .notes{background:#fdf3cf;border-top:4px solid var(--ink);padding:26px 0;margin-top:10px}
-  .notes h2{font-size:.95rem;text-transform:uppercase;letter-spacing:.05em;color:#7a4a10;margin-bottom:12px}
-  .notes ul{margin-left:19px;font-size:.95rem;color:#3f3a30}
-  .notes li{margin-bottom:8px}
 
   @media(min-width:620px){
     .loc-tabs{grid-template-columns:1fr 1fr}
