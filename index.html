@@ -54,8 +54,10 @@
   <div class="wrap">
 
     <!-- ============ CORN BID ============ -->
-    <!-- Automatic. A Cloudflare Worker reads Big River's board every
-         minute during market hours, checks it, and writes the numbers.
+    <!-- Automatic. A Cloudflare Worker in the bigriver-bids repo reads
+         Big River's board every 10 minutes in market hours and commits the
+         numbers as JSON; this screen's Worker checks that file every 5
+         minutes and publishes. "Check again now" skips the wait.
          Nothing here is typed in the normal course of a day.
 
          The two editable things are deliberate. The SPREAD is a business
@@ -70,17 +72,24 @@
         <div class="feed is-ok">
           <span class="feed-dot" aria-hidden="true"></span>
           <div class="feed-t">
-            <strong>Reading Big River, Boyceville.</strong>
-            Last read <span class="num">7:48 PM</span>, one minute ago. Checked against USDA&rsquo;s
-            Wisconsin range and against their own basis. Nothing for you to do.
+            <strong>Reading Big River, Boyceville, through our own mirror.</strong>
+            Last read <span class="num">7:48 PM</span>, one minute ago. The mirror refuses any
+            reading where their cash and basis do not agree with the futures quote on their own
+            page. Nothing for you to do.
           </div>
         </div>
 
         <div class="board">
           <div class="board-hd">
             <span>Their posted board</span>
-            <a class="board-open" id="brOpen" href="https://www.bigriverbids.com/cashbidssingle-2121"
-               target="_blank" rel="noopener noreferrer">Open their page side by side</a>
+            <span class="board-acts">
+              <!-- Reads their board this second instead of waiting for the next
+                   scheduled check. The table below is otherwise whatever the
+                   last check found, which is normally a few minutes old. -->
+              <a class="board-open" href="/refresh">Check again now</a>
+              <a class="board-open" id="brOpen" href="https://www.bigriverbids.com/cashbidssingle-2121"
+                 target="_blank" rel="noopener noreferrer">Open their page side by side</a>
+            </span>
           </div>
           <table class="bd num">
             <thead>
@@ -132,11 +141,32 @@
                 <label class="fl" for="mharv">Harvest price, if posting one</label>
                 <div class="money"><span>$</span><input id="mharv" name="manual_harvest" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
               </div>
+              <div>
+                <label class="fl" for="mbasis">Cash basis, if you know it</label>
+                <div class="money"><span>$</span><input id="mbasis" name="manual_basis" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
+              </div>
+              <div>
+                <label class="fl" for="mhbasis">Harvest basis, if you know it</label>
+                <div class="money"><span>$</span><input id="mhbasis" name="manual_harvest_basis" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
+              </div>
             </div>
+            <p class="help">Basis is optional and goes on the website beside the price, the
+            same as it does when the reading is automatic. Type it the way you say it, so
+            <span class="num">-0.42</span> for forty two under. Leave it blank rather than
+            typing a zero if you do not know it: blank means we are not saying, and zero means
+            we are saying it is even with the board. Anyone reading our numbers can tell those
+            two apart, and they should be able to.</p>
+            <!-- This box used to say USDA had reported a Wisconsin range and that
+                 anything outside it would be refused. Nothing in the Worker has ever
+                 fetched that figure, so the range was decoration and the promise was
+                 false. It now describes the checks that actually run. If the USDA
+                 cross-check is wired up later, say so here and give the real range. -->
             <div class="sanity">
-              <strong>Sanity check.</strong> USDA reported Wisconsin ethanol plants bidding
-              <span class="num">$4.05</span> to <span class="num">$4.43</span> yesterday. Anything
-              typed outside that range will be refused.
+              <strong>Sanity check.</strong> A price outside <span class="num">$2.00</span> to
+              <span class="num">$12.00</span> is refused, and so is a basis further than
+              <span class="num">$1.50</span> from zero, or a basis typed with no price beside
+              it. Nothing checks whether the number is <em>right</em>, only whether it could
+              be. Read it back before you save.
             </div>
           </div>
         </details>

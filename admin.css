@@ -241,3 +241,12 @@
   @media(min-width:700px){
     .choices{grid-template-columns:1fr 1fr}
   }
+
+/* The two links in the board header. They sit together on the right on a
+   desktop and stack under the heading on a phone, where the office is most
+   likely to be reading this one-handed. */
+.board-acts{display:flex;gap:16px;flex-wrap:wrap}
+@media(max-width:560px){
+  .board-hd{flex-wrap:wrap;gap:6px}
+  .board-acts{width:100%;gap:14px}
+}
