@@ -44,7 +44,7 @@
      here: an address that names an elevator we do not know, or a price
      being posted by hand while the automatic reading is fine. Empty and
      hidden the rest of the time. -->
-<div class="wrap"><div class="sanity" id="adminWarn" hidden></div></div>
+<div class="wrap"><div class="warn" id="adminWarn" hidden></div></div>
 
 <div class="wrap">
   <div class="loc">
@@ -127,29 +127,35 @@
                   <td class="r">$4.39</td><td class="r pay">$4.29</td></tr>
             </tbody>
           </table>
-          <p class="board-note"><strong>This table is the check.</strong> Their basis and their
-          cash are exactly what the reader pulled off their page a minute ago, not a picture of
-          it. Open their page beside this and the two should agree line for line. If they ever
-          do not, the reader has gone wrong and the numbers here are what you would have posted,
-          which is the whole reason it is shown.<br>
-          The highlighted row is the nearest delivery, which is what leads on the website.
-          <strong>We pay</strong> is their cash less the spread below.</p>
+          <p class="board-note"><strong>This table is the check.</strong> Their basis and
+          their cash are what the reader pulled off their page, not a picture of it. Open
+          their page beside this; the two should agree line for line.<br>
+          The highlighted row is the nearest delivery. <strong>We pay</strong> is their cash
+          less our basis below.</p>
+        </div>
+
+        <!-- Two boxes because old crop and new crop are two decisions. Blank
+             on the second means it follows the first, which is how it behaved
+             when there was only one. The figures are per elevator: this screen
+             writes the one you are editing and never touches the other. -->
+        <div class="row spread-row">
+          <label class="fl" for="off">Our basis under Big River &mdash; cash</label>
+          <div class="money sm"><span>&minus;$</span><input id="off" name="spread" type="text" inputmode="decimal" value="0.10"></div>
+          <div class="counter">Corn off the truck today.</div>
         </div>
 
         <div class="row spread-row">
-          <label class="fl" for="off">Our spread under Big River</label>
-          <div class="money sm"><span>&minus;$</span><input id="off" name="spread" type="text" inputmode="decimal" value="0.10"></div>
-          <div class="counter">The one number here that is a decision rather than a reading.
-          Change it only when the owners change what we pay under the plant, and it applies to
-          every row above straight away.</div>
+          <label class="fl" for="offh">Our basis under Big River &mdash; new crop</label>
+          <div class="money sm"><span>&minus;$</span><input id="offh" name="spread_harvest" type="text" inputmode="decimal" value="" placeholder="same as cash"></div>
+          <div class="counter">October and November delivery. Blank means the same as cash.</div>
+          <div class="basis-out" id="basisOut"></div>
         </div>
 
         <details class="byhand">
           <summary>Post a price by hand instead</summary>
           <div class="byhand-body">
-            <p class="help">Only for when the automatic reading is down and you have been told
-            so. Anything typed here overrides the feed until you clear it, so clear it once the
-            feed is working or the website will keep showing your number instead of the live one.</p>
+            <p class="help">Only when the automatic reading is down. Anything typed here
+            overrides the feed until you clear it.</p>
             <div class="bidgrid">
               <div>
                 <label class="fl" for="mcash">Cash price to post</label>
@@ -168,12 +174,9 @@
                 <div class="money"><span>$</span><input id="mhbasis" name="manual_harvest_basis" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
               </div>
             </div>
-            <p class="help">Basis is optional and goes on the website beside the price, the
-            same as it does when the reading is automatic. Type it the way you say it, so
+            <p class="help">Basis is optional. Type it the way you say it, so
             <span class="num">-0.42</span> for forty two under. Leave it blank rather than
-            typing a zero if you do not know it: blank means we are not saying, and zero means
-            we are saying it is even with the board. Anyone reading our numbers can tell those
-            two apart, and they should be able to.</p>
+            typing a zero: blank means we are not saying, zero means even with the board.</p>
             <!-- This box used to say USDA had reported a Wisconsin range and that
                  anything outside it would be refused. Nothing in the Worker has ever
                  fetched that figure, so the range was decoration and the promise was
@@ -202,7 +205,7 @@
         <div class="row">
           <label class="fl" for="pnote">Small print under the price table</label>
           <textarea id="pnote" name="price_note" maxlength="240">Prices change with the market and are not final until you call. Grain is bought subject to the drying and discount schedule below.</textarea>
-          <div class="counter">Shows directly under the prices on both sites. Leave the last sentence in; it is what ties a posted price to the drying schedule.</div>
+          <div class="counter">Shows under the prices on both sites. Keep the last sentence: it ties a posted price to the drying schedule.</div>
         </div>
       </div>
     </div>
@@ -211,7 +214,7 @@
     <div class="card">
       <h2>Today&rsquo;s hours <span class="hint" data-sample>Friday, August 14</span></h2>
       <div class="body">
-        <p class="help">This is the big box at the top of the site. If nothing changed today, leave it on the first choice and you are done.</p>
+        <p class="help">The big box at the top of the site. Nothing changed today? Leave it on the first choice.</p>
         <fieldset>
           <legend>Are you open today?</legend>
           <div class="choices">
@@ -243,7 +246,7 @@
     <div class="card">
       <h2>Notice banner <span class="hint">The yellow bar</span></h2>
       <div class="body">
-        <p class="help">Use this for anything a customer needs to know before they haul: harvest hours, a closure, a scale being down, a holiday.</p>
+        <p class="help">Anything a customer needs to know before they haul.</p>
         <fieldset>
           <legend>Show the banner?</legend>
           <div class="choices">
@@ -256,7 +259,7 @@
         <div class="row">
           <label class="fl" for="msg">Message</label>
           <textarea id="msg" name="message" maxlength="160">Harvest hours start Monday. We will run until 8:00p and open Sundays as the crop demands.</textarea>
-          <div class="counter">Keep it under 160 characters so it fits on a phone in two lines.</div>
+          <div class="counter">Two lines on a phone.</div>
         </div>
         <div class="prev">
           <div class="prev-l">What customers will see</div>
@@ -269,7 +272,7 @@
     <div class="card">
       <h2>Regular weekly hours <span class="hint">Changes rarely</span></h2>
       <div class="body">
-        <p class="help">The list under today&rsquo;s hours. Only change this when the normal schedule changes for good.</p>
+        <p class="help">Only change this when the normal schedule changes for good.</p>
         <table class="week">
           <thead><tr><th>Day</th><th>Opens</th><th>Closes</th><th>Closed</th></tr></thead>
           <tbody>
@@ -318,47 +321,69 @@
 /* The only JavaScript in this project, and it is on the staff screen rather
    than either public site. Those stay at zero.
 
-   Everything here is an enhancement. With JavaScript off the form still
-   posts, the links still navigate, Undo still resets, and the Sunday row
-   stays closed because the markup says so. What this adds is the screen
-   telling the truth about itself: which elevator you are editing, which
-   boxes are actually in play, whether an override is quietly in force, and
-   whether you are about to walk away from unsaved work. */
+   It adds and removes class names and nothing else. Every appearance it can
+   produce -- dimmed, flagged, outlined, unavailable -- is defined in
+   admin.css alongside the rest of the design. An earlier version set inline
+   styles from here, which worked and made the page look like what it was: a
+   design with things stuck to it.
+
+   Everything below is an enhancement. With JavaScript off the form still
+   posts, the links navigate, Undo resets, and Sunday stays closed because the
+   markup says so. */
 (function () {
   "use strict";
 
   var SITES = { badger: "Badger Grain Supply", midwest: "Midwest Commodity Service" };
   var DEFAULT_SITE = "badger";
+  var SIGN_OUT_URL = "";          // set when the Worker has somewhere to send it
 
   var warnBox = document.getElementById("adminWarn");
+  var form = document.querySelector("form[action]");
+  var syncs = [];
+  function sync() { syncs.forEach(function (f) { try { f(); } catch (_) {} }); }
+
   function warn(msg) {
     if (!warnBox) return;
     var p = document.createElement("p");
-    p.style.margin = ".25em 0";
     p.textContent = msg;
     warnBox.appendChild(p);
     warnBox.hidden = false;
   }
+  function flag(el, on) { if (el) el.classList.toggle("is-off", !!on); }
+  var byName = function (n) { return document.querySelector('[name="' + n + '"]'); };
+  /* One minus sign on this screen, the same one the board uses. Mixing the
+     hyphen with the typographic minus in the same sentence looks like two
+     different numbers from two different places, which is exactly what it
+     must not look like. */
+  var fmt = function (v) { return (v < 0 ? "\u2212" : "") + Math.abs(v).toFixed(2); };
 
-  var syncs = [];                       // re-run after Undo
-  function sync() { syncs.forEach(function (f) { try { f(); } catch (_) {} }); }
+  /* ---- is this the live screen at all? ----------------------------------
+     The Worker marks the page it serves. A copy from anywhere else -- Pages,
+     a file on a desktop, an old bookmark -- looks identical and cannot save:
+     its Save posts to a host with nothing listening, and GitHub Pages answers
+     a POST with a bare "405 Not Allowed". That happened. Somebody filled in
+     the hours, pressed Save, and got 405 with no hint they had been typing
+     into a photograph. */
+  var live = document.documentElement.getAttribute("data-live") === "1";
+  if (!live) {
+    warn("This is a copy of the screen, not the live one. Nothing typed here can be " +
+         "saved. Open the admin address you were given and work there.");
+    var go = document.querySelector(".btn-go");
+    if (go) { go.disabled = true; go.textContent = "Cannot save from a copy"; }
+    if (form) form.addEventListener("submit", function (e) { e.preventDefault(); });
+  }
 
-  /* ---- 1. Which elevator is being edited -------------------------------
-     The Worker sets this server side; this repeats it from the query string
-     so the screen also behaves correctly opened as a plain file, and so
-     nothing looks inert while the backend is still being set up.
-
-     An unrecognised value used to fall through to Badger without a word.
-     That is the one failure on this screen that costs real money: you would
-     be editing one elevator while the heading named the other. */
+  /* ---- which elevator ---------------------------------------------------
+     An unrecognised value used to fall through to Badger without a word, and
+     editing one elevator while the heading names the other is the one mistake
+     on this screen that costs money. */
   var raw = (location.search.match(/[?&]site=([^&#]*)/) || [])[1];
   try { raw = raw == null ? "" : decodeURIComponent(raw); } catch (_) { raw = String(raw); }
   raw = raw.trim().toLowerCase();
   var site = Object.prototype.hasOwnProperty.call(SITES, raw) ? raw : DEFAULT_SITE;
-  if (raw && raw !== site) {
-    warn('The address says site=' + raw + ', which is not an elevator this screen knows. ' +
-         'It is showing ' + SITES[DEFAULT_SITE] + '. Check the link before you save.');
-  }
+  if (raw && raw !== site)
+    warn("The address says site=" + raw + ", which is not an elevator this screen knows. " +
+         "It is showing " + SITES[DEFAULT_SITE] + ". Check the link before you save.");
 
   document.querySelectorAll(".loc-tab").forEach(function (t) {
     var m = (t.getAttribute("href") || "").match(/[?&]site=([^&#]*)/);
@@ -369,37 +394,27 @@
   document.querySelectorAll("[data-" + site + "]").forEach(function (e) {
     e.textContent = e.getAttribute("data-" + site);
   });
-
-  var form = document.querySelector("form[action]");
   if (form) form.setAttribute("action", "/save?site=" + encodeURIComponent(site));
   document.title = "Update the site | " + SITES[site];
 
-  /* ---- 2. Sign out -----------------------------------------------------
-     This was href="#": a live-looking link that did nothing, on a screen
-     that is meant to be behind a password. Point SIGN_OUT_URL at whatever
-     the Worker uses to clear the session and it wires itself up. Until
-     then it is shown as unavailable, which is at least true. */
-  var SIGN_OUT_URL = "";
+  /* ---- sign out ---------------------------------------------------------
+     Was href="#": a live-looking link that did nothing, on a screen whose
+     whole premise is being behind a password. */
   var so = document.getElementById("signOut");
   if (so) {
-    if (SIGN_OUT_URL) {
-      so.setAttribute("href", SIGN_OUT_URL);
-      so.removeAttribute("aria-disabled");
-    } else {
+    if (SIGN_OUT_URL) { so.setAttribute("href", SIGN_OUT_URL); so.removeAttribute("aria-disabled"); }
+    else {
       so.setAttribute("aria-disabled", "true");
-      so.setAttribute("title", "Sign out is not wired up yet. Close the browser to end the session.");
-      so.style.opacity = ".55";
-      so.style.cursor = "not-allowed";
+      so.setAttribute("title", "Not wired up yet. Close the browser to end the session.");
       so.addEventListener("click", function (e) { e.preventDefault(); });
     }
   }
 
-  /* ---- 3. Today's hours: the time boxes follow the choice --------------
-     Opens and Closes were always live, whichever choice was selected, so
-     the screen offered you two boxes that only matter for one of four
-     answers and gave no sign of it. Disabled fields are not submitted,
-     which is exactly right: on any answer but "different hours" the Worker
-     should be using the weekly schedule, not whatever was left in here. */
+  /* ---- today's hours ----------------------------------------------------
+     Opens and Closes were live on all four answers, so the screen offered two
+     boxes that matter for one of them and gave no sign of it. Disabled fields
+     are not submitted, which is right: on any other answer the weekly
+     schedule should stand. */
   var oIn = document.getElementById("o"), cIn = document.getElementById("c");
   var timesBox = document.getElementById("todayTimes");
   var timesNote = null;
@@ -413,57 +428,43 @@
     var custom = !!picked && picked.value === "custom";
     if (oIn) oIn.disabled = !custom;
     if (cIn) cIn.disabled = !custom;
-    if (timesBox) timesBox.style.opacity = custom ? "" : ".5";
-    if (timesNote) {
-      timesNote.textContent = custom ? "" :
-        "These two boxes only apply to “Open, different hours”. On the choice above " +
-        "they are ignored and the weekly hours stand.";
-    }
+    flag(timesBox, !custom);
+    if (timesNote) timesNote.textContent = custom ? "" : "Only used for “different hours”.";
   }
   document.querySelectorAll('input[name="today"]').forEach(function (r) {
     r.addEventListener("change", syncToday);
   });
   syncs.push(syncToday);
 
-  /* ---- 4. Weekly hours: Closed empties the row -------------------------
-     Sunday shipped with both time boxes disabled in the markup and Closed
-     ticked, and nothing anywhere turned them back on: Sunday hours could
-     not be set at all. A disabled input is also never submitted, so ticking
-     Closed on any row now genuinely clears that row rather than sending
-     times the Worker has to decide to ignore. */
-  var WEEK = [["wk_open", "wk_close", "wk_closed"],
-              ["sat_open", "sat_close", "sat_closed"],
-              ["sun_open", "sun_close", "sun_closed"]];
-  function byName(n) { return document.querySelector('[name="' + n + '"]'); }
+  /* ---- weekly hours -----------------------------------------------------
+     Sunday shipped disabled and ticked with nothing to turn it back on, so
+     Sunday hours could not be set at all -- during harvest, the one time of
+     year it matters. */
+  var WEEK = [["wk", "wk_open", "wk_close", "wk_closed"],
+              ["sat", "sat_open", "sat_close", "sat_closed"],
+              ["sun", "sun_open", "sun_close", "sun_closed"]];
   function syncWeek() {
     WEEK.forEach(function (r) {
-      var o = byName(r[0]), c = byName(r[1]), x = byName(r[2]);
+      var o = byName(r[1]), c = byName(r[2]), x = byName(r[3]);
       if (!o || !c || !x) return;
       o.disabled = c.disabled = x.checked;
       var row = x.closest ? x.closest("tr") : null;
-      if (row) row.style.opacity = x.checked ? ".55" : "";
+      if (row) row.classList.toggle("is-off", x.checked);
     });
   }
-  WEEK.forEach(function (r) {
-    var x = byName(r[2]);
-    if (x) x.addEventListener("change", syncWeek);
-  });
+  WEEK.forEach(function (r) { var x = byName(r[3]); if (x) x.addEventListener("change", syncWeek); });
   syncs.push(syncWeek);
 
-  /* ---- 5. The banner, and the message under it ------------------------- */
+  /* ---- the banner -------------------------------------------------------- */
   var msg = document.getElementById("msg");
   var prevNotice = document.querySelector(".prev-notice");
   function syncBanner() {
     var picked = document.querySelector('input[name="banner"]:checked');
     var show = !picked || picked.value === "on";
-    var row = msg ? msg.closest && msg.closest(".row") : null;
-    if (row) row.style.opacity = show ? "" : ".5";
-    if (prevNotice) {
-      prevNotice.textContent = show
-        ? (msg ? msg.value : prevNotice.textContent)
-        : "Nothing. The yellow bar is hidden.";
-      prevNotice.style.fontStyle = show ? "" : "italic";
-    }
+    flag(msg && msg.closest ? msg.closest(".row") : null, !show);
+    if (prevNotice)
+      prevNotice.textContent = show ? (msg ? msg.value : prevNotice.textContent)
+                                    : "Nothing. The yellow bar is hidden.";
   }
   document.querySelectorAll('input[name="banner"]').forEach(function (r) {
     r.addEventListener("change", syncBanner);
@@ -471,120 +472,129 @@
   if (msg) msg.addEventListener("input", syncBanner);
   syncs.push(syncBanner);
 
-  /* ---- 6. Character counters -------------------------------------------
-     The boxes carry a maxlength and the note under them talks about
-     staying within it, but nothing counted. The browser silently stops
-     accepting keystrokes at the limit, which reads like a broken keyboard. */
+  /* ---- how much room is left --------------------------------------------
+     The browser stops accepting keystrokes at the limit, which reads like a
+     broken keyboard if nothing is counting. */
   document.querySelectorAll("textarea[maxlength]").forEach(function (t) {
     var max = parseInt(t.getAttribute("maxlength"), 10);
     if (!max) return;
     var tag = document.createElement("span");
-    tag.className = "hint";
-    tag.style.marginLeft = ".5em";
+    tag.className = "hint left";
     var host = t.parentNode.querySelector(".counter");
-    if (host) host.appendChild(tag); else t.parentNode.appendChild(tag);
+    (host || t.parentNode).appendChild(tag);
     function upd() {
-      var left = max - t.value.length;
-      tag.textContent = left + " left of " + max;
-      tag.style.color = left <= 0 ? "#a11" : "";
+      var n = max - t.value.length;
+      tag.textContent = n + " left";
+      tag.classList.toggle("is-full", n <= 0);
     }
     t.addEventListener("input", upd);
     syncs.push(upd);
   });
 
-  /* ---- 7. The spread ---------------------------------------------------
-     The We pay column is computed by the Worker when it publishes. This
-     screen does not recompute it, because a rounding rule invented here
-     that differs by a tenth of a cent from the one that ships would put a
-     number on the staff screen that the site never posts. It says so
-     instead. */
-  var spread = document.getElementById("off");
-  var savedSpread = spread ? spread.value : "";
-  var spreadNote = null;
-  if (spread) {
-    var sr = spread.closest ? spread.closest(".spread-row") : null;
-    var host = sr && sr.querySelector(".counter");
-    spreadNote = document.createElement("div");
-    spreadNote.style.marginTop = ".35em";
-    spreadNote.style.color = "#a11";
-    (host || spread.parentNode).appendChild(spreadNote);
-    spread.addEventListener("input", syncSpread);
-  }
-  function syncSpread() {
-    if (!spreadNote) return;
-    var changed = spread.value.trim() !== String(savedSpread).trim();
-    spreadNote.textContent = changed
-      ? "Not saved yet. The We pay column above still shows the saved spread of $" +
-        savedSpread + "; it follows when you press Save."
-      : "";
-  }
-  syncs.push(syncSpread);
+  /* ---- our basis --------------------------------------------------------
+     Two figures now, cash and new crop, and they are per elevator: this
+     screen writes the one named at the top and never the other.
 
-  /* ---- 8. A price posted by hand is not hidden -------------------------
-     The by-hand box folds away, which is right when it is empty and wrong
-     when it is not: an override left in place is the one state the help
-     text warns about, and folding it out of sight is how it gets left. */
+     The line underneath does the sum out loud. Somebody typing 0.14 wants to
+     know it means fourteen under Big River's own basis, not fourteen cents a
+     bushel off nothing. The We pay column above is not recomputed here: the
+     Worker owns that arithmetic, and a rounding rule invented on this screen
+     that differed by a tenth of a cent would put a number in front of staff
+     that the site never posts. */
+  var cashBox = document.getElementById("off");
+  var cropBox = document.getElementById("offh");
+  var basisOut = document.getElementById("basisOut");
+  var savedCash = cashBox ? cashBox.value : "";
+  var savedCrop = cropBox ? cropBox.value : "";
+  var refBasis = (function () {
+    var cell = document.querySelector("tr.is-ref td:nth-child(3)");
+    if (!cell) return null;
+    var n = parseFloat(cell.textContent.replace(/−/, "-"));
+    return isFinite(n) ? n : null;
+  })();
+
+  function syncBasis() {
+    if (!basisOut || !cashBox) return;
+    var parts = [];
+    var c = parseFloat(cashBox.value);
+    if (refBasis != null && isFinite(c))
+      parts.push("Their nearest basis is <b>" + fmt(refBasis) +
+                 "</b>, so ours is <b>" + fmt(refBasis - c) + "</b>.");
+    var changed = (cashBox.value.trim() !== String(savedCash).trim()) ||
+                  (cropBox && cropBox.value.trim() !== String(savedCrop).trim());
+    basisOut.innerHTML = parts.join(" ");
+    basisOut.classList.toggle("flag", false);
+    if (changed) {
+      var n = document.createElement("div");
+      n.className = "flag";
+      n.textContent = "Not saved yet. The We pay column above still shows the saved figures.";
+      basisOut.appendChild(n);
+    }
+  }
+  if (cashBox) cashBox.addEventListener("input", syncBasis);
+  if (cropBox) cropBox.addEventListener("input", syncBasis);
+  syncs.push(syncBasis);
+
+  /* ---- a price posted by hand is not hidden ------------------------------
+     An override left in place is the one state the help text warns about, and
+     folding it out of sight is how it gets left. */
   var MANUAL = ["manual_cash", "manual_harvest", "manual_basis", "manual_harvest_basis"];
   var byhand = document.querySelector("details.byhand");
-  function manualValues() {
+  function manualSet() {
     return MANUAL.map(byName).filter(Boolean).filter(function (i) { return i.value.trim() !== ""; });
   }
-  if (manualValues().length) {
+  if (manualSet().length) {
     if (byhand) byhand.open = true;
-    warn("A price is being posted by hand right now. The automatic reading is overridden " +
-         "until those boxes are cleared and saved.");
+    warn("A price is being posted by hand. The automatic reading is overridden until " +
+         "those boxes are cleared and saved.");
   }
 
-  /* ---- 9. What this screen checks before it posts -----------------------
-     Shape only: is it a number, and is a basis accompanied by the price it
-     belongs to. The range limits printed in the sanity box are enforced by
-     the Worker on save; they are not repeated here, because two copies of a
-     rule drift and the copy on this screen is the one nobody would notice
-     going stale. */
+  /* ---- what this screen checks before it posts ---------------------------
+     Shape only: is it a number, and is a basis accompanied by its price. The
+     range limits printed in the sanity box are enforced by the Worker on
+     save; two copies of a rule drift, and the copy here is the one nobody
+     would notice going stale. */
   var checkNote = document.createElement("div");
-  checkNote.className = "sanity";
-  checkNote.style.borderColor = "#a11";
-  checkNote.style.color = "#a11";
+  checkNote.className = "sanity is-bad";
   checkNote.hidden = true;
   var bhBody = document.querySelector(".byhand-body");
   if (bhBody) bhBody.appendChild(checkNote);
 
-  function badNumber(el) {
+  function bad(el) {
     var v = el.value.trim();
-    if (v === "") return false;
-    return !/^-?\d*\.?\d+$/.test(v) || !isFinite(parseFloat(v));
+    return v !== "" && (!/^-?\d*\.?\d+$/.test(v) || !isFinite(parseFloat(v)));
   }
   function problems() {
     var out = [];
-    if (spread) {
-      var sv = spread.value.trim();
-      if (sv === "") out.push("The spread is blank. Type 0 if we are paying the board.");
-      else if (badNumber(spread)) out.push("The spread, “" + sv + "”, is not a number.");
-      else if (parseFloat(sv) < 0) out.push("The spread is entered as a positive number under the board; " +
-        "the minus is already printed beside the box.");
-    }
+    [[cashBox, "cash basis", true], [cropBox, "new crop basis", false]].forEach(function (p) {
+      var el = p[0]; if (!el) return;
+      var v = el.value.trim();
+      if (v === "") { if (p[2]) out.push("The cash basis is blank. Type 0 if we are paying the board."); return; }
+      if (bad(el)) out.push("The " + p[1] + ", “" + v + "”, is not a number.");
+      else if (parseFloat(v) < 0) out.push("The " + p[1] + " goes in as a positive number under " +
+        "the board; the minus is already printed beside the box.");
+    });
     MANUAL.forEach(function (n) {
       var el = byName(n);
-      if (el && badNumber(el)) out.push("“" + el.value.trim() + "” is not a number.");
+      if (el && bad(el)) out.push("“" + el.value.trim() + "” is not a number.");
     });
-    var pairs = [["manual_basis", "manual_cash", "cash basis", "cash price"],
-                 ["manual_harvest_basis", "manual_harvest", "harvest basis", "harvest price"]];
-    pairs.forEach(function (p) {
-      var b = byName(p[0]), c = byName(p[1]);
-      if (b && c && b.value.trim() !== "" && c.value.trim() === "")
-        out.push("There is a " + p[2] + " typed with no " + p[3] + " beside it.");
-    });
+    [["manual_basis", "manual_cash", "cash basis", "cash price"],
+     ["manual_harvest_basis", "manual_harvest", "harvest basis", "harvest price"]]
+      .forEach(function (p) {
+        var b = byName(p[0]), c = byName(p[1]);
+        if (b && c && b.value.trim() !== "" && c.value.trim() === "")
+          out.push("There is a " + p[2] + " typed with no " + p[3] + " beside it.");
+      });
     return out;
   }
 
-  /* ---- 10. Unsaved work ------------------------------------------------
-     Check again now and the tabs are ordinary links sitting inside the
-     form, so either one throws away anything typed and gives no warning. */
+  /* ---- unsaved work ------------------------------------------------------
+     Check again now and the tabs are ordinary links inside the form, so
+     either one threw away anything typed without a word. */
   var dirty = false;
   if (form) {
     form.addEventListener("input", function () { dirty = true; });
     form.addEventListener("change", function () { dirty = true; });
-
     form.addEventListener("submit", function (e) {
       var probs = problems();
       if (probs.length) {
@@ -598,92 +608,60 @@
       checkNote.hidden = true;
       dirty = false;
     });
-
     form.addEventListener("reset", function () {
-      setTimeout(function () {
-        sync();
-        checkNote.hidden = true;
-        dirty = false;
-      }, 0);
+      setTimeout(function () { sync(); checkNote.hidden = true; dirty = false; }, 0);
     });
   }
   window.addEventListener("beforeunload", function (e) {
     if (!dirty) return;
-    e.preventDefault();
-    e.returnValue = "";
+    e.preventDefault(); e.returnValue = "";
   });
 
-  /* ---- 11. Their board, beside this one --------------------------------
-     Their host sends a Content Security Policy that refuses framing and our
-     domains are not on its allowlist, so it cannot be embedded. A window
-     placed beside this one gets the same result without needing anyone's
-     permission.
+  /* ---- their board, beside this one --------------------------------------
+     Their host refuses framing, so it cannot be embedded. A window beside
+     this one gets the same result.
 
-     The guard here used to read `if (!win && win !== null) return;`, which
-     can never be true: a blocked window.open returns null, so !win was true
-     and win !== null was false, and the function carried on to suppress the
-     link and shrink this window to half the screen with nothing beside it.
-
-     `noopener` in the feature string was the other half of that bug: it
-     makes window.open return null whether it worked or was blocked, so
-     there is nothing left to test. Opening blank first gives us a
-     same-origin window we can drop the back-reference on ourselves, then
-     send where it is going. The anchor keeps rel="noopener noreferrer" for
-     the plain-tab path. */
+     The old guard read `if (!win && win !== null) return;`, which can never be
+     true: a blocked window.open returns null, so it fell through, suppressed
+     the link and shrank this window to half the screen with nothing next to
+     it. `noopener` was the other half -- it makes window.open return null
+     whether it worked or was blocked, leaving nothing to test. Opening blank
+     first gives a same-origin window we can drop the back-reference on
+     ourselves. The anchor keeps rel="noopener noreferrer" for the tab path. */
   var a = document.getElementById("brOpen");
   if (a && window.screen) {
     a.addEventListener("click", function (e) {
       var s = window.screen;
       var availL = s.availLeft || 0, availT = s.availTop || 0;
       var w = s.availWidth, h = s.availHeight;
-      if (!w || w < 900) return;          // too narrow to split; let the tab open
-
-      var half = Math.floor(w / 2);
-      var win;
+      if (!w || w < 900) return;
+      var half = Math.floor(w / 2), win;
       try {
-        win = window.open("", "bigriver",
-          "popup=yes,width=" + (half - 8) + ",height=" + h +
+        win = window.open("", "bigriver", "popup=yes,width=" + (half - 8) + ",height=" + h +
           ",left=" + (availL + half) + ",top=" + availT);
       } catch (_) { return; }
-      if (!win || win.closed) return;     // blocked; the ordinary tab opens
-
+      if (!win || win.closed) return;
       e.preventDefault();
       try { win.opener = null; } catch (_) {}
       try { win.location.replace(a.href); } catch (_) { win.location = a.href; }
       try { win.focus(); } catch (_) {}
-
-      // Take the left half. Browsers only allow this for windows opened by
-      // script, so it usually does nothing. Harmless either way.
-      try {
-        window.resizeTo(half - 8, h);
-        window.moveTo(availL, availT);
-      } catch (_) {}
+      try { window.resizeTo(half - 8, h); window.moveTo(availL, availT); } catch (_) {}
     });
   }
 
-  /* ---- 12. Sample content that never got replaced -----------------------
-     This file ships with a filled-in board, a last-read time, a date and a
-     preview so it can be opened on its own and looked at. Every one of them
-     is filler. The Worker replaces the contents and removes the data-sample
-     attribute; anything still carrying it when the page loads has not been
-     filled in, and the numbers in it are decoration.
-
-     A stale sample price looks exactly like a live one, which is the whole
-     problem. So it is called out on the screen rather than left to be
-     noticed. */
+  /* ---- filler that never got replaced ------------------------------------
+     This file ships with a board, a read time, a date and a preview so it can
+     be opened and looked at. All of it is filler. The Worker replaces the
+     contents and removes the marker; anything still carrying one has not been
+     filled in, and a sample price is indistinguishable from a live one. */
   var samples = document.querySelectorAll("[data-sample]");
-  if (samples.length) {
+  if (samples.length && live) {
     samples.forEach(function (el) {
-      el.style.outline = "2px dashed #a11";
-      el.style.outlineOffset = "3px";
+      el.classList.add("sample");
       el.setAttribute("title", "Sample content. Not a reading.");
     });
-    warn(samples.length + (samples.length === 1
-        ? " part of this screen is"
-        : " parts of this screen are") +
-      " still showing the sample content the file ships with, outlined in red. " +
-      "Nothing outlined is a reading, and the prices in it are not prices. " +
-      "The Worker fills these in and removes the marker.");
+    warn(samples.length + (samples.length === 1 ? " part of this screen is" : " parts of this screen are") +
+      " still showing filler, outlined in red. Nothing outlined is a reading.");
   }
 
   sync();

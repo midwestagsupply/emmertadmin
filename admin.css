@@ -250,3 +250,54 @@
   .board-hd{flex-wrap:wrap;gap:6px}
   .board-acts{width:100%;gap:14px}
 }
+
+/* ============================================================================
+   STATES THE SCREEN PUTS ON ITSELF
+   ============================================================================
+   Everything below was previously set from JavaScript as an inline style --
+   el.style.color, el.style.opacity, a dashed outline built by hand. It worked
+   and it looked like what it was: a design with things stuck to it. A state
+   the screen can be in belongs in the stylesheet with the rest of the design,
+   so it can be seen, changed and kept consistent in one place.
+
+   The script now only adds and removes class names. If something here looks
+   wrong, it is fixable here, without touching a line of JavaScript. */
+
+:root{ --flag:#a3231d; --flag-bg:#fcf4f3; }
+
+/* A control that is real but does not apply to the choice above it. Dimmed
+   rather than hidden: the office should be able to see that Opens and Closes
+   exist, and why they are not in play today. */
+.is-off{opacity:.5}
+tr.is-off td{opacity:.55}
+
+/* Something the screen needs to say before you start typing. */
+.warn{background:var(--flag-bg);border-left:4px solid var(--flag);
+      border-radius:0 var(--radius) var(--radius) 0;
+      padding:12px 16px;margin:0 0 18px}
+.warn p{margin:.2em 0;color:var(--flag)}
+.warn:empty,.warn[hidden]{display:none}
+
+/* A note attached to one field, in the same red, so the two read as related. */
+.flag{color:var(--flag);margin-top:.35em}
+
+/* Filler that shipped with the file and has not been replaced by real data.
+   Loud on purpose: a sample price is indistinguishable from a live one. */
+.sample{outline:2px dashed var(--flag);outline-offset:3px}
+
+.sanity.is-bad{border-color:var(--flag);color:var(--flag)}
+.feed.is-bad .feed-dot{background:var(--flag)}
+
+/* Characters left in a box that has a limit. */
+.left{margin-left:.5em}
+.left.is-full{color:var(--flag)}
+
+/* Anything that cannot be used: a dead link, a button on a copy of the screen
+   that has no way to save. */
+.btn[disabled],a[aria-disabled="true"]{opacity:.55;cursor:not-allowed}
+a[aria-disabled="true"]{text-decoration:none}
+
+/* Today's basis, worked out from theirs, under the two boxes. Reassurance
+   that the number typed is doing what the person expects. */
+.basis-out{margin-top:.4em;color:var(--grey)}
+.basis-out b{color:var(--ink);font-variant-numeric:tabular-nums}
