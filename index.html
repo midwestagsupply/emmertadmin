@@ -28,7 +28,7 @@
         <span class="sr-only">Midwest Commodity Service</span>
       </span>
     </div>
-    <div class="who">Signed in as <b>Office</b> &middot; <a href="#">Sign out</a></div>
+    <div class="who" data-sample>Signed in as <b>Office</b> &middot; <a id="signOut" href="#">Sign out</a></div>
   </div>
 </header>
 
@@ -39,6 +39,12 @@
   <strong><span class="who-site" data-badger="Badger Grain Supply" data-midwest="Midwest Commodity Service">Badger Grain Supply</span> only</strong>.
   The other elevator is not touched.</p>
 </div>
+
+<!-- Anything the screen needs to tell you before you start typing lands
+     here: an address that names an elevator we do not know, or a price
+     being posted by hand while the automatic reading is fine. Empty and
+     hidden the rest of the time. -->
+<div class="wrap"><div class="sanity" id="adminWarn" hidden></div></div>
 
 <div class="wrap">
   <div class="loc">
@@ -54,11 +60,17 @@
   <div class="wrap">
 
     <!-- ============ CORN BID ============ -->
-    <!-- Automatic. A Cloudflare Worker in the bigriver-bids repo reads
-         Big River's board every 10 minutes in market hours and commits the
-         numbers as JSON; this screen's Worker checks that file every 5
-         minutes and publishes. "Check again now" skips the wait.
+    <!-- Automatic. A GitHub Actions workflow in the `bids` repo reads Big
+         River's board every ten minutes in market hours, hourly outside
+         them, and commits the numbers as JSON; this screen's Worker reads
+         that file and publishes. "Check again now" skips the wait.
          Nothing here is typed in the normal course of a day.
+
+         Two clocks come across in that file and both matter. `pricedAt` is
+         when their board last showed something different, and can be days
+         old over a quiet weekend without anything being wrong. `checkedAt`
+         is the last successful read, and is what goes stale if the reader
+         has stopped. The line above must never quote one as the other.
 
          The two editable things are deliberate. The SPREAD is a business
          decision, not data, and only the owners know when it changes.
@@ -69,7 +81,13 @@
       <h2>Today&rsquo;s corn bid <span class="hint"><span class="who-town" data-badger="Wheeler" data-midwest="Baldwin">Wheeler</span> &middot; read automatically</span></h2>
       <div class="body">
 
-        <div class="feed is-ok">
+        <!-- Everything carrying data-sample is filler shipped with the file, not
+             a reading. The Worker replaces the contents AND drops the attribute;
+             the script at the foot of this page shouts if it finds one still
+             sitting there, because a stale sample price is indistinguishable
+             from a real one at a glance and that is how a wrong number goes
+             live. Never remove the attribute by hand to quieten the warning. -->
+        <div class="feed is-ok" data-sample>
           <span class="feed-dot" aria-hidden="true"></span>
           <div class="feed-t">
             <strong>Reading Big River, Boyceville, through our own mirror.</strong>
@@ -96,7 +114,7 @@
               <tr><th>Month</th><th>Contract</th><th class="r">Their basis</th>
                   <th class="r">Their cash</th><th class="r">We pay</th></tr>
             </thead>
-            <tbody>
+            <tbody data-sample>
               <tr class="is-ref"><td>August</td><td>Sep 26</td><td class="r">&minus;0.52</td>
                   <td class="r">$4.07</td><td class="r pay">$3.97</td></tr>
               <tr><td>September</td><td>Sep 26</td><td class="r">&minus;0.46</td>
@@ -160,7 +178,12 @@
                  anything outside it would be refused. Nothing in the Worker has ever
                  fetched that figure, so the range was decoration and the promise was
                  false. It now describes the checks that actually run. If the USDA
-                 cross-check is wired up later, say so here and give the real range. -->
+                 cross-check is wired up later, say so here and give the real range.
+
+                 The limits below are enforced by the Worker on save. This screen
+                 checks shape only -- is it a number, is a basis accompanied by
+                 the price it belongs to -- deliberately, so there is one copy of
+                 the range rule rather than two that drift apart. -->
             <div class="sanity">
               <strong>Sanity check.</strong> A price outside <span class="num">$2.00</span> to
               <span class="num">$12.00</span> is refused, and so is a basis further than
@@ -173,7 +196,7 @@
 
         <div class="prev">
           <div class="prev-l">What customers will see</div>
-          <div class="prev-bid"><span class="pb-l">Cash, corn</span><span class="pb-h num">$3.97</span></div>
+          <div class="prev-bid" data-sample><span class="pb-l">Cash, corn</span><span class="pb-h num">$3.97</span></div>
         </div>
 
         <div class="row">
@@ -186,7 +209,7 @@
 
     <!-- ============ TODAY ============ -->
     <div class="card">
-      <h2>Today&rsquo;s hours <span class="hint">Friday, August 14</span></h2>
+      <h2>Today&rsquo;s hours <span class="hint" data-sample>Friday, August 14</span></h2>
       <div class="body">
         <p class="help">This is the big box at the top of the site. If nothing changed today, leave it on the first choice and you are done.</p>
         <fieldset>
@@ -202,13 +225,13 @@
               <span>Harvest hours<small><span class="who-harvest" data-badger="8:00a to 7:00p" data-midwest="7:00a to 7:00p">8:00a to 7:00p</span>, seven days a week</small></span></label>
           </div>
         </fieldset>
-        <div class="times">
+        <div class="times" id="todayTimes">
           <div><label class="fl" for="o">Opens</label><input id="o" type="time" name="open" value="08:00"></div>
           <div><label class="fl" for="c">Closes</label><input id="c" type="time" name="close" value="17:00"></div>
         </div>
         <div class="prev">
           <div class="prev-l">What customers will see</div>
-          <div class="prev-today">
+          <div class="prev-today" data-sample>
             <div class="l">Open today, Friday</div>
             <div class="h">8:00a to 5:00p</div>
           </div>
@@ -284,74 +307,386 @@
     <div class="wrap">
       <button class="btn btn-go" type="submit">Save and put it live</button>
       <button class="btn" type="reset">Undo</button>
-      <span class="saved">Last saved today at 6:42a by Office</span>
+      <span class="saved" data-sample>Last saved today at 6:42a by Office</span>
     </div>
   </div>
 </form>
 
 
 
-<!-- The only JavaScript in this project, and it is on the staff screen
-     rather than either public site. Those stay at zero.
-
-     Their board cannot be embedded: their host sends a Content Security
-     Policy that refuses framing, and our domains are not on its
-     allowlist. A window placed beside this one gets the same result
-     without needing anyone's permission.
-
-     Written as an enhancement, not a dependency. The link works on its
-     own; this only improves where the window lands. If the browser
-     blocks it, refuses to move windows, or JavaScript is off, the
-     normal new tab still opens. -->
 <script>
-// Which elevator is being edited. The Worker sets this server side; this
-// repeats it from the query string so the screen also behaves correctly
-// opened as a plain file, and so nothing looks inert while you are still
-// setting the backend up.
+/* The only JavaScript in this project, and it is on the staff screen rather
+   than either public site. Those stay at zero.
+
+   Everything here is an enhancement. With JavaScript off the form still
+   posts, the links still navigate, Undo still resets, and the Sunday row
+   stays closed because the markup says so. What this adds is the screen
+   telling the truth about itself: which elevator you are editing, which
+   boxes are actually in play, whether an override is quietly in force, and
+   whether you are about to walk away from unsaved work. */
 (function () {
-  var site = (location.search.match(/[?&]site=(\w+)/) || [])[1] === "midwest" ? "midwest" : "badger";
+  "use strict";
+
+  var SITES = { badger: "Badger Grain Supply", midwest: "Midwest Commodity Service" };
+  var DEFAULT_SITE = "badger";
+
+  var warnBox = document.getElementById("adminWarn");
+  function warn(msg) {
+    if (!warnBox) return;
+    var p = document.createElement("p");
+    p.style.margin = ".25em 0";
+    p.textContent = msg;
+    warnBox.appendChild(p);
+    warnBox.hidden = false;
+  }
+
+  var syncs = [];                       // re-run after Undo
+  function sync() { syncs.forEach(function (f) { try { f(); } catch (_) {} }); }
+
+  /* ---- 1. Which elevator is being edited -------------------------------
+     The Worker sets this server side; this repeats it from the query string
+     so the screen also behaves correctly opened as a plain file, and so
+     nothing looks inert while the backend is still being set up.
+
+     An unrecognised value used to fall through to Badger without a word.
+     That is the one failure on this screen that costs real money: you would
+     be editing one elevator while the heading named the other. */
+  var raw = (location.search.match(/[?&]site=([^&#]*)/) || [])[1];
+  try { raw = raw == null ? "" : decodeURIComponent(raw); } catch (_) { raw = String(raw); }
+  raw = raw.trim().toLowerCase();
+  var site = Object.prototype.hasOwnProperty.call(SITES, raw) ? raw : DEFAULT_SITE;
+  if (raw && raw !== site) {
+    warn('The address says site=' + raw + ', which is not an elevator this screen knows. ' +
+         'It is showing ' + SITES[DEFAULT_SITE] + '. Check the link before you save.');
+  }
+
   document.querySelectorAll(".loc-tab").forEach(function (t) {
-    t.classList.toggle("is-on", (t.getAttribute("href") || "").indexOf(site) > -1);
+    var m = (t.getAttribute("href") || "").match(/[?&]site=([^&#]*)/);
+    var on = !!m && m[1].toLowerCase() === site;
+    t.classList.toggle("is-on", on);
+    if (on) t.setAttribute("aria-current", "page"); else t.removeAttribute("aria-current");
   });
   document.querySelectorAll("[data-" + site + "]").forEach(function (e) {
     e.textContent = e.getAttribute("data-" + site);
   });
-  var f = document.querySelector("form[action]");
-  if (f) f.setAttribute("action", "/save?site=" + site);
-  document.title = document.title.replace(/\| .*$/, "| " + (site === "midwest" ? "Midwest Commodity Service" : "Badger Grain Supply"));
-})();
 
-(function () {
-  var a = document.getElementById("brOpen");
-  if (!a || !window.screen) return;
+  var form = document.querySelector("form[action]");
+  if (form) form.setAttribute("action", "/save?site=" + encodeURIComponent(site));
+  document.title = "Update the site | " + SITES[site];
 
-  a.addEventListener("click", function (e) {
-    // Multi-monitor aware where supported, so it lands on the screen
-    // this window is actually on rather than always the primary.
-    var s = window.screen;
-    var availL = s.availLeft || 0, availT = s.availTop || 0;
-    var w = s.availWidth, h = s.availHeight;
-    if (w < 900) return;              // too narrow to split; let the tab open
+  /* ---- 2. Sign out -----------------------------------------------------
+     This was href="#": a live-looking link that did nothing, on a screen
+     that is meant to be behind a password. Point SIGN_OUT_URL at whatever
+     the Worker uses to clear the session and it wires itself up. Until
+     then it is shown as unavailable, which is at least true. */
+  var SIGN_OUT_URL = "";
+  var so = document.getElementById("signOut");
+  if (so) {
+    if (SIGN_OUT_URL) {
+      so.setAttribute("href", SIGN_OUT_URL);
+      so.removeAttribute("aria-disabled");
+    } else {
+      so.setAttribute("aria-disabled", "true");
+      so.setAttribute("title", "Sign out is not wired up yet. Close the browser to end the session.");
+      so.style.opacity = ".55";
+      so.style.cursor = "not-allowed";
+      so.addEventListener("click", function (e) { e.preventDefault(); });
+    }
+  }
 
-    var half = Math.floor(w / 2);
-    var win = window.open(
-      a.href, "bigriver",
-      "popup=yes,noopener,width=" + (half - 8) + ",height=" + h +
-      ",left=" + (availL + half) + ",top=" + availT
-    );
-    if (!win && win !== null) return;  // blocked; the normal tab opens
-
-    e.preventDefault();
-    if (win) { try { win.opener = null; } catch (_) {} win.focus(); }
-
-    // Try to take the left half. Browsers only allow this for windows
-    // opened by script, so it usually does nothing. Harmless either way,
-    // and when it works the two sit exactly side by side.
-    try {
-      window.resizeTo(half - 8, h);
-      window.moveTo(availL, availT);
-    } catch (_) {}
+  /* ---- 3. Today's hours: the time boxes follow the choice --------------
+     Opens and Closes were always live, whichever choice was selected, so
+     the screen offered you two boxes that only matter for one of four
+     answers and gave no sign of it. Disabled fields are not submitted,
+     which is exactly right: on any answer but "different hours" the Worker
+     should be using the weekly schedule, not whatever was left in here. */
+  var oIn = document.getElementById("o"), cIn = document.getElementById("c");
+  var timesBox = document.getElementById("todayTimes");
+  var timesNote = null;
+  if (timesBox) {
+    timesNote = document.createElement("div");
+    timesNote.className = "counter";
+    timesBox.parentNode.insertBefore(timesNote, timesBox.nextSibling);
+  }
+  function syncToday() {
+    var picked = document.querySelector('input[name="today"]:checked');
+    var custom = !!picked && picked.value === "custom";
+    if (oIn) oIn.disabled = !custom;
+    if (cIn) cIn.disabled = !custom;
+    if (timesBox) timesBox.style.opacity = custom ? "" : ".5";
+    if (timesNote) {
+      timesNote.textContent = custom ? "" :
+        "These two boxes only apply to “Open, different hours”. On the choice above " +
+        "they are ignored and the weekly hours stand.";
+    }
+  }
+  document.querySelectorAll('input[name="today"]').forEach(function (r) {
+    r.addEventListener("change", syncToday);
   });
+  syncs.push(syncToday);
+
+  /* ---- 4. Weekly hours: Closed empties the row -------------------------
+     Sunday shipped with both time boxes disabled in the markup and Closed
+     ticked, and nothing anywhere turned them back on: Sunday hours could
+     not be set at all. A disabled input is also never submitted, so ticking
+     Closed on any row now genuinely clears that row rather than sending
+     times the Worker has to decide to ignore. */
+  var WEEK = [["wk_open", "wk_close", "wk_closed"],
+              ["sat_open", "sat_close", "sat_closed"],
+              ["sun_open", "sun_close", "sun_closed"]];
+  function byName(n) { return document.querySelector('[name="' + n + '"]'); }
+  function syncWeek() {
+    WEEK.forEach(function (r) {
+      var o = byName(r[0]), c = byName(r[1]), x = byName(r[2]);
+      if (!o || !c || !x) return;
+      o.disabled = c.disabled = x.checked;
+      var row = x.closest ? x.closest("tr") : null;
+      if (row) row.style.opacity = x.checked ? ".55" : "";
+    });
+  }
+  WEEK.forEach(function (r) {
+    var x = byName(r[2]);
+    if (x) x.addEventListener("change", syncWeek);
+  });
+  syncs.push(syncWeek);
+
+  /* ---- 5. The banner, and the message under it ------------------------- */
+  var msg = document.getElementById("msg");
+  var prevNotice = document.querySelector(".prev-notice");
+  function syncBanner() {
+    var picked = document.querySelector('input[name="banner"]:checked');
+    var show = !picked || picked.value === "on";
+    var row = msg ? msg.closest && msg.closest(".row") : null;
+    if (row) row.style.opacity = show ? "" : ".5";
+    if (prevNotice) {
+      prevNotice.textContent = show
+        ? (msg ? msg.value : prevNotice.textContent)
+        : "Nothing. The yellow bar is hidden.";
+      prevNotice.style.fontStyle = show ? "" : "italic";
+    }
+  }
+  document.querySelectorAll('input[name="banner"]').forEach(function (r) {
+    r.addEventListener("change", syncBanner);
+  });
+  if (msg) msg.addEventListener("input", syncBanner);
+  syncs.push(syncBanner);
+
+  /* ---- 6. Character counters -------------------------------------------
+     The boxes carry a maxlength and the note under them talks about
+     staying within it, but nothing counted. The browser silently stops
+     accepting keystrokes at the limit, which reads like a broken keyboard. */
+  document.querySelectorAll("textarea[maxlength]").forEach(function (t) {
+    var max = parseInt(t.getAttribute("maxlength"), 10);
+    if (!max) return;
+    var tag = document.createElement("span");
+    tag.className = "hint";
+    tag.style.marginLeft = ".5em";
+    var host = t.parentNode.querySelector(".counter");
+    if (host) host.appendChild(tag); else t.parentNode.appendChild(tag);
+    function upd() {
+      var left = max - t.value.length;
+      tag.textContent = left + " left of " + max;
+      tag.style.color = left <= 0 ? "#a11" : "";
+    }
+    t.addEventListener("input", upd);
+    syncs.push(upd);
+  });
+
+  /* ---- 7. The spread ---------------------------------------------------
+     The We pay column is computed by the Worker when it publishes. This
+     screen does not recompute it, because a rounding rule invented here
+     that differs by a tenth of a cent from the one that ships would put a
+     number on the staff screen that the site never posts. It says so
+     instead. */
+  var spread = document.getElementById("off");
+  var savedSpread = spread ? spread.value : "";
+  var spreadNote = null;
+  if (spread) {
+    var sr = spread.closest ? spread.closest(".spread-row") : null;
+    var host = sr && sr.querySelector(".counter");
+    spreadNote = document.createElement("div");
+    spreadNote.style.marginTop = ".35em";
+    spreadNote.style.color = "#a11";
+    (host || spread.parentNode).appendChild(spreadNote);
+    spread.addEventListener("input", syncSpread);
+  }
+  function syncSpread() {
+    if (!spreadNote) return;
+    var changed = spread.value.trim() !== String(savedSpread).trim();
+    spreadNote.textContent = changed
+      ? "Not saved yet. The We pay column above still shows the saved spread of $" +
+        savedSpread + "; it follows when you press Save."
+      : "";
+  }
+  syncs.push(syncSpread);
+
+  /* ---- 8. A price posted by hand is not hidden -------------------------
+     The by-hand box folds away, which is right when it is empty and wrong
+     when it is not: an override left in place is the one state the help
+     text warns about, and folding it out of sight is how it gets left. */
+  var MANUAL = ["manual_cash", "manual_harvest", "manual_basis", "manual_harvest_basis"];
+  var byhand = document.querySelector("details.byhand");
+  function manualValues() {
+    return MANUAL.map(byName).filter(Boolean).filter(function (i) { return i.value.trim() !== ""; });
+  }
+  if (manualValues().length) {
+    if (byhand) byhand.open = true;
+    warn("A price is being posted by hand right now. The automatic reading is overridden " +
+         "until those boxes are cleared and saved.");
+  }
+
+  /* ---- 9. What this screen checks before it posts -----------------------
+     Shape only: is it a number, and is a basis accompanied by the price it
+     belongs to. The range limits printed in the sanity box are enforced by
+     the Worker on save; they are not repeated here, because two copies of a
+     rule drift and the copy on this screen is the one nobody would notice
+     going stale. */
+  var checkNote = document.createElement("div");
+  checkNote.className = "sanity";
+  checkNote.style.borderColor = "#a11";
+  checkNote.style.color = "#a11";
+  checkNote.hidden = true;
+  var bhBody = document.querySelector(".byhand-body");
+  if (bhBody) bhBody.appendChild(checkNote);
+
+  function badNumber(el) {
+    var v = el.value.trim();
+    if (v === "") return false;
+    return !/^-?\d*\.?\d+$/.test(v) || !isFinite(parseFloat(v));
+  }
+  function problems() {
+    var out = [];
+    if (spread) {
+      var sv = spread.value.trim();
+      if (sv === "") out.push("The spread is blank. Type 0 if we are paying the board.");
+      else if (badNumber(spread)) out.push("The spread, “" + sv + "”, is not a number.");
+      else if (parseFloat(sv) < 0) out.push("The spread is entered as a positive number under the board; " +
+        "the minus is already printed beside the box.");
+    }
+    MANUAL.forEach(function (n) {
+      var el = byName(n);
+      if (el && badNumber(el)) out.push("“" + el.value.trim() + "” is not a number.");
+    });
+    var pairs = [["manual_basis", "manual_cash", "cash basis", "cash price"],
+                 ["manual_harvest_basis", "manual_harvest", "harvest basis", "harvest price"]];
+    pairs.forEach(function (p) {
+      var b = byName(p[0]), c = byName(p[1]);
+      if (b && c && b.value.trim() !== "" && c.value.trim() === "")
+        out.push("There is a " + p[2] + " typed with no " + p[3] + " beside it.");
+    });
+    return out;
+  }
+
+  /* ---- 10. Unsaved work ------------------------------------------------
+     Check again now and the tabs are ordinary links sitting inside the
+     form, so either one throws away anything typed and gives no warning. */
+  var dirty = false;
+  if (form) {
+    form.addEventListener("input", function () { dirty = true; });
+    form.addEventListener("change", function () { dirty = true; });
+
+    form.addEventListener("submit", function (e) {
+      var probs = problems();
+      if (probs.length) {
+        e.preventDefault();
+        if (byhand) byhand.open = true;
+        checkNote.textContent = "Not saved. " + probs.join(" ");
+        checkNote.hidden = false;
+        checkNote.scrollIntoView({ block: "center" });
+        return;
+      }
+      checkNote.hidden = true;
+      dirty = false;
+    });
+
+    form.addEventListener("reset", function () {
+      setTimeout(function () {
+        sync();
+        checkNote.hidden = true;
+        dirty = false;
+      }, 0);
+    });
+  }
+  window.addEventListener("beforeunload", function (e) {
+    if (!dirty) return;
+    e.preventDefault();
+    e.returnValue = "";
+  });
+
+  /* ---- 11. Their board, beside this one --------------------------------
+     Their host sends a Content Security Policy that refuses framing and our
+     domains are not on its allowlist, so it cannot be embedded. A window
+     placed beside this one gets the same result without needing anyone's
+     permission.
+
+     The guard here used to read `if (!win && win !== null) return;`, which
+     can never be true: a blocked window.open returns null, so !win was true
+     and win !== null was false, and the function carried on to suppress the
+     link and shrink this window to half the screen with nothing beside it.
+
+     `noopener` in the feature string was the other half of that bug: it
+     makes window.open return null whether it worked or was blocked, so
+     there is nothing left to test. Opening blank first gives us a
+     same-origin window we can drop the back-reference on ourselves, then
+     send where it is going. The anchor keeps rel="noopener noreferrer" for
+     the plain-tab path. */
+  var a = document.getElementById("brOpen");
+  if (a && window.screen) {
+    a.addEventListener("click", function (e) {
+      var s = window.screen;
+      var availL = s.availLeft || 0, availT = s.availTop || 0;
+      var w = s.availWidth, h = s.availHeight;
+      if (!w || w < 900) return;          // too narrow to split; let the tab open
+
+      var half = Math.floor(w / 2);
+      var win;
+      try {
+        win = window.open("", "bigriver",
+          "popup=yes,width=" + (half - 8) + ",height=" + h +
+          ",left=" + (availL + half) + ",top=" + availT);
+      } catch (_) { return; }
+      if (!win || win.closed) return;     // blocked; the ordinary tab opens
+
+      e.preventDefault();
+      try { win.opener = null; } catch (_) {}
+      try { win.location.replace(a.href); } catch (_) { win.location = a.href; }
+      try { win.focus(); } catch (_) {}
+
+      // Take the left half. Browsers only allow this for windows opened by
+      // script, so it usually does nothing. Harmless either way.
+      try {
+        window.resizeTo(half - 8, h);
+        window.moveTo(availL, availT);
+      } catch (_) {}
+    });
+  }
+
+  /* ---- 12. Sample content that never got replaced -----------------------
+     This file ships with a filled-in board, a last-read time, a date and a
+     preview so it can be opened on its own and looked at. Every one of them
+     is filler. The Worker replaces the contents and removes the data-sample
+     attribute; anything still carrying it when the page loads has not been
+     filled in, and the numbers in it are decoration.
+
+     A stale sample price looks exactly like a live one, which is the whole
+     problem. So it is called out on the screen rather than left to be
+     noticed. */
+  var samples = document.querySelectorAll("[data-sample]");
+  if (samples.length) {
+    samples.forEach(function (el) {
+      el.style.outline = "2px dashed #a11";
+      el.style.outlineOffset = "3px";
+      el.setAttribute("title", "Sample content. Not a reading.");
+    });
+    warn(samples.length + (samples.length === 1
+        ? " part of this screen is"
+        : " parts of this screen are") +
+      " still showing the sample content the file ships with, outlined in red. " +
+      "Nothing outlined is a reading, and the prices in it are not prices. " +
+      "The Worker fills these in and removes the marker.");
+  }
+
+  sync();
 })();
 </script>
 </body>
