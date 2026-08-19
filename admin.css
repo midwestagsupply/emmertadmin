@@ -377,3 +377,28 @@ html{scroll-padding-bottom:180px}
 /* The save-time complaint sits with the button that produced it. */
 #checkNote{margin:0 0 12px}
 [aria-invalid="true"]{outline:3px solid var(--flag);outline-offset:1px}
+
+/* ---- is the price feed alive -------------------------------------------
+   Asked of the feed by this browser, not written into the page by the Worker.
+   Deliberately carries no prices: the board below is the one renderer of
+   those, and a second one is how the two drift. */
+.feedlive{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap;
+          border:2px solid var(--ink);border-radius:var(--radius);
+          padding:12px 14px;margin-top:12px;background:var(--paper)}
+.feedlive-t{flex:1 1 260px;min-width:0;font-size:.95rem;line-height:1.45}
+.feedlive-dot{flex:0 0 auto;width:13px;height:13px;border-radius:50%;
+              margin-top:.42rem;background:var(--grey);
+              border:2px solid var(--ink);box-sizing:content-box}
+/* The dot repeats what the words already say; it never carries the state on
+   its own. Colour is the second signal here, not the first. */
+.feedlive.is-ok   .feedlive-dot{background:#1d5e3c}
+.feedlive.is-warn .feedlive-dot{background:var(--yellow)}
+.feedlive.is-bad  .feedlive-dot{background:var(--flag)}
+.feedlive.is-wait .feedlive-dot{background:var(--line)}
+.feedlive.is-bad{border-color:var(--flag);background:#fcf4f3}
+.feedlive-go{flex:0 0 auto;min-height:44px;padding:10px 16px;font:inherit;font-weight:700;
+             background:var(--paper);color:var(--ink);border:2px solid var(--ink);
+             border-radius:var(--radius);cursor:pointer}
+.feedlive-go:hover{background:var(--band)}
+.feedlive-go:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+@media(max-width:520px){ .feedlive-go{width:100%} }

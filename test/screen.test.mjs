@@ -413,3 +413,84 @@ test("the counters are tied to their boxes", { skip: NO_BROWSER }, async () => {
   }
   await p.close();
 });
+
+/* ---- is the price feed alive -------------------------------------------
+ *
+ * Staff asked for the bid board on this screen. It was already here -- the
+ * Worker fills the table from the same file -- so what was missing was not the
+ * numbers but whether anything is still reading them. This block asks the feed
+ * directly, from the browser, and is therefore a second opinion rather than a
+ * second copy: if the Worker failed to fill this page, the line it wrote is
+ * filler and outlined in red, and this still tells the truth.
+ *
+ * The thresholds are the consumers' own -- 6h heartbeat, 14h withdrawal in
+ * update-prices.mjs -- not new ones invented on a screen.
+ */
+const feedState = async (body, { abort = false } = {}) => {
+  const p = await open();
+  await p.route("**/boyceville.json*", (r) =>
+    abort ? r.abort() : r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) }));
+  await p.reload({ waitUntil: "load" });
+  await p.waitForFunction(() => {
+    const t = document.getElementById("feedLiveText");
+    return t && t.textContent && !/Asking the feed/.test(t.textContent);
+  });
+  const out = {
+    cls: await p.$eval("#feedLive", (e) => e.className),
+    text: await p.$eval("#feedLiveText", (e) => e.textContent.replace(/\s+/g, " ")),
+  };
+  await p.close();
+  return out;
+};
+const agoHours = (h) => new Date(Date.now() - h * 36e5).toISOString();
+
+test("A LIVE FEED SAYS SO, AND SAYS NOTHING NEEDS DOING", { skip: NO_BROWSER }, async () => {
+  const r = await feedState({ checkedAt: agoHours(0.1), status: "ok", bids: [1, 2, 3, 4, 5, 6, 7] });
+  assert.match(r.cls, /is-ok/);
+  assert.match(r.text, /price feed is live/);
+  assert.match(r.text, /7 rows/);
+});
+
+test("past the heartbeat it warns without crying wolf", { skip: NO_BROWSER }, async () => {
+  /* Six hours is "nothing has looked", not "the page is wrong". Saying the
+     second would send somebody to post a price by hand for no reason. */
+  const r = await feedState({ checkedAt: agoHours(7), status: "ok", bids: [1, 2, 3] });
+  assert.match(r.cls, /is-warn/);
+  assert.match(r.text, /nothing is wrong on the page yet/);
+});
+
+test("PAST FOURTEEN HOURS IT REPORTS WHAT HAS ALREADY HAPPENED", { skip: NO_BROWSER }, async () => {
+  /* By this point it is not a warning. update-prices.mjs has already withdrawn
+     the price at both sites, and the screen should say that rather than
+     imply there is still time to prevent it. */
+  const r = await feedState({ checkedAt: agoHours(16), status: "ok", bids: [1, 2, 3] });
+  assert.match(r.cls, /is-bad/);
+  assert.match(r.text, /showing .Call for today.s price. right now/);
+  assert.match(r.text, /Post a price by hand/, "and it says what to do about it");
+});
+
+test("a flagged or empty board is reported as theirs, not as ours", { skip: NO_BROWSER }, async () => {
+  const flagged = await feedState({ checkedAt: agoHours(0.2), status: "stale", bids: [1, 2] });
+  assert.match(flagged.text, /flagged/);
+  assert.match(flagged.text, /Not our failure/);
+  const empty = await feedState({ checkedAt: agoHours(0.2), status: "ok", bids: [] });
+  assert.match(empty.text, /posting no rows/);
+});
+
+test("IT DOES NOT CLAIM THE FEED IS DEAD WHEN IT IS THE WI-FI", { skip: NO_BROWSER }, async () => {
+  /* From this browser a dead feed and a dropped connection look identical.
+     Picking one would send somebody to the break-glass box over office wi-fi. */
+  const r = await feedState(null, { abort: true });
+  assert.match(r.cls, /is-warn/, "not is-bad");
+  assert.match(r.text, /either the feed or this connection/);
+  assert.match(r.text, /not a reason to post a price by hand/);
+});
+
+test("it renders no prices of its own", { skip: NO_BROWSER }, async () => {
+  /* The board below is the one renderer of the figures. A second one is how
+     two views of the same file drift apart, and this screen has been bitten by
+     exactly that before. */
+  const r = await feedState({ checkedAt: agoHours(0.1), status: "ok",
+    bids: [{ delivery: "August", cash: 4.1525, basisDollars: -0.52 }] });
+  assert.doesNotMatch(r.text, /4\.15|0\.52|\$/, "no figure from the feed appears in the strip");
+});

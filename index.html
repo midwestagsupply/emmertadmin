@@ -99,6 +99,18 @@
           </div>
         </div>
 
+        <!-- THE FEED, CHECKED FROM THIS BROWSER RATHER THAN DESCRIBED.
+             The line above is written by the Worker when it builds this page.
+             That is one opinion, from one moment, and if the Worker itself is
+             having a bad morning it is the opinion least likely to be right.
+             This block asks the feed directly. See the script for why it is a
+             second opinion rather than a second copy. -->
+        <div class="feedlive" id="feedLive" hidden>
+          <span class="feedlive-dot" aria-hidden="true"></span>
+          <div class="feedlive-t" id="feedLiveText" role="status"></div>
+          <button type="button" class="feedlive-go" id="feedLiveGo">Check again</button>
+        </div>
+
         <div class="board">
           <div class="board-hd">
             <span>Their posted board</span>
@@ -895,6 +907,108 @@
       try { win.focus(); } catch (_) {}
       try { window.resizeTo(half - 8, h); window.moveTo(availL, availT); } catch (_) {}
     });
+  }
+
+  /* ---- IS THE PRICE FEED ACTUALLY ALIVE ---------------------------------
+   *
+   * Staff asked for the bid board on this screen. It is already here -- the
+   * Worker fills the table below from the same file -- so what was missing was
+   * not the numbers but whether anything is still reading them.
+   *
+   * WHY THIS IS NOT AN IFRAME OF THE DASHBOARD. The dashboard in dnilgis/bids
+   * would have had to be published, styled to sit inside this page, and given
+   * a fixed height that scrolls on its own on a phone; and when it 404s it
+   * does so silently inside a box on a screen people trust. This asks the same
+   * question of the same file in this page's own voice.
+   *
+   * WHY IT IS NOT A SECOND COPY OF THE BOARD. The table below is server-filled
+   * and carries the data-sample contract. Rendering the prices again from here
+   * would put two writers on one artefact, which is the fault that has already
+   * bitten this system twice. So this block deliberately renders NO PRICES. It
+   * answers one question the page could not otherwise answer: when was the
+   * feed last successfully read, and do the sites still trust it.
+   *
+   * That makes it a genuine second opinion. If the Worker failed to fill this
+   * page, the line above is filler and outlined in red -- and this block still
+   * tells the truth, because it went and looked.
+   *
+   * THE THRESHOLDS ARE THE CONSUMERS' OWN, not new ones invented here:
+   *   6h   the reader's heartbeat. Past this nothing has looked, and that is
+   *        worth knowing before it becomes a customer's problem.
+   *   14h  FEED_MAX_AGE_H in update-prices.mjs. Past this both sites have
+   *        ALREADY withdrawn the price and are saying "call for today's
+   *        price". By then it is not a warning, it is a report.
+   *
+   * The file is served with access-control-allow-origin:* so the browser is
+   * allowed to ask, and with max-age=300, so an answer can be up to five
+   * minutes behind. Against a fourteen-hour threshold that does not matter,
+   * and saying so here stops somebody chasing it later. */
+  var FEED_URL = "https://raw.githubusercontent.com/dnilgis/bids/main/data/boyceville.json";
+  var HEARTBEAT_H = 6, CONSUMER_MAX_H = 14;
+  var fl = document.getElementById("feedLive");
+  var flText = document.getElementById("feedLiveText");
+  var flGo = document.getElementById("feedLiveGo");
+
+  function hoursAgo(h) {
+    if (h < 1) return Math.max(1, Math.round(h * 60)) + " minutes ago";
+    if (h < 2) return "about an hour ago";
+    if (h < 36) return Math.round(h) + " hours ago";
+    return Math.round(h / 24) + " days ago";
+  }
+  function setFeed(kind, html) {
+    if (!fl) return;
+    fl.hidden = false;
+    fl.className = "feedlive is-" + kind;
+    flText.innerHTML = html;
+  }
+  function checkFeed() {
+    if (!fl) return;
+    setFeed("wait", "Asking the feed\u2026");
+    /* Cache-busted because the CDN would otherwise hand back the same answer
+       for five minutes, and the button says "check again". */
+    fetch(FEED_URL + "?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) {
+        if (!r.ok) throw new Error("the feed answered " + r.status);
+        return r.json();
+      })
+      .then(function (j) {
+        var checked = Date.parse(j.checkedAt);
+        if (!checked) throw new Error("the feed carried no readable timestamp");
+        var h = (Date.now() - checked) / 36e5;
+        var rows = (j.bids || []).length;
+        if (h > CONSUMER_MAX_H)
+          setFeed("bad", "<strong>The price feed is cold.</strong> Last read " + hoursAgo(h) +
+            ", past the " + CONSUMER_MAX_H + " hours the sites will accept \u2014 so both sites " +
+            "are showing \u201cCall for today\u2019s price\u201d right now. The hours and the " +
+            "banner on this screen still work. To put a figure back up today, use " +
+            "<em>Post a price by hand</em> below.");
+        else if (j.status && j.status !== "ok")
+          setFeed("warn", "<strong>The feed is being read, but it is flagged \u201c" +
+            j.status + "\u201d.</strong> Last read " + hoursAgo(h) + ". Their board has not " +
+            "moved in a long time. Not our failure, and the price is still theirs.");
+        else if (!rows)
+          setFeed("warn", "<strong>The feed was read " + hoursAgo(h) +
+            " but is posting no rows.</strong> The sites will be showing no price.");
+        else if (h > HEARTBEAT_H)
+          setFeed("warn", "<strong>Nothing has read the board for " + Math.round(h) +
+            " hours.</strong> The sites still trust it until " + CONSUMER_MAX_H +
+            " hours, so nothing is wrong on the page yet. Worth a look if it climbs.");
+        else
+          setFeed("ok", "<strong>The price feed is live.</strong> Last read " + hoursAgo(h) +
+            ", " + rows + " rows. Both sites are publishing from it. Nothing for you to do.");
+      })
+      .catch(function (e) {
+        /* Says which of the two it cannot tell apart, rather than picking one.
+           A screen that reports a dead feed because the office wi-fi dropped
+           would send somebody to post a price by hand for no reason. */
+        setFeed("warn", "<strong>Could not reach the price feed from this browser.</strong> " +
+          "That is either the feed or this connection, and from here they look the same \u2014 " +
+          "so it is not a reason to post a price by hand on its own. (" + e.message + ")");
+      });
+  }
+  if (fl) {
+    if (flGo) flGo.addEventListener("click", checkFeed);
+    checkFeed();
   }
 
   /* ---- filler that never got replaced ------------------------------------
