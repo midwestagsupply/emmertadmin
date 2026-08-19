@@ -1,0 +1,36 @@
+# The gate. There was none.
+#
+# This repository had no CI at all, and one test file that never touched the
+# screen it appeared to be testing. Both facts are why a form that posted "open
+# on different hours" with no hours in it, and three "Closed" boxes sitting off
+# the edge of a phone, survived a green suite for as long as they did.
+#
+# It runs on push and on pull request. Nothing here can publish anything: this
+# repository serves a static screen, and the Worker that receives what it posts
+# lives elsewhere.
+
+name: test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+
+      # test/screen.test.mjs drives the real screen in a real browser. It skips
+      # itself when Playwright is absent -- which is right for a machine that
+      # has never installed one, and wrong for a gate. So the gate installs it.
+      - name: Install a browser
+        run: |
+          npm install --no-save playwright@1
+          npx playwright install --with-deps chromium
+
+      - name: Both suites
+        run: node --test test/*.mjs
