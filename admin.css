@@ -127,7 +127,12 @@
     padding:13px 14px;border:2px solid var(--ink);border-radius:var(--radius);background:var(--paper)}
   textarea{min-height:96px;resize:vertical;font-weight:500}
   input:focus,textarea:focus,select:focus{outline:3px solid var(--ink);outline-offset:2px}
-  .times{display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:420px}
+  /* Two fixed columns pushed the Closes box off the right of a 390px phone --
+     measured, and it is today's closing time, the field most likely to be
+     edited from the yard. min(0) lets a grid column actually shrink; without
+     it a time input's intrinsic width wins and overflows the track. */
+  .times{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:420px}
+  @media(max-width:430px){ .times{grid-template-columns:1fr} }
 
   /* Feed status. Green when it is reading, yellow when it is not. */
   .feed{display:flex;gap:12px;align-items:flex-start;padding:14px 16px;border-radius:var(--radius);
@@ -139,7 +144,9 @@
   .feed-t{font-size:1rem;line-height:1.45}
   .feed-t .num{font-variant-numeric:tabular-nums}
 
-  .board-open{color:var(--yellow);font-weight:700;font-size:.88rem;text-decoration:underline}
+  /* 140x24 and 235x24 measured on a phone, against the 44px a fingertip needs. */
+  .board-open{color:var(--yellow);font-weight:700;font-size:.88rem;text-decoration:underline;
+              display:inline-flex;align-items:center;min-height:44px}
   .bd td.pay{font-weight:800;font-size:1.14rem}
   .spread-row{max-width:420px}
   .money.sm input{font-size:1.3rem;padding:9px 11px}
@@ -159,14 +166,25 @@
   .money input{width:100%;font-family:inherit;font-size:1.6rem;font-weight:800;color:var(--ink);
                font-variant-numeric:tabular-nums;padding:11px 12px;border:2px solid var(--ink);
                border-radius:var(--radius);background:var(--paper)}
-  .money input:focus{outline:3px solid var(--yellow);outline-offset:1px}
+  /* Was a yellow ring on white: measured 1.51:1, the only focus style on the
+     page that was not var(--ink) at 18.88:1 -- and it was on the two boxes
+     that set what we pay. The yellow is kept as a halo outside the ring. */
+  .money input:focus{outline:3px solid var(--ink);outline-offset:1px;
+                     box-shadow:0 0 0 6px rgba(245,207,78,.55)}
   .sanity{background:var(--band);border-left:5px solid var(--ink);padding:12px 14px;
           margin-top:14px;font-size:.96rem;border-radius:0 var(--radius) var(--radius) 0}
   .sanity .num{font-variant-numeric:tabular-nums;font-weight:700;white-space:nowrap}
   .sanity.out{background:var(--yellow);border-left-color:var(--ink)}
 
   /* Their whole board, captured as data */
-  .board{margin-top:16px;border:2px solid var(--ink);border-radius:var(--radius);overflow:hidden}
+  /* WAS overflow:hidden, WHICH CLIPPED THE "WE PAY" COLUMN OFF A PHONE.
+     Measured at 390px: the board is 445px of content in a 314px box, so the
+     one figure the elevator actually pays sat 40px outside it with no
+     scrollbar and no way to pan to it. auto lets it be dragged; the column
+     that was display:none at =<560px is back, because the note underneath
+     tells the reader to compare it line for line. */
+  .board{margin-top:16px;border:2px solid var(--ink);border-radius:var(--radius);
+         overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
   .board-hd{background:var(--ink);color:#fff;padding:10px 14px;font-weight:700;font-size:.98rem;
             display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
   .board-as{font-weight:400;color:#bbb;font-size:.85rem}
@@ -180,7 +198,8 @@
   .bd .is-ref td{background:var(--yellow);font-weight:800}
   .board-note{padding:11px 14px;background:var(--band);font-size:.9rem;color:var(--grey);
               border-top:1px solid var(--line-lt)}
-  @media(max-width:560px){ .bd th:nth-child(3),.bd td:nth-child(3){display:none} }
+  /* The third column stays. It is "their basis", and .board-note tells the
+     reader to check it against ours line for line. */
 
   .ref-note{padding:11px 14px;background:var(--band);font-size:.9rem;color:var(--grey);
             border-top:1px solid var(--line-lt)}
@@ -200,6 +219,23 @@
   .week td:first-child{font-weight:700;white-space:nowrap}
   .week tr:last-child td{border-bottom:none}
   .week input[type=time]{padding:9px 10px;font-size:1rem}
+  /* ON A PHONE THIS BECOMES A LIST, BECAUSE AS A TABLE IT WAS UNUSABLE.
+     Measured at 390px: the table renders 590px wide inside a 354px card whose
+     overflow is hidden, so all three "Closed" boxes -- the only control that
+     marks a day shut -- sat off the right edge with nothing to scroll. The one
+     thing an office is most likely to do from a phone could not be done. */
+  @media(max-width:620px){
+    .week, .week tbody, .week tr, .week th, .week td{display:block;width:auto}
+    .week thead{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+    .week tr{border-bottom:1px solid var(--line-lt);padding:12px 0}
+    .week tr:last-child{border-bottom:none}
+    .week th[scope=row]{font-weight:800;font-size:1.02rem;padding:0 0 8px;border:none}
+    .week td{border:none;padding:0 0 8px;display:flex;align-items:center;gap:10px}
+    .week td::before{content:attr(data-lab);flex:0 0 62px;font-size:.82rem;
+                     text-transform:uppercase;letter-spacing:.04em;color:var(--grey);font-weight:700}
+    .week td input[type=time]{flex:1 1 auto;min-width:0}
+    .week td:last-child::before{content:none}
+  }
   .week .cl{display:flex;align-items:center;gap:8px;font-weight:600;font-size:.95rem;
             white-space:nowrap;padding:10px 4px;cursor:pointer;min-height:44px}
   .week .cl input{width:24px;height:24px;accent-color:var(--ink)}
@@ -218,6 +254,10 @@
                  text-transform:uppercase}
   .prev-today .h{font-weight:800;font-size:1.7rem;line-height:1.15}
 
+  /* Measured at 390px: the bar covered 100% of the focused hours-note box, and
+     at 320x256 it is 55% of the viewport with 29 of 31 tab stops under it.
+     scroll-padding keeps the browser from parking a focused field beneath it;
+     on a genuinely short viewport the bar stops floating altogether. */
   .save{position:sticky;bottom:0;background:var(--bg);padding:10px 0;
         border-top:2px solid var(--ink);margin-top:22px}
   .save .wrap{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:0 16px}
@@ -268,8 +308,20 @@
 /* A control that is real but does not apply to the choice above it. Dimmed
    rather than hidden: the office should be able to see that Opens and Closes
    exist, and why they are not in play today. */
-.is-off{opacity:.5}
-tr.is-off td{opacity:.55}
+/* DIMMED ONCE, NOT TWICE, AND NEVER OVER THE WAY BACK.
+   `.is-off` and `tr.is-off td` both matched a closed row, so its cells
+   rendered at .5 x .55 = .275 -- measured 1.87:1 against white, against a
+   required 4.5. The cell that carries the "Closed" tick is excluded outright:
+   it is enabled, it is the only control that turns the day back on, and
+   greying out the way back is not a thing to do at any opacity. */
+.is-off{opacity:.55}
+/* NOT ON THE ROW. Opacity on a parent cannot be undone by a child, so dimming
+   the <tr> dims the Closed control with it however the cells are written. The
+   dimming goes on the cells that are actually inert, and the last cell -- the
+   only enabled control in a closed row, and the only way to reopen the day --
+   is never touched. */
+tr.is-off{opacity:1}
+tr.is-off > th[scope=row], tr.is-off > td:not(:last-child){opacity:.55}
 
 /* Something the screen needs to say before you start typing. */
 .warn{background:var(--flag-bg);border-left:4px solid var(--flag);
@@ -301,3 +353,27 @@ a[aria-disabled="true"]{text-decoration:none}
    that the number typed is doing what the person expects. */
 .basis-out{margin-top:.4em;color:var(--grey)}
 .basis-out b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* ---- what customers will see, for the hours ------------------------------
+   Same shape as the site's own weekly rows, so the preview and the page it
+   predicts are read the same way. */
+.prev-week{display:block}
+.prev-wrow{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+           padding:9px 0;border-bottom:1px solid var(--line-lt);font-size:1.02rem}
+.prev-wrow:last-child{border-bottom:none}
+.prev-wrow span:first-child{font-weight:700}
+.prev-wrow .num{font-variant-numeric:tabular-nums;font-weight:700}
+.prev-wrow.is-shut span:last-child{color:var(--grey);font-weight:600}
+.prev-n{margin:8px 0 0;font-size:.86rem;color:var(--grey);line-height:1.4}
+.prev-today.is-shut .h{color:var(--grey)}
+
+/* The focused field must not end up under the sticky save bar. */
+html{scroll-padding-bottom:180px}
+@media(max-height:620px){
+  .save{position:static}
+  html{scroll-padding-bottom:0}
+}
+
+/* The save-time complaint sits with the button that produced it. */
+#checkNote{margin:0 0 12px}
+[aria-invalid="true"]{outline:3px solid var(--flag);outline-offset:1px}
