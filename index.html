@@ -1011,6 +1011,198 @@
     checkFeed();
   }
 
+  /* ---- DOES EVERY BOX AGREE WITH WHAT IS ACTUALLY PUBLISHED ---------------
+   *
+   * This closes the gap the data-sample check could not: a Worker that renders
+   * the page but misses a single box, or fills one with a stale value.
+   *
+   * I had written that gap off as unfixable because the Worker's source is not
+   * available. That was the wrong question. The screen does not need to know
+   * what the Worker did -- it can go and read the two files the Worker writes
+   * and compare them to what is in front of the user. Both are public and both
+   * are served with access-control-allow-origin:*, so the browser is allowed
+   * to ask.
+   *
+   * It is a better check than the one it backs up, because it does not care
+   * WHY a box disagrees. A box the Worker skipped, a box it filled from a
+   * stale cache, a box left over from a half-finished edit -- all the same
+   * answer: this is not what is on the site.
+   *
+   * FIVE RULES, EACH FROM SOMETHING THAT HAS ALREADY GONE WRONG ON THIS SCREEN.
+   *
+   * 1. IT NEVER FILLS A BOX IN. Only reports. The Worker fills this form; a
+   *    second thing writing the same fields is the two-writers fault that has
+   *    bitten this system three times now.
+   * 2. A BOX THE USER HAS TOUCHED IS NEVER COMPARED. What somebody has just
+   *    typed is meant to differ from what is published -- that is the entire
+   *    purpose of the screen.
+   * 3. IF THE FETCH FAILS IT SAYS NOTHING. Not a warning, not a dash: silence.
+   *    From this browser an unreachable file and a dropped connection look
+   *    identical, and guessing wrong would be a false alarm on a working
+   *    screen. That is the fault that had to be corrected here twice in one
+   *    afternoon and it does not get a third go.
+   * 4. IT SAYS WHAT THE FILE SAYS, NOT THAT THE BOX IS WRONG. Those two are
+   *    different claims and only the first one is established.
+   * 5. THE FIVE-MINUTE CACHE IS NAMED OUT LOUD. raw.githubusercontent serves
+   *    max-age=300, and after a save the file also has to wait for the commit.
+   *    So a box edited minutes ago can legitimately disagree, and the wording
+   *    has to be true in that case too. Cache-busted to make the window as
+   *    small as it can be, and admitted in the sentence for when it is not. */
+  var LIVE_BASE = "https://raw.githubusercontent.com/midwestagsupply/";
+  var REPO_OF = { badger: "badgergrain", midwest: "midwestcommodity" };
+
+  /* "8:00a to 5:00p" -> ["08:00","17:00"]. null / unparseable -> null, which
+     the caller reads as "closed", exactly as the sites' own renderer does. */
+  function t24(text) {
+    var m = /^\s*(\d{1,2}):(\d{2})\s*([ap])m?\s+to\s+(\d{1,2}):(\d{2})\s*([ap])m?\s*$/i.exec(String(text || ""));
+    if (!m) return null;
+    function one(h, mm, ap) {
+      h = +h % 12;
+      if (String(ap).toLowerCase() === "p") h += 12;
+      return (h < 10 ? "0" : "") + h + ":" + mm;
+    }
+    return [one(m[1], m[2], m[3]), one(m[4], m[5], m[6])];
+  }
+
+  var liveNote = null;
+  function sayLive(lines) {
+    if (!lines.length) { if (liveNote) liveNote.hidden = true; return; }
+    if (!liveNote) {
+      liveNote = document.createElement("div");
+      liveNote.className = "sanity is-bad livecheck";
+      liveNote.setAttribute("role", "status");
+      var host = document.querySelector(".save");
+      if (!host) return;
+      host.parentNode.insertBefore(liveNote, host);
+    }
+    liveNote.hidden = false;
+    liveNote.innerHTML =
+      "<strong>" + lines.length + (lines.length === 1 ? " box does" : " boxes do") +
+      " not match what is published on the site.</strong> " +
+      "Nothing has been changed here. Check each one before you save — or, if you " +
+      "saved in the last few minutes, this is the published copy catching up and will clear." +
+      "<ul>" + lines.map(function (l) { return "<li>" + l + "</li>"; }).join("") + "</ul>";
+  }
+
+  (function liveCheck() {
+    /* LIVE SCREEN ONLY.
+       On a copy every box holds the value the file ships with, so this would
+       correctly report several mismatches -- and say nothing useful, because
+       Save is disabled and the banner at the top already explains why. Two
+       true warnings competing for attention is how the important one gets
+       skipped. */
+    if (!live) return;
+    var repo = REPO_OF[site];
+    if (!repo) return;
+    var touched = {};
+    if (form) form.addEventListener("input", function (e) {
+      if (e.target && e.target.name) touched[e.target.name] = true;
+    }, true);
+
+    var bust = "?t=" + Date.now();
+    Promise.all([
+      fetch(LIVE_BASE + repo + "/main/hours.json" + bust, { cache: "no-store" }).then(function (r) { return r.json(); }),
+      fetch(LIVE_BASE + repo + "/main/pricing.json" + bust, { cache: "no-store" }).then(function (r) { return r.json(); }),
+    ]).then(function (both) {
+      var h = both[0], pr = both[1], out = [];
+      /* Each finding remembers which boxes it is about, so it can be withdrawn
+         the moment somebody edits one of them. Reported once on load and then
+         left standing, it would go on complaining about a box the user had
+         just deliberately changed -- which is how a true warning turns into
+         one people learn to scroll past. */
+      var findings = [];
+      function say(names, html) { findings.push({ names: names, html: html }); }
+      function repaint() {
+        sayLive(findings.filter(function (f) {
+          return !f.names.some(function (n) { return touched[n]; });
+        }).map(function (f) { return f.html; }));
+      }
+      /* Local, and defined here rather than borrowed: this file has no shared
+         escaper, and the first version of this block assumed one existed. The
+         values below come out of a file on the internet and are put into
+         innerHTML, so this is not optional. */
+      var esc2 = function (v) {
+        return String(v == null ? "" : v)
+          .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;");
+      };
+
+      function cmpText(name, live, label) {
+        if (live === undefined) return;                 // the file does not carry it
+        var el = byName(name);
+        if (!el || touched[name]) return;
+        var have = String(el.value == null ? "" : el.value).trim();
+        var want = live == null ? "" : String(live).trim();
+        if (have !== want)
+          say([name], "<b>" + label + "</b> \u2014 the site says \u201c" + esc2(want || "(nothing)") +
+                     "\u201d, this box says \u201c" + esc2(have || "(nothing)") + "\u201d");
+      }
+      function cmpNum(name, live, label) {
+        if (live == null) return;
+        var el = byName(name);
+        if (!el || touched[name]) return;
+        var have = parseFloat(el.value);
+        if (!(Math.abs(have - Number(live)) < 1e-9))
+          say([name], "<b>" + label + "</b> \u2014 the site says <b>" + esc2(live) +
+                     "</b>, this box says \u201c" + esc2(el.value) + "\u201d");
+      }
+      function cmpDay(label, live, openName, closeName, closedName) {
+        var o = byName(openName), c = byName(closeName), x = byName(closedName);
+        if (!o || !c || !x) return;
+        if (touched[openName] || touched[closeName] || touched[closedName]) return;
+        var want = t24(live);
+        if (!want) {
+          if (!x.checked)
+            say([openName, closeName, closedName],
+                "<b>" + label + "</b> \u2014 the site is <b>closed</b>, this screen has it open");
+          return;
+        }
+        if (x.checked) {
+          say([openName, closeName, closedName], "<b>" + label + "</b> \u2014 the site says <b>" +
+              esc2(live) + "</b>, this screen has it closed");
+          return;
+        }
+        if (o.value !== want[0] || c.value !== want[1])
+          say([openName, closeName, closedName],
+              "<b>" + label + "</b> \u2014 the site says <b>" + esc2(live) + "</b>");
+      }
+
+      cmpNum("spread", pr.spread, "Our basis under Big River — cash");
+      if (pr.spreadHarvest != null) cmpNum("spread_harvest", pr.spreadHarvest, "Our basis — new crop");
+      cmpText("price_note", pr.price_note, "Small print under the price table");
+      cmpDay("Mon to Fri", h.weekday, "wk_open", "wk_close", "wk_closed");
+      cmpDay("Saturday", h.saturday, "sat_open", "sat_close", "sat_closed");
+      cmpDay("Sunday", h.sunday, "sun_open", "sun_close", "sun_closed");
+      cmpText("hoursnote", h.hoursnote, "Small print under the hours");
+      if ("banner" in h && !touched.message) {
+        var msgEl = byName("message");
+        var pickedB = document.querySelector('input[name="banner"]:checked');
+        var showing = !pickedB || pickedB.value === "on";
+        if (h.banner && !showing)
+          say(["message"], "<b>Notice banner</b> \u2014 the site is showing one, this screen has it hidden");
+        else if (!h.banner && showing && msgEl && msgEl.value.trim())
+          say(["message"], "<b>Notice banner</b> \u2014 the site is not showing one, this screen has it on");
+        else if (h.banner && msgEl && msgEl.value.trim() !== String(h.banner).trim())
+          say(["message"], "<b>Notice banner</b> \u2014 the site says \u201c" + esc2(h.banner) + "\u201d");
+      }
+      void out;
+      repaint();
+      /* And withdrawn as soon as the box is touched, not only on the next load. */
+      if (form) form.addEventListener("input", repaint, true);
+    }, function (netErr) {
+      /* RULE 3, AND ONLY RULE 3.
+         This handler is attached to the fetch, not wrapped around the
+         comparison, on purpose. A single .catch() at the end would have
+         swallowed a mistake in the comparison itself as quietly as it
+         swallows a dropped connection -- and it did: the first version of this
+         block threw a TypeError on every load and reported nothing, which
+         looked exactly like a screen where everything agreed. A guard whose
+         failure is indistinguishable from its success is not a guard, and that
+         is the third time that shape has come up on this screen today. */
+      void netErr;
+    });
+  })();
+
   /* ---- filler that never got replaced ------------------------------------
      This file ships with a board, a read time, a date and a preview so it can
      be opened and looked at. All of it is filler. The Worker replaces the
@@ -1031,8 +1223,37 @@
    * box still holds that, nothing has filled it. Typing in the box clears the
    * marker: an answer somebody has just typed is not filler, whatever the
    * Worker did or did not do. */
+  /* AND IT ONLY ASKS THE QUESTION WHEN THE ANSWER CAN BE TRUSTED.
+   *
+   * CORRECTED 2026-08-19, the same day it went in, off a screenshot of the
+   * live screen saying "3 parts of this screen are still showing filler" while
+   * every one of them was correct. The three were the spread and the two
+   * weekday times -- 0.10, 08:00, 17:00 -- which are the real settings AND the
+   * values this file ships with. Matching on the value alone cannot tell those
+   * two apart, and it guessed wrong on all three.
+   *
+   * That is crying wolf on a working screen: the office learns the red outline
+   * means nothing, and then it means nothing on the day the Worker really did
+   * fail to fill a box. It is the same fault as a structure checker that
+   * exited 1 on a clean repository, found and fixed in the same afternoon,
+   * and I put it straight back in here.
+   *
+   * So the value test is only run when the page can be shown to be unfilled.
+   * The markers that ship on the DISPLAY elements -- the board, the feed line,
+   * the last-saved line -- are removed by the Worker when it renders. If any
+   * of those are still here, nothing filled this page and every box is filler
+   * too. If they are gone, the Worker ran, and a box holding 0.10 is holding
+   * it because that is the spread.
+   *
+   * WHAT THIS DOES NOT CATCH, said plainly: a Worker that renders the page but
+   * misses one box. That was not caught before this change either. Catching it
+   * needs one line on the Worker's side -- drop `data-sample-value` from a box
+   * when you fill it -- and then the test below becomes exact. Until then a
+   * silent gap beats a daily false alarm. */
+  var pageUnfilled = document.querySelector("[data-sample]:not(input):not(textarea):not(select)") !== null;
   document.querySelectorAll("[data-sample-value]").forEach(function (el) {
-    if (String(el.value) === el.getAttribute("data-sample-value")) el.setAttribute("data-sample", "");
+    if (pageUnfilled && String(el.value) === el.getAttribute("data-sample-value"))
+      el.setAttribute("data-sample", "");
     el.addEventListener("input", function () {
       el.removeAttribute("data-sample"); el.classList.remove("sample");
     });

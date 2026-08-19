@@ -402,3 +402,9 @@ html{scroll-padding-bottom:180px}
 .feedlive-go:hover{background:var(--band)}
 .feedlive-go:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
 @media(max-width:520px){ .feedlive-go{width:100%} }
+
+/* The published-file comparison. Sits with the Save button, because that is
+   the moment it is about. Reports only; it never writes into a box. */
+.livecheck{margin:0 0 12px}
+.livecheck ul{margin:.5rem 0 0;padding-left:1.15rem}
+.livecheck li{margin:.25rem 0;line-height:1.4}

@@ -280,6 +280,39 @@ test("A BOX STILL HOLDING THE VALUE IT SHIPPED WITH IS MARKED", { skip: NO_BROWS
   await p.close();
 });
 
+test("A SCREEN THE WORKER FILLED SAYS NOTHING ABOUT FILLER", { skip: NO_BROWSER }, async () => {
+  /* THE FALSE ALARM THIS EXISTS TO STOP.
+   *
+   * Marking a box as filler because it still holds the value the file ships
+   * with cannot tell "nothing filled this" from "the real answer happens to be
+   * the same". On the live screen it got all three wrong at once: the spread
+   * is 0.10, the weekday hours are 08:00 and 17:00, and those are exactly the
+   * shipped values. So a correctly working screen told the office that three
+   * parts of it were filler.
+   *
+   * A warning on a clean screen is worse than no warning, because it teaches
+   * people to ignore the red outline before the day it is right.
+   *
+   * The Worker removes data-sample from the DISPLAY elements when it renders,
+   * so their absence is proof it ran. Only when they are still present is the
+   * value test allowed to speak. */
+  const dir = mkdtempSync(join(tmpdir(), "filled-"));
+  const html = readFileSync(join(REPO, "index.html"), "utf8");
+  writeFileSync(join(dir, "f.html"), html
+    .replace('<html lang="en"', '<html lang="en" data-live="1"')
+    .replace(/ data-sample(?=[ >])/g, ""));          // what the Worker leaves behind
+  writeFileSync(join(dir, "admin.css"), readFileSync(join(REPO, "admin.css")));
+  const p = await browser.newPage({ viewport: { width: 1000, height: 800 } });
+  await p.goto("file://" + join(dir, "f.html") + "?site=badger", { waitUntil: "load" });
+  await p.waitForTimeout(200);
+  const outlined = await p.$$eval(".sample", (e) => e.length);
+  const warns = await p.$$eval("#adminWarn p, .warn p", (e) => e.map((x) => x.textContent));
+  await p.close();
+  rmSync(dir, { recursive: true, force: true });
+  assert.equal(outlined, 0, "nothing is outlined on a screen that was filled");
+  assert.deepEqual(warns.filter((w) => /filler/.test(w)), [], "and nothing is said about filler");
+});
+
 test("typing in a box clears its filler mark", { skip: NO_BROWSER }, async () => {
   /* An answer somebody has just typed is not filler, whatever the Worker did
      or did not do. */
@@ -493,4 +526,124 @@ test("it renders no prices of its own", { skip: NO_BROWSER }, async () => {
   const r = await feedState({ checkedAt: agoHours(0.1), status: "ok",
     bids: [{ delivery: "August", cash: 4.1525, basisDollars: -0.52 }] });
   assert.doesNotMatch(r.text, /4\.15|0\.52|\$/, "no figure from the feed appears in the strip");
+});
+
+/* ---- does every box agree with what is published ------------------------
+ *
+ * THE GAP I SAID COULD NOT BE CLOSED FROM HERE.
+ *
+ * The data-sample check cannot catch a Worker that renders the page but
+ * misses one box, and I wrote that off because the Worker's source is not
+ * available. Wrong question. The screen does not need to know what the Worker
+ * did -- it can read the two files the Worker writes and compare them to what
+ * is in front of the user. Both repos are public and both files are served
+ * with access-control-allow-origin:*.
+ *
+ * It is the better check of the two, because it does not care WHY a box
+ * disagrees: skipped, filled from something stale, or left over from a
+ * half-finished edit all give the same answer.
+ */
+const LIVEISH = (over = {}) => {
+  const dir = mkdtempSync(join(tmpdir(), "liveish-"));
+  const html = readFileSync(join(REPO, "index.html"), "utf8")
+    .replace('<html lang="en"', '<html lang="en" data-live="1"')
+    .replace(/ data-sample(?=[ >])/g, "")
+    .replace('name="sat_closed" value="1"', 'name="sat_closed" value="1" checked')
+    .replace(/(<textarea id="msg"[^>]*>)[\s\S]*?(<\/textarea>)/, "$1$2");
+  writeFileSync(join(dir, "i.html"), html);
+  writeFileSync(join(dir, "admin.css"), readFileSync(join(REPO, "admin.css")));
+  void over;
+  return dir;
+};
+const PUBLISHED_HOURS = {
+  weekday: "8:00a to 5:00p", saturday: null, sunday: null, banner: null,
+  hoursnote: "During harvest we run longer, seven days a week. Outside harvest the hours " +
+             "above hold. Updated hours are posted here first. When in doubt, call.",
+};
+const PUBLISHED_PRICING = {
+  spread: 0.10,
+  price_note: "Prices change with the market and are not final until you call. Grain is " +
+              "bought subject to the drying and discount schedule below.",
+};
+async function compare(hours, pricing, { abort = false, act = null } = {}) {
+  const dir = LIVEISH();
+  const p = await browser.newPage({ viewport: { width: 1000, height: 900 } });
+  await p.route("**/boyceville.json*", (r) => r.fulfill({ status: 200,
+    contentType: "application/json",
+    body: JSON.stringify({ checkedAt: new Date().toISOString(), status: "ok", bids: [1] }) }));
+  for (const [pat, body] of [["**/hours.json*", hours], ["**/pricing.json*", pricing]])
+    await p.route(pat, (r) => abort ? r.abort()
+      : r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(body) }));
+  await p.goto("file://" + join(dir, "i.html") + "?site=badger", { waitUntil: "load" });
+  await p.waitForTimeout(450);
+  if (act) { await act(p); await p.waitForTimeout(250); }
+  const lines = await p.$$eval(".livecheck:not([hidden]) li", (e) => e.map((x) => x.textContent));
+  await p.close();
+  rmSync(dir, { recursive: true, force: true });
+  return lines;
+}
+
+test("A SCREEN THAT MATCHES THE SITE SAYS NOTHING", { skip: NO_BROWSER }, async () => {
+  assert.deepEqual(await compare(PUBLISHED_HOURS, PUBLISHED_PRICING), []);
+});
+
+test("A BOX THE WORKER MISSED IS CAUGHT — THIS IS THE GAP", { skip: NO_BROWSER }, async () => {
+  /* The spread is the one that costs money: the screen showing 0.10 while the
+     site is running 0.14 means the next Save quietly moves what we pay. */
+  const l = await compare(PUBLISHED_HOURS, { ...PUBLISHED_PRICING, spread: 0.14 });
+  assert.equal(l.length, 1);
+  assert.match(l[0], /the site says 0\.14, this box says .0\.10./);
+});
+
+test("a day whose published hours differ is caught", { skip: NO_BROWSER }, async () => {
+  const l = await compare({ ...PUBLISHED_HOURS, saturday: "8:00a to 12:00p" }, PUBLISHED_PRICING);
+  assert.equal(l.length, 1);
+  assert.match(l[0], /^Saturday/);
+  assert.match(l[0], /this screen has it closed/);
+});
+
+test("and so is a banner that is live on the site but not on this screen",
+  { skip: NO_BROWSER }, async () => {
+  const l = await compare({ ...PUBLISHED_HOURS, banner: "Harvest starts Monday" }, PUBLISHED_PRICING);
+  assert.equal(l.length, 1);
+  assert.match(l[0], /Harvest starts Monday/);
+});
+
+test("IT SAYS NOTHING AT ALL WHEN IT CANNOT READ THE FILES", { skip: NO_BROWSER }, async () => {
+  /* From this browser an unreachable file and a dropped connection look the
+     same. Guessing would put a warning on a working screen, which is the fault
+     that had to be corrected here twice in one afternoon. */
+  assert.deepEqual(await compare(PUBLISHED_HOURS, PUBLISHED_PRICING, { abort: true }), []);
+});
+
+test("a complaint withdraws itself once the box is edited", { skip: NO_BROWSER }, async () => {
+  /* Reported on load and then left standing, it would go on complaining about
+     a box somebody had just deliberately changed -- which is how a true
+     warning becomes one people learn to scroll past. */
+  const l = await compare(PUBLISHED_HOURS, { ...PUBLISHED_PRICING, spread: 0.14 },
+    { act: (p) => p.fill("#off", "0.22") });
+  assert.deepEqual(l, []);
+});
+
+test("it never writes into a box", { skip: NO_BROWSER }, async () => {
+  /* The Worker fills this form. A second thing writing the same fields is the
+     two-writers fault that has bitten this system three times. */
+  const dir = LIVEISH();
+  const p = await browser.newPage({ viewport: { width: 1000, height: 900 } });
+  await p.route("**/boyceville.json*", (r) => r.fulfill({ status: 200,
+    contentType: "application/json", body: '{"checkedAt":"' + new Date().toISOString() + '","status":"ok","bids":[1]}' }));
+  await p.route("**/hours.json*", (r) => r.fulfill({ status: 200, contentType: "application/json",
+    body: JSON.stringify({ ...PUBLISHED_HOURS, weekday: "6:00a to 8:00p" }) }));
+  await p.route("**/pricing.json*", (r) => r.fulfill({ status: 200, contentType: "application/json",
+    body: JSON.stringify({ ...PUBLISHED_PRICING, spread: 0.99 }) }));
+  await p.goto("file://" + join(dir, "i.html") + "?site=badger", { waitUntil: "load" });
+  await p.waitForTimeout(500);
+  const after = await p.evaluate(() => ({
+    spread: document.getElementById("off").value,
+    wkOpen: document.querySelector('[name=wk_open]').value,
+  }));
+  await p.close();
+  rmSync(dir, { recursive: true, force: true });
+  assert.equal(after.spread, "0.10", "the box still holds what it held");
+  assert.equal(after.wkOpen, "08:00");
 });
