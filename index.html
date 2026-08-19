@@ -213,7 +213,8 @@
 
         <div class="prev">
           <div class="prev-l">What customers will see</div>
-          <div class="prev-bid" data-sample><span class="pb-l">Cash, corn</span><span class="pb-h num">$3.97</span></div>
+          <div class="prev-bid" id="prevBid" data-sample><span class="pb-l">Cash, corn</span><span class="pb-h num">$3.97</span></div>
+          <p class="prev-n" id="prevBidNote"></p>
         </div>
 
         <div class="row">
@@ -1166,6 +1167,85 @@
           say([openName, closeName, closedName],
               "<b>" + label + "</b> \u2014 the site says <b>" + esc2(live) + "</b>");
       }
+
+      /* ---- BOTH ROWS THE SITE ACTUALLY PRINTS ---------------------------
+       * This preview showed one row -- "Cash, corn" -- while the page prints
+       * two, and the screen has two basis boxes. So somebody editing the new
+       * crop basis got no preview of it at all: the one figure on this screen
+       * with no way to see what it does.
+       *
+       * IT STILL DOES NO ARITHMETIC, and that restriction is not lifted. The
+       * rule against recomputing "We pay" here is right: a rounding rule
+       * invented on this screen that differs by a tenth of a cent from the one
+       * that ships would put a number in front of staff that the site never
+       * posts. So nothing is calculated. The figures are read out of the
+       * site's own published bids.json -- the answer it is serving to
+       * customers this minute, produced by the one implementation.
+       *
+       * Only the ROW CHOICE is ported, from headline() in update-prices.mjs:
+       * the nearest delivery leads; harvest is the LOWER-paying of October and
+       * November, because the figure is offered across the whole window and
+       * the higher one would be a promise we had not made; and when the
+       * nearest delivery IS harvest, that is one row, not the same number
+       * twice under two headings.
+       *
+       * AND IT IS WHAT CUSTOMERS SEE NOW, NOT WHAT AN UNSAVED SPREAD WOULD DO.
+       * Those are different claims. The line under the basis boxes already
+       * makes the second one; this must not blur into it, so when a basis has
+       * been edited it says so instead of implying the figures have moved. */
+      fetch(LIVE_BASE + repo + "/main/bids.json" + bust, { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (bj) {
+          var el = document.getElementById("prevBid");
+          var noteEl = document.getElementById("prevBidNote");
+          var rows = (bj && bj.bids) || [];
+          if (!el || !rows.length) return;
+          var HARVEST = ["October", "November"];
+          var spot = rows[0] || null;
+          var inH = rows.filter(function (r) { return HARVEST.indexOf(r.delivery) !== -1; });
+          var harvest = inH.length ? inH.reduce(function (lo, r) {
+            return r.cashPrice < lo.cashPrice ? r : lo;
+          }) : null;
+          if (harvest && spot && harvest.delivery === spot.delivery) harvest = null;
+
+          var money = function (v) {
+            return typeof v === "number" ? "$" + v.toFixed(2) : "\u2014";
+          };
+          function row(label, sub2, r) {
+            var d = document.createElement("div");
+            d.className = "pb-row";
+            d.innerHTML = '<span class="pb-l">' + esc2(label) +
+              '<small>' + esc2(sub2) + '</small></span>' +
+              '<span class="pb-h num">' + money(r.cashPrice) + '</span>';
+            return d;
+          }
+          el.innerHTML = "";
+          el.removeAttribute("data-sample");
+          el.classList.remove("sample");
+          el.appendChild(row("Cash, corn", spot.delivery + " delivery", spot));
+          if (harvest)
+            el.appendChild(row("Harvest", inH.map(function (r) { return r.delivery; })
+              .join(" and ") + " delivery", harvest));
+          /* Re-read on every edit, not once on load. Computed once it would go
+             on saying "not worked out again here" after somebody had changed a
+             basis -- true about the figures, and misleading about the moment,
+             which is the same staleness the mismatch list had. */
+          if (noteEl) {
+            var sayNote = function () {
+              var edited = (cashBox && cashBox.value !== savedCash) ||
+                           (cropBox && cropBox.value !== savedCrop);
+              noteEl.textContent = edited
+                ? "These are the figures on the site right now. You have changed a basis, so " +
+                  "they will not move until you save."
+                : "The figures on the site right now, read from what it is publishing \u2014 " +
+                  "not worked out again here.";
+            };
+            sayNote();
+            [cashBox, cropBox].forEach(function (el) {
+              if (el) el.addEventListener("input", sayNote);
+            });
+          }
+        }, function () { /* leave whatever the Worker rendered; see rule 3 */ });
 
       cmpNum("spread", pr.spread, "Our basis under Big River — cash");
       if (pr.spreadHarvest != null) cmpNum("spread_harvest", pr.spreadHarvest, "Our basis — new crop");

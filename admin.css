@@ -408,3 +408,13 @@ html{scroll-padding-bottom:180px}
 .livecheck{margin:0 0 12px}
 .livecheck ul{margin:.5rem 0 0;padding-left:1.15rem}
 .livecheck li{margin:.25rem 0;line-height:1.4}
+
+/* Two rows now, because the page prints two. */
+/* The single-row version laid its two children out with flex on the parent.
+   With two rows that put them side by side, so the parent stops being the
+   flex container the moment it holds rows. */
+.prev-bid:has(.pb-row){display:block;padding:4px 14px}
+.prev-bid .pb-row{display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+                  padding:11px 0;border-bottom:1px solid var(--line-lt)}
+.prev-bid .pb-row:last-child{border-bottom:none}
+.prev-bid .pb-l small{display:block;font-size:.8rem;color:var(--grey);font-weight:600}
