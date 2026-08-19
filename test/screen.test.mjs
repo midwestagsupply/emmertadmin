@@ -647,3 +647,88 @@ test("it never writes into a box", { skip: NO_BROWSER }, async () => {
   assert.equal(after.spread, "0.10", "the box still holds what it held");
   assert.equal(after.wkOpen, "08:00");
 });
+
+/* ---- both rows the site actually prints --------------------------------
+ *
+ * The preview showed one row -- "Cash, corn" -- while the page prints two,
+ * and this screen has two basis boxes. So somebody editing the new-crop basis
+ * got no preview of it at all: the one figure here with no way to see what it
+ * does.
+ *
+ * The restriction that caused it is NOT lifted. Nothing is recomputed on this
+ * screen; a rounding rule invented here that differed by a tenth of a cent
+ * from the one that ships would put a figure in front of staff that the site
+ * never posts. The numbers are read out of the site's own published bids.json.
+ * Only the row CHOICE is ported from headline() in update-prices.mjs.
+ */
+const BIDS = (rows) => ({ schema: "emmert-cash-bids/2", bids: rows });
+const AUGUST_BOARD = BIDS([
+  { commodity: "Corn", delivery: "August", basis: -0.62, cashPrice: 4.03 },
+  { commodity: "Corn", delivery: "September", basis: -0.56, cashPrice: 4.09 },
+  { commodity: "Corn", delivery: "October", basis: -0.65, cashPrice: 4.25 },
+  { commodity: "Corn", delivery: "November", basis: -0.65, cashPrice: 4.21 },
+]);
+async function bidPreview(board, { act = null, fail = false } = {}) {
+  const dir = LIVEISH();
+  const p = await browser.newPage({ viewport: { width: 1000, height: 900 } });
+  await p.route("**/boyceville.json*", (r) => r.fulfill({ status: 200,
+    contentType: "application/json", body: '{"checkedAt":"' + new Date().toISOString() + '","status":"ok","bids":[1]}' }));
+  await p.route("**/hours.json*", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(PUBLISHED_HOURS) }));
+  await p.route("**/pricing.json*", (r) => r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(PUBLISHED_PRICING) }));
+  await p.route("**/bids.json*", (r) => fail ? r.abort()
+    : r.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify(board) }));
+  await p.goto("file://" + join(dir, "i.html") + "?site=badger", { waitUntil: "load" });
+  await p.waitForTimeout(450);
+  if (act) { await act(p); await p.waitForTimeout(200); }
+  const out = {
+    rows: await p.$$eval("#prevBid .pb-row", (e) => e.map((x) => x.textContent.replace(/\s+/g, " "))),
+    raw: await p.$eval("#prevBid", (e) => e.textContent),
+    note: await p.$eval("#prevBidNote", (e) => e.textContent),
+  };
+  await p.close();
+  rmSync(dir, { recursive: true, force: true });
+  return out;
+}
+
+test("THE NEW CROP PRICE IS SHOWN, NOT ONLY THE CASH ONE", { skip: NO_BROWSER }, async () => {
+  const r = await bidPreview(AUGUST_BOARD);
+  assert.equal(r.rows.length, 2);
+  assert.match(r.rows[0], /Cash, corn.*August delivery.*\$4\.03/);
+  assert.match(r.rows[1], /Harvest.*October and November delivery/);
+});
+
+test("harvest shows the LOWER of the two months, as the page does", { skip: NO_BROWSER }, async () => {
+  /* The figure is offered across the whole window, so the higher of the two
+     would be a promise we had not made. November is 4.21, October 4.25. */
+  const r = await bidPreview(AUGUST_BOARD);
+  assert.match(r.rows[1], /\$4\.21/);
+  assert.doesNotMatch(r.rows[1], /\$4\.25/);
+});
+
+test("nothing on this screen is calculated", { skip: NO_BROWSER }, async () => {
+  /* Every figure shown must appear verbatim in the published file. If a
+     number ever turns up here that is not in bids.json, somebody has started
+     doing arithmetic on this screen and that is the thing not to do. */
+  const r = await bidPreview(AUGUST_BOARD);
+  const shown = (r.raw.match(/\$\d+\.\d\d/g) || []).map((x) => Number(x.slice(1)));
+  const published = AUGUST_BOARD.bids.map((b) => b.cashPrice);
+  for (const v of shown) assert.ok(published.includes(v), `${v} is not a published figure`);
+});
+
+test("it says these are the published figures, not a preview of an unsaved change",
+  { skip: NO_BROWSER }, async () => {
+  /* Two different claims, and only one of them is true here. The line under
+     the basis boxes makes the other. */
+  const clean = await bidPreview(AUGUST_BOARD);
+  assert.match(clean.note, /read from what it is publishing/);
+  const edited = await bidPreview(AUGUST_BOARD, { act: (p) => p.fill("#offh", "0.05") });
+  assert.match(edited.note, /You have changed a basis/);
+  assert.match(edited.note, /will not move until you save/);
+});
+
+test("if the published file cannot be read, it leaves what was already there",
+  { skip: NO_BROWSER }, async () => {
+  const r = await bidPreview(AUGUST_BOARD, { fail: true });
+  assert.equal(r.rows.length, 0, "no rows were built");
+  assert.match(r.raw, /Cash, corn/, "and the server-rendered preview is untouched");
+});
