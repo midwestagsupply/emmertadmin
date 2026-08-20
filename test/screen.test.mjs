@@ -37,10 +37,20 @@ try {
   const mod = await import("playwright");
   chromium = mod.chromium || (mod.default && mod.default.chromium);
 } catch {
-  try {
-    const mod = await import("/home/claude/.npm-global/lib/node_modules/playwright/index.js");
-    chromium = mod.chromium || (mod.default && mod.default.chromium);
-  } catch { /* left null on purpose */ }
+  /* A SECOND CHANCE, BUT NOT AT A HARDCODED PATH.
+     This used to fall back to an absolute path inside one particular
+     workstation's home directory. On CI and on anyone else's machine that
+     import can only fail, so the fallback did nothing except record where the
+     file had once been written -- and a machine-specific path in a shipped
+     file is the kind of thing that quietly becomes load-bearing.
+     PLAYWRIGHT_IMPORT lets a machine with an unusual install say so. */
+  const alt = process.env.PLAYWRIGHT_IMPORT;
+  if (alt) {
+    try {
+      const mod = await import(alt);
+      chromium = mod.chromium || (mod.default && mod.default.chromium);
+    } catch { /* left null on purpose */ }
+  }
 }
 const NO_BROWSER = chromium ? false : "playwright is not installed; screen tests skipped";
 

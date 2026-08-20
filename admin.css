@@ -418,3 +418,58 @@ html{scroll-padding-bottom:180px}
                   padding:11px 0;border-bottom:1px solid var(--line-lt)}
 .prev-bid .pb-row:last-child{border-bottom:none}
 .prev-bid .pb-l small{display:block;font-size:.8rem;color:var(--grey);font-weight:600}
+
+/* ---- THE ONE FIGURE THEY ACTUALLY PAY STAYS ON SCREEN ---------------------
+ *
+ * Measured 2026-08-20 at every phone width: `.board` is 568px of table in a
+ * 314px box at 390px wide, so 254px is off to the right -- and what sits out
+ * there is the LAST column, "We pay", which is the only number on this table
+ * that is the elevator's own. The note underneath says the two "should agree
+ * line for line" about columns the reader cannot see.
+ *
+ * A previous audit already changed this box from overflow:hidden to auto, so
+ * the column can be reached. It has to be DRAGGED to, on a touch screen with
+ * no scrollbar and no hint that there is anything there. In a scale house,
+ * one-handed, that is the same as not having it.
+ *
+ * So the last column is pinned instead. Their board scrolls underneath it and
+ * ours never leaves. The shadow on its leading edge is what says there is more
+ * to the left -- an affordance that appears only when it is true, because
+ * `position:sticky` only detaches when there is something to scroll.
+ *
+ * A STICKY CELL MUST BE OPAQUE or the columns slide through it, which is why
+ * the background is repeated here rather than inherited. The highlighted row
+ * keeps its own yellow.
+ */
+@media (max-width: 700px) {
+  .bd th:last-child,
+  .bd td:last-child{
+    position:sticky; right:0; z-index:1;
+    background:var(--card, #fff);
+    box-shadow:-6px 0 6px -6px rgba(0,0,0,.45);
+  }
+  .bd .is-ref td:last-child{background:var(--yellow)}
+  .bd th:last-child{background:var(--card, #fff)}
+}
+
+/* ---- A CLOSED DAY IS DIMMED, NOT ILLEGIBLE --------------------------------
+ * `.is-off` dimmed with opacity:.55 over --grey #3a3a3a, which computes to
+ * #939393 on white: a measured 3.09:1, under the 4.5:1 that normal-size text
+ * needs. It passed at phone widths only because the same text renders large
+ * there, by 0.09 of a ratio point. Dimmed has to stay readable -- "Sunday:
+ * Closed" is a fact the office checks, not decoration.
+ * #767676 on white is 4.54:1, measured, and reads as dimmer than the ink.
+ */
+tr.is-off > th[scope=row],
+tr.is-off > td:not(:last-child){opacity:1;color:#767676}
+.week td::before{color:inherit}
+
+/* The mark on a sample figure is drawn OUTSIDE the element, and inside a
+   horizontal scroller the left-hand 5px of it was cut off at every width.
+   Drawn inside instead: same warning, nothing lost. */
+.board .sample{outline-offset:-2px}
+
+/* 10.45px is too small to read in a scale house. .68rem is 12.9px against
+   this page's 19px root, which clears the 12px floor with something to spare
+   and does not change the lockup's width enough to reflow it. */
+.wm2{font-size:.68rem}
