@@ -195,7 +195,20 @@ test("THE FORM CANNOT SET A PRICE", () => {
      by afternoon, so the bid comes off the board or it does not appear. */
   const r = applyUpdate(form({ "Are you open today?": "Closed today" }), ctx());
   for (const k of Object.keys(r.hours)) assert.doesNotMatch(k, /price|cash|bid|basis/i);
-  assert.deepEqual(Object.keys(r.pricing), Object.keys(PRICING));
+
+  /* The doctrine is unchanged and the price assertion above is untouched. What
+     changed is that the applier now stamps updated_at / updated_by so the admin
+     screen can tell the office their change reached the published file.
+
+     This used to be a flat deepEqual on the key list, which is a stricter proxy
+     than the rule it stands for and failed on a key that is not a price. It now
+     NAMES the two keys that may appear, so the guarantee is stronger, not
+     weaker: any OTHER new key this form starts writing still fails here. */
+  const STAMP = new Set(["updated_at", "updated_by"]);
+  const added = Object.keys(r.pricing).filter((k) => !Object.keys(PRICING).includes(k));
+  assert.deepEqual(added.filter((k) => !STAMP.has(k)), [],
+    "this form added a key to pricing.json that is not the change stamp");
+  for (const k of added) assert.doesNotMatch(k, /price|cash|bid|basis/i);
 });
 
 test("an empty form changes nothing and says so", () => {

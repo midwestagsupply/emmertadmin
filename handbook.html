@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Emmert Sites Handbook</title>
+<link rel="icon" href="assets/icon.png">
+<meta name="robots" content="noindex">
+<style>
+  /* FACES:self-hosted */
+  /* The faces already in this repository, used by the staff screen. Nothing
+     here calls out to another company: no font host, no analytics, no CDN.
+     Inter ships at 500 and up, so body text is 500 rather than 400. */
+  @font-face{font-family:"Inter";src:url("fonts/inter-500.woff2") format("woff2"),url("fonts/inter-500.woff") format("woff");font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:"Inter";src:url("fonts/inter-600.woff2") format("woff2"),url("fonts/inter-600.woff") format("woff");font-weight:600;font-style:normal;font-display:swap}
+  @font-face{font-family:"Inter";src:url("fonts/inter-700.woff2") format("woff2"),url("fonts/inter-700.woff") format("woff");font-weight:700;font-style:normal;font-display:swap}
+  /* /FACES:self-hosted */
+
+:root{
+  --sans:"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --paper:#eef0f1; --card:#ffffff; --card-2:#f6f7f8;
+  --ink:#13181c; --ink-2:#5b666e; --ink-3:#636d75;
+  --rule:#d3d9dd; --rule-2:#e6eaec;
+  --badger:#b8332a; --midwest:#1c5f52;
+  --flag:#8a5209; --flag-bg:#fdf3e3;
+  --ok:#1c5f52;
+  --shadow:0 1px 0 rgba(19,24,28,.05), 0 1px 3px rgba(19,24,28,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#101417; --card:#171d21; --card-2:#1d242a;
+    --ink:#e7ecee; --ink-2:#9ba7ae; --ink-3:#8a969e;
+    --rule:#2a3238; --rule-2:#222a2f;
+    --badger:#e0685c; --midwest:#5cae9b;
+    --flag:#e0aa5c; --flag-bg:#241d10;
+    --ok:#5cae9b;
+    --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#101417; --card:#171d21; --card-2:#1d242a;
+  --ink:#e7ecee; --ink-2:#9ba7ae; --ink-3:#8a969e;
+  --rule:#2a3238; --rule-2:#222a2f;
+  --badger:#e0685c; --midwest:#5cae9b;
+  --flag:#e0aa5c; --flag-bg:#241d10;
+  --ok:#5cae9b;
+  --shadow:none;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px; line-height:1.55; font-weight:500;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1020px; margin:0 auto; padding:40px 24px 96px}
+
+/* ---- masthead ------------------------------------------------------- */
+.mast{border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:8px}
+.mast h1{
+  font-size:clamp(1.6rem,4vw,2.3rem); line-height:1.15; margin:0 0 6px;
+  font-weight:700; letter-spacing:-.015em; text-wrap:balance;
+}
+.mast p{margin:0; color:var(--ink-2); max-width:62ch}
+.stamp{
+  font-family:var(--mono);
+  font-size:.72rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3); display:flex; gap:14px; flex-wrap:wrap;
+  padding:8px 0 0;
+}
+
+/* ---- section scaffolding -------------------------------------------- */
+section{margin-top:46px}
+.sechd{display:flex; align-items:baseline; gap:12px; border-bottom:1px solid var(--rule); padding-bottom:7px; margin-bottom:20px}
+.sechd h2{font-size:1.12rem; font-weight:600; margin:0; letter-spacing:-.005em}
+.sechd .tag{
+  font-family:var(--mono); font-size:.68rem;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); white-space:nowrap;
+}
+p{max-width:68ch}
+.lede{color:var(--ink-2)}
+
+/* ---- the three things ----------------------------------------------- */
+.trio{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:14px}
+.thing{background:var(--card); border:1px solid var(--rule); border-radius:3px; padding:16px 16px 14px; box-shadow:var(--shadow)}
+.thing .dot{width:9px;height:9px;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:7px}
+.thing h3{margin:0 0 3px; font-size:1rem; font-weight:600}
+.thing .url{
+  font-family:var(--mono); font-size:.82rem;
+  color:var(--ink-2); word-break:break-all; display:block; margin-bottom:9px;
+}
+.thing dl{margin:0; font-size:.87rem; display:grid; grid-template-columns:auto 1fr; gap:2px 10px}
+.thing dt{color:var(--ink-3); font-family:var(--mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; padding-top:3px}
+.thing dd{margin:0; color:var(--ink)}
+
+/* ---- figure ---------------------------------------------------------- */
+figure{margin:0; background:var(--card); border:1px solid var(--rule); border-radius:3px; padding:20px 18px 12px; box-shadow:var(--shadow)}
+figure .scroll{overflow-x:auto}
+figure svg{display:block; width:100%; min-width:640px; height:auto; color:var(--ink)}
+figcaption{font-size:.85rem; color:var(--ink-2); margin-top:12px; border-top:1px solid var(--rule-2); padding-top:10px; max-width:70ch}
+
+/* ---- tables ---------------------------------------------------------- */
+.tw{overflow-x:auto; background:var(--card); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; min-width:520px; font-size:.88rem}
+th,td{text-align:left; padding:9px 14px; border-bottom:1px solid var(--rule-2); vertical-align:top}
+thead th{
+  font-family:var(--mono); font-size:.68rem;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:500;
+  border-bottom:1px solid var(--rule); background:var(--card-2);
+}
+tbody tr:last-child td{border-bottom:none}
+td.mono,.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+/* ---- steps ----------------------------------------------------------- */
+.how{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:14px}
+.card{background:var(--card); border:1px solid var(--rule); border-radius:3px; padding:15px 17px 16px; box-shadow:var(--shadow)}
+.card h3{margin:0 0 10px; font-size:.95rem; font-weight:600}
+.card ol{margin:0; padding-left:0; list-style:none; counter-reset:s}
+.card ol li{counter-increment:s; position:relative; padding-left:27px; margin-bottom:7px; font-size:.89rem}
+.card ol li::before{
+  content:counter(s); position:absolute; left:0; top:1px;
+  font-family:var(--mono); font-size:.7rem; font-weight:600;
+  width:17px; height:17px; border-radius:2px; background:var(--card-2); border:1px solid var(--rule);
+  display:grid; place-items:center; color:var(--ink-2);
+}
+.card ol li:last-child{margin-bottom:0}
+kbd{
+  font-family:var(--mono); font-size:.82em;
+  background:var(--card-2); border:1px solid var(--rule); border-radius:2px; padding:1px 5px;
+}
+
+/* ---- flag ------------------------------------------------------------ */
+.flag{background:var(--flag-bg); border:1px solid var(--flag); border-left-width:3px; border-radius:3px; padding:14px 16px; margin-top:16px}
+.flag h3{margin:0 0 6px; font-size:.9rem; font-weight:600; color:var(--flag)}
+.flag p{margin:0 0 8px; font-size:.89rem}
+.flag p:last-child{margin-bottom:0}
+
+/* ---- faq ------------------------------------------------------------- */
+.faq{background:var(--card); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow)}
+.faq details{border-bottom:1px solid var(--rule-2)}
+.faq details:last-child{border-bottom:none}
+.faq summary{padding:12px 16px; cursor:pointer; font-weight:500; font-size:.92rem; list-style:none; display:flex; gap:10px; align-items:baseline}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"+"; font-family:var(--mono); color:var(--ink-3); font-weight:600}
+.faq details[open] summary::before{content:"\2212"}
+.faq details[open] summary{color:var(--ink); background:var(--card-2)}
+.faq .a{padding:2px 16px 15px 32px; font-size:.89rem; color:var(--ink-2)}
+.faq .a p{margin:0 0 8px; max-width:66ch}
+.faq .a p:last-child{margin-bottom:0}
+.faq .a strong{color:var(--ink)}
+summary:focus-visible,a:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+
+a{color:inherit; text-decoration-color:var(--ink-3); text-underline-offset:2px}
+a:hover{text-decoration-color:var(--ink)}
+code{font-family:var(--mono); font-size:.86em; background:var(--card-2); border:1px solid var(--rule-2); border-radius:2px; padding:.5px 4px}
+pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; padding:12px 14px; overflow-x:auto; font-family:var(--mono); font-size:.8rem; line-height:1.5; margin:10px 0}
+
+.foot{margin-top:56px; border-top:1px solid var(--rule); padding-top:16px; font-size:.83rem; color:var(--ink-3); max-width:70ch}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important; transition:none!important}}
+@media print{
+  body{background:#fff; color:#000; font-size:11pt}
+  .wrap{max-width:none; padding:0}
+  section{break-inside:avoid; margin-top:22px}
+  .thing,.card,.tw,figure,.faq{box-shadow:none; break-inside:avoid}
+  .faq details{display:block}
+  .faq .a{display:block!important}
+  .faq summary::before{content:""}
+}
+
+.backlink{
+  display:inline-block; font-family:var(--mono); font-size:.74rem;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2);
+  text-decoration:none; border:1px solid var(--rule); border-radius:2px;
+  padding:5px 10px; margin-bottom:22px; background:var(--card);
+}
+.backlink:hover{color:var(--ink); border-color:var(--ink-3)}
+@media print{.backlink{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="backlink" href="./">&larr; Back to the staff screen</a>
+
+<header class="mast">
+  <h1>Emmert Sites Handbook</h1>
+  <p>How the two elevator websites get their numbers, what the staff screen actually does when you press Save, and what to check when something looks wrong.</p>
+  <div class="stamp">
+    <span>For the office</span><span>Rev. 22 August 2026</span><span>Keep at the desk</span>
+  </div>
+</header>
+
+<section>
+  <div class="sechd"><h2>The three things</h2><span class="tag">two public · one private</span></div>
+  <div class="trio">
+    <div class="thing">
+      <h3><span class="dot" style="background:var(--badger)"></span>Badger Grain Supply</h3>
+      <span class="url">badgergrain.com</span>
+      <dl>
+        <dt>Where</dt><dd>E5210 1040th Ave, Wheeler, WI 54772</dd>
+        <dt>Phone</dt><dd class="mono">(715) 704-0548</dd>
+        <dt>Licence</dt><dd class="mono">302165 GL · 302162 GW</dd>
+      </dl>
+    </div>
+    <div class="thing">
+      <h3><span class="dot" style="background:var(--midwest)"></span>Midwest Commodity Service</h3>
+      <span class="url">midwestcommodity.com</span>
+      <dl>
+        <dt>Where</dt><dd>1881 140th Ave, Baldwin, WI 54002</dd>
+        <dt>Phone</dt><dd class="mono">(715) 704-0548</dd>
+      </dl>
+    </div>
+    <div class="thing">
+      <h3><span class="dot" style="background:var(--ink-3)"></span>The staff screen</h3>
+      <span class="url">midwestagsupply.github.io/emmertadmin/</span>
+      <dl>
+        <dt>Who</dt><dd>Office only. Needs a GitHub account with write access.</dd>
+        <dt>Does</dt><dd>Sets hours, notices, and the basis. Both elevators, one page.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Where the number on the page comes from</h2><span class="tag">nobody types the price</span></div>
+  <figure>
+    <div class="scroll">
+      <svg viewBox="0 0 880 348" role="img" aria-label="Big River's posted board is looked at every half hour and kept in the bids repository. From there each elevator's own Prices job takes it, subtracts that elevator's spread, and writes the result into that elevator's web page. The staff screen sits between the two jobs and supplies the spread to each of them; it never supplies a price.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
+          </marker>
+        </defs>
+
+        <rect x="350" y="8" width="180" height="46" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="440" y="27" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Big River</text>
+        <text x="440" y="43" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">their posted board</text>
+
+        <line x1="440" y1="54" x2="440" y2="84" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+        <text x="450" y="73" font-size="10" fill="currentColor" opacity=".7">looked at every half hour, all day</text>
+
+        <rect x="340" y="86" width="200" height="58" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="440" y="107" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">bids repository</text>
+        <text x="440" y="123" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">one copy of the board</text>
+        <text x="440" y="137" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">re-stamped when the price moves</text>
+
+        <path d="M 440 144 L 440 162 L 225 162 L 225 194" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+        <path d="M 440 144 L 440 162 L 655 162 L 655 194" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+        <text x="440" y="180" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">every 10 minutes, each on its own</text>
+
+        <rect x="120" y="196" width="210" height="52" rx="3" fill="none" stroke="#b8332a" stroke-width="1.6"/>
+        <text x="225" y="217" text-anchor="middle" font-size="12" font-weight="600" fill="#b8332a">Badger &#183; Prices job</text>
+        <text x="225" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".78">board &#8722; our spread</text>
+
+        <rect x="550" y="196" width="210" height="52" rx="3" fill="none" stroke="#1c5f52" stroke-width="1.6"/>
+        <text x="655" y="217" text-anchor="middle" font-size="12" font-weight="600" fill="#1c5f52">Midwest &#183; Prices job</text>
+        <text x="655" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".78">board &#8722; our spread</text>
+
+        <rect x="356" y="198" width="168" height="48" rx="3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 3"/>
+        <text x="440" y="218" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">staff screen</text>
+        <text x="440" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">spread &#183; hours &#183; notices</text>
+
+        <line x1="354" y1="222" x2="334" y2="222" stroke="currentColor" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+        <line x1="526" y1="222" x2="546" y2="222" stroke="currentColor" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#ar)"/>
+
+        <line x1="225" y1="248" x2="225" y2="276" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+        <line x1="655" y1="248" x2="655" y2="276" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
+
+        <rect x="120" y="278" width="210" height="50" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="225" y="299" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">badgergrain.com</text>
+        <text x="225" y="315" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">plain HTML &#183; fetches nothing</text>
+
+        <rect x="550" y="278" width="210" height="50" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
+        <text x="655" y="299" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">midwestcommodity.com</text>
+        <text x="655" y="315" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">plain HTML &#183; fetches nothing</text>
+      </svg>
+    </div>
+    <figcaption>The elevator&rsquo;s own price is never typed anywhere. It is Big River&rsquo;s posted board minus that elevator&rsquo;s spread, worked out fresh by each site&rsquo;s own job and written into the page as plain text. The dashed arrows are the only thing the office puts in: the spread, and the hours, which travel the same road to the same page. The staff screen also shows you Big River&rsquo;s board as they posted it, so you can check it line for line.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sechd"><h2>What happens without anybody</h2><span class="tag">the clock</span></div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Job</th><th>When it runs</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>Prices</strong></td>
+          <td class="mono">every 10 min, 7am–5pm weekdays<br>every 30 min otherwise</td>
+          <td>Reads the board, applies the spread, rewrites the price panel. If one run fails the next is ten minutes behind it.</td>
+        </tr>
+        <tr>
+          <td><strong>Hours</strong></td>
+          <td class="mono">~8am, ~5pm, ~midnight<br>four tries over 20 min</td>
+          <td>Rewrites the hours box and the week table. Also runs the moment <code>hours.json</code> changes.</td>
+        </tr>
+        <tr>
+          <td><strong>The page's own clock</strong></td>
+          <td class="mono">in the reader's browser</td>
+          <td>Flips <em>Open now</em> to <em>Closed</em> at the right minute even if no job ran that day. It works from the hours the last job baked in.</td>
+        </tr>
+        <tr>
+          <td><strong>Watchdog</strong></td>
+          <td class="mono">5× weekdays, 1× weekends</td>
+          <td>Opens both live sites, checks the numbers agree and nothing is stale, and emails if not.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="flag">
+    <h3>If the feed goes quiet, the price comes off — on purpose</h3>
+    <p>The reader that watches Big River's board checks in every six hours. If nothing has arrived in <strong>14 hours</strong> — two missed check-ins — both sites stop showing a number and say <em>“Call for today's price”</em> instead.</p>
+    <p>That is the system working. A wrong price on the page is worse than no price on the page.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>How to</h2><span class="tag">the four things you will actually do</span></div>
+  <div class="how">
+    <div class="card">
+      <h3>Change the hours</h3>
+      <ol>
+        <li>Open the staff screen.</li>
+        <li>Find the elevator's column — Badger on the left, Midwest on the right.</li>
+        <li>Type the new times. The fields you changed light up before you save.</li>
+        <li>Press <kbd>Save</kbd>. A GitHub page opens with the form already filled in.</li>
+        <li>Press <kbd>Submit new issue</kbd>. That is the actual save.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Close for the day</h3>
+      <ol>
+        <li>Tick <strong>Closed today</strong> in that elevator's column.</li>
+        <li>Add a line in the notice box if there is a reason worth giving.</li>
+        <li>Save and submit as above.</li>
+        <li>It clears itself overnight — you do not have to remember to untick it tomorrow.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Change the basis</h3>
+      <ol>
+        <li>The board on the screen shows Big River's posted numbers, line for line, exactly as they post them.</li>
+        <li>Our basis is <strong>their basis minus our spread</strong>. Change the spread and ours moves with theirs from then on.</li>
+        <li>The readout under the box says in words what the number you typed will do.</li>
+        <li>Save and submit. The price on the site is rebuilt within a minute.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Break glass: type a price</h3>
+      <ol>
+        <li>Only when the automatic reading is down and you have a number from the office.</li>
+        <li>Enter it as a manual price. It <strong>overrides the feed</strong> until it is cleared.</li>
+        <li>Clear it the moment the feed is back, or the site keeps showing your number instead of the market's.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="flag">
+    <h3>The one that catches people: blank is not zero</h3>
+    <p>On the new-crop spread box, <strong>blank</strong> and <strong>0</strong> mean opposite things.</p>
+    <p><strong>Blank</strong> — there is no separate new-crop spread, so new crop uses the same spread as everything else.<br>
+       <strong>0</strong> — there <em>is</em> a new-crop spread and it is zero: we pay Big River's exact posted board, no cents off.</p>
+    <p>Read the sentence under the box before you save. It spells out what will happen in plain words.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>What Save actually does</h2><span class="tag">why there are two buttons</span></div>
+  <p class="lede">There is no password on the staff screen and no server behind it. That is deliberate — the password and the server were removed in August 2026 because a password kept in a box somewhere is the thing that eventually leaks. Instead the screen writes the change as a GitHub ticket, and GitHub decides whether you are allowed.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Step</th><th>What happens</th><th>What you see</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">1</td><td>You press Save on the screen.</td><td>A GitHub page opens with the whole form already written out.</td></tr>
+        <tr><td class="mono">2</td><td>You press Submit new issue.</td><td>The ticket is filed against that elevator's site.</td></tr>
+        <tr><td class="mono">3</td><td>A checker runs. It reads who filed it and refuses anyone without write access; it runs its own tests before it touches a file.</td><td>Nothing yet — about a minute.</td></tr>
+        <tr><td class="mono">4a</td><td><strong>Accepted.</strong> The hours and spread are written, the site is rebuilt straight away.</td><td>A comment saying <em>Done</em>, and the ticket <strong>closes</strong>.</td></tr>
+        <tr><td class="mono">4b</td><td><strong>Refused</strong> — a time that could not be read, a basis that is not a number. Nothing is changed.</td><td>A comment saying what was wrong, and the ticket <strong>stays open</strong>.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="flag">
+    <h3>A closed ticket is the receipt</h3>
+    <p>The ticket closing is how you know the change is live. If it is still open, read the comment — it names the line that could not be read.</p>
+    <p><strong>You do not start over.</strong> Edit the ticket, fix that one line, and it runs again on its own.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Questions</h2><span class="tag">open one</span></div>
+  <div class="faq">
+    <details><summary>I saved it. How long until it is on the site?</summary>
+      <div class="a"><p>About a minute. Saving now kicks off the rebuild rather than waiting for the next scheduled run.</p>
+      <p>If it has been more than five minutes, check whether the ticket closed. An open ticket means it was refused and <strong>nothing changed</strong>.</p></div></details>
+
+    <details><summary>The site says “Call for today's price”. Is it broken?</summary>
+      <div class="a"><p>Not necessarily. It means no fresh reading of Big River's board has arrived in 14 hours, so the site took the number down rather than show a stale one.</p>
+      <p>It clears itself as soon as a reading arrives. If it is still saying that after a few hours of a normal trading day, tell Sig.</p></div></details>
+
+    <details><summary>The hours box says Closed and we are open.</summary>
+      <div class="a"><p>The open/closed sentence is worked out in the visitor's own browser, from their own clock, so it flips at the right minute without anything having to run. If it is wrong, the <strong>hours themselves</strong> are wrong, not the clock — check what is set on the staff screen for that elevator.</p>
+      <p>Worth ruling out first: a phone showing a page it loaded hours ago. Pull to refresh.</p></div></details>
+
+    <details><summary>I typed the wrong thing and saved it.</summary>
+      <div class="a"><p>Save the right thing over it. Every save is a full statement of what the hours and spread should be — the last one wins, and the site rebuilds within a minute.</p>
+      <p>Nothing is lost either way: every change is recorded with who made it and when.</p></div></details>
+
+    <details><summary>Why does the board on the staff screen show <span class="mono">$4.2825</span> and not <span class="mono">$4.28</span>?</summary>
+      <div class="a"><p>Because that is what Big River posted. The board is there so you can check it line for line against theirs, and a rounded number would not match.</p>
+      <p>The rounding that produces <em>our</em> posted price happens later, in one place, on purpose.</p></div></details>
+
+    <details><summary>Can I edit the website itself from the staff screen?</summary>
+      <div class="a"><p>No, and that is the point. The screen sets hours, notices and the spread. Everything else on the page — the price, the week table, the drying schedule — is worked out from those.</p></div></details>
+
+    <details><summary>Does the website slow down or cost money when a lot of people visit?</summary>
+      <div class="a"><p>No. Both sites are plain HTML files served by GitHub. The page does no work when somebody opens it — it fetches nothing, calculates nothing, asks no other service for anything. A busy morning costs exactly the same as a quiet one.</p></div></details>
+
+    <details><summary>A farmer says our price is “as of” hours ago. Is it stale?</summary>
+      <div class="a"><p>Almost always no. Two different times are involved and only one of them is on the page.</p>
+      <p><strong>The board is looked at every half hour, all day.</strong> The copy of it is only re-stamped when a number actually moves — or once every six hours if nothing has. So on a flat afternoon the stamp can read six hours old while the board has in fact been checked twelve times since.</p>
+      <p>What it means is <em>“this is still the price”</em>, not <em>“nobody has looked”</em>. If it goes past 14 hours the site takes the price down on its own.</p></div></details>
+
+    <details><summary>Somebody shared the site and the preview looked wrong.</summary>
+      <div class="a"><p>Each site has its own preview card, in its own colour — Badger red, Midwest green. Facebook and Messages cache these for days, so an old share can keep showing an old card for a while. A fresh share will be right.</p></div></details>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Something looks wrong</h2><span class="tag">in this order</span></div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>What you see</th><th>Most likely</th><th>What to do</th></tr></thead>
+      <tbody>
+        <tr><td>Price is missing</td><td>Feed older than 14 hours</td><td>Wait for the next reading. Still gone after a few hours of a trading day → tell Sig.</td></tr>
+        <tr><td>Price looks stale</td><td>A manual price was left on</td><td>Check the staff screen for a manual override and clear it.</td></tr>
+        <tr><td>Hours are wrong</td><td>The hours are wrong, not the clock</td><td>Check what is set on the staff screen for that elevator.</td></tr>
+        <tr><td>Saved but nothing changed</td><td>The ticket was refused</td><td>Open the ticket, read the comment, fix that one line, it re-runs.</td></tr>
+        <tr><td>Save button did nothing</td><td>Not signed in to GitHub</td><td>Sign in, then press Save again.</td></tr>
+        <tr><td>Two elevators disagree</td><td>One site's job did not run</td><td>Tell Sig. The watchdog should have caught it and emailed.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Later: analytics and search</h2><span class="tag">not set up · here is how</span></div>
+  <p class="lede">None of this is on the sites today. When you want it, it is a short job — and it is safe to add, because the jobs that rebuild the pages only rewrite five clearly marked blocks and never touch the top of the file. That was tested, not assumed: tags were added to a real page, both rebuilders were run against it, and the top of the file came back byte for byte identical.</p>
+
+  <div class="how">
+    <div class="card">
+      <h3>Google Search Console</h3>
+      <ol>
+        <li>Add a <strong>URL-prefix property</strong> for <code>https://badgergrain.com/</code>. Do the same again for Midwest.</li>
+        <li>Choose the <strong>HTML tag</strong> method and copy the tag it gives you.</li>
+        <li>Paste it into <code>index.html</code> just above <code>&lt;/head&gt;</code> and commit.</li>
+        <li>Press Verify.</li>
+        <li>Submit <code>https://badgergrain.com/sitemap.xml</code> — it already exists and keeps itself current.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Bing Webmaster Tools</h3>
+      <ol>
+        <li>Do Google first.</li>
+        <li>Sign in and choose <strong>Import from Google Search Console</strong>.</li>
+        <li>Both sites come across already verified — nothing to paste into the pages at all.</li>
+        <li>If that Google connection is ever revoked, Bing falls back to needing its own <code>msvalidate.01</code> tag, added the same way.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Google Analytics</h3>
+      <ol>
+        <li>Create a GA4 property per site — one each, not one shared, or the two elevators' traffic is mixed together.</li>
+        <li>Paste the gtag snippet above <code>&lt;/head&gt;</code>, same place as the verification tag.</li>
+        <li>Once Analytics is live it can verify Search Console on its own, so the separate tag becomes optional.</li>
+        <li>Expect the page to get a touch slower — it is the first thing on either site that would call out to another company.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="flag">
+    <h3>Two rules if you do this</h3>
+    <p><strong>Leave the tags in forever.</strong> Both Google and Bing re-check them. Remove the tag and you quietly lose the property.</p>
+    <p><strong>If anyone offers you the DNS method, add a record — never replace one.</strong> The mail for both domains runs on records that live in the same place, and replacing them takes the email down.</p>
+  </div>
+
+  <pre>&lt;!-- goes immediately above &lt;/head&gt; in index.html --&gt;
+&lt;meta name="google-site-verification" content="PASTE_WHAT_GOOGLE_GIVES_YOU"&gt;</pre>
+</section>
+
+<p class="foot">Prices shown on either site are Big River's posted board less that elevator's spread, rebuilt automatically. Nothing on these sites is a quote. When the automatic reading is unavailable both sites say so and ask for a call rather than showing an old number.</p>
+
+</div>
+</body>
+</html>

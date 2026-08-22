@@ -472,4 +472,640 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
 /* 10.45px is too small to read in a scale house. .68rem is 12.9px against
    this page's 19px root, which clears the 12px floor with something to spare
    and does not change the lockup's width enough to reflow it. */
-.wm2{font-size:.68rem}
+}
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   TWO ELEVATORS, ONE SCREEN
+   ══════════════════════════════════════════════════════════════════════════
+   The previous version wore one elevator's colour at a time: `data-site` on
+   <html>, one lockup shown, the other hidden. That was right when the screen
+   edited one elevator and the address chose which.
+
+   It edits both now, so the colour moves off the root and onto the column.
+   `--site` is redeclared inside each `.col`, and every rule underneath goes on
+   reading `var(--site)` exactly as it did — which is why this is fifteen lines
+   rather than a second stylesheet. Both lockups show, each in its own colour,
+   because the header is now a legend for the two columns below it.
+
+   THE COLOUR IS LOAD-BEARING, NOT DECORATION. Two live forms on one page means
+   typing into the wrong elevator is possible for the first time, and that is a
+   mistake nobody notices until a customer rings. Gold and green run the full
+   height of each column — rail, header, card headers, chosen chips, Save —
+   so the answer to "which elevator am I in" is never more than a glance away
+   and never depends on reading a word. */
+
+.col{ --site:#d4a23f; --site-ink:#7d5a14; --site-wash:#fcf3dd; }
+.col[data-elev="midwest"]{ --site:#1d5e3c; --site-ink:#14472c; --site-wash:#e8f1eb; }
+
+/* Both marks, each in its own colour, as a legend for the columns. */
+.marks .logo[data-elev="midwest"] .wmrule{ background:#1d5e3c; }
+.marks .logo[data-elev="badger"]  .wmrule{ background:#d4a23f; }
+.marks-sep{ width:1px; align-self:stretch; background:var(--line); margin:0 4px; }
+
+/* The two "posts" columns on the shared board carry the elevator's colour, so
+   a figure and the column that owns it are the same colour on one screen. */
+.bd th.pays[data-elev="badger"], .bd td.pay[data-elev="badger"]{ color:#7d5a14; }
+.bd th.pays[data-elev="midwest"], .bd td.pay[data-elev="midwest"]{ color:#14472c; }
+
+.hd-acts{ display:flex; align-items:center; gap:12px; margin-left:auto; }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE OPS CONSOLE  —  desktop only
+   ══════════════════════════════════════════════════════════════════════════
+   Sig: "I want one page that shows all data on screen, both elevators."
+
+   The shell is exactly the window. Above: the marks, and Big River's board,
+   read once because it is one board. Below: two columns, one per elevator,
+   each with its own header, its own scrolling pane and its own Save.
+
+   WHAT DOES NOT FIT GETS A PANE TO MOVE IN, rather than being clipped. That
+   rule is older than this layout and it stands: `overflow:hidden` on the shell
+   made the page report itself as fitting while amputating the bottom of the
+   bid card. A pane that scrolls tells the truth.
+
+   THE PHONE IS A DIFFERENT SCREEN, further down, and none of this reaches it.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 1440px) {
+  :root{
+    --bg:#0e120c; --band:#0e120c; --paper:#171c15;
+    --ink:#e9e7db; --grey:#a3a798;
+    --line:#2c332a; --line-lt:#222922;
+    --green:#2f8f5b;
+    --flag:#e2705a; --flag-bg:#251612;
+    --radius:5px;
+  }
+  /* The dark console needs the light-on-dark pair of each accent. Declared on
+     the column, not the root, so the two live side by side. */
+  .col[data-elev="badger"] { --site:#d4a23f; --site-ink:#f0c778; --site-wash:#241d0f; }
+  .col[data-elev="midwest"]{ --site:#4e9e6a; --site-ink:#87c79c; --site-wash:#12220f; }
+
+  /* ---- the shell: exactly the window, never taller --------------------- */
+  /* FLEX, NOT A ROW COUNT. An earlier version was `grid-template-rows:auto
+     auto 1fr auto`, which assumed a fixed number of children above the work
+     area. A column flex with one growing child does not care how many
+     siblings there are, which is why it survived this restructure unchanged. */
+  html, body{ height:100%; overflow:hidden; }
+  body{ display:flex; flex-direction:column; background:var(--bg); }
+  body > main{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; gap:0; }
+  body > *:not(main){ flex:0 0 auto; }
+
+  header{ background:#0b0e0a; border-bottom:1px solid var(--line); }
+  header > .wrap{ padding:7px 20px; display:flex; align-items:center; }
+  .wrap{ max-width:none; padding-left:20px; padding-right:20px; }
+  .marks{ display:flex; align-items:center; gap:6px; }
+  .marks .logo{ transform:scale(.72); transform-origin:left center; }
+  .wm1{ color:var(--ink); } .wm2{ color:var(--grey); }
+  .ear{ filter:saturate(.55) brightness(.85); }
+  .who{ font-size:.8rem; color:var(--grey); }
+
+  /* ---- the shared board strip ------------------------------------------ */
+  .strip{
+    flex:0 0 auto; background:#11150f; border-bottom:1px solid var(--line);
+    padding:7px 20px 8px; display:grid; gap:7px 14px;
+    grid-template-columns:minmax(0,1fr) minmax(260px,.42fr);
+    align-items:start; align-content:start;
+  }
+  .strip .board{ grid-column:1; grid-row:1/span 2; margin:0; }
+  .strip .feed, .strip .feedlive{
+    grid-column:2; margin:0; padding:6px 9px; font-size:.82rem;
+    background:#0f130d; border:1px solid var(--line); border-radius:4px;
+  }
+  .strip .board-hd{ padding:4px 10px; font-size:.8rem; background:#0b0e0a; }
+  /* THE NOTE EARNS ITS LINES OR IT LOSES THEM. Three lines of explanation
+     under a five-row table put the strip at 410px -- 38% of a 1080p screen
+     spent on prose about a table the reader is looking at. It says the same
+     thing in two, smaller, and the columns get the difference. */
+  .strip .board-note{ font-size:.72rem; line-height:1.38; margin:4px 0 0; color:var(--grey); }
+  .bd{ font-variant-numeric:tabular-nums; }
+  .bd th{ font-size:9px; letter-spacing:.12em; color:var(--grey); padding:3px 8px; }
+  .bd td{ padding:3px 8px; font-size:.82rem; border-color:var(--line-lt); }
+  /* THE TWO ROWS THE TWO BOXES GOVERN. The nearest delivery is the cash
+     basis's row; October and November are the new-crop basis's rows. The
+     basis cell itself is ringed, because that is the figure the box is
+     measured against -- not the cash, and not the whole row. */
+  .bd tr.is-ref td{ background:#1c2318; color:var(--ink); }
+  .bd tr.is-new td{ background:#151d16; }
+  .bd tr.is-ref td.basis-cell,
+  .bd tr.is-new td.basis-cell{
+    box-shadow:inset 0 0 0 1px var(--line-lt); border-radius:3px;
+    color:var(--ink); font-weight:700;
+  }
+  .bd tr.is-ref td.basis-cell{ box-shadow:inset 0 0 0 1px #d4a23f66; }
+  .bd tr.is-new td.basis-cell{ box-shadow:inset 0 0 0 1px #4e9e6a66; }
+  .bd tr.is-ref td:first-child::after{ content:" cash"; color:var(--grey); font-size:.72rem; letter-spacing:.06em; }
+  .bd tr.is-new td:first-child::after{ content:" new crop"; color:var(--grey); font-size:.72rem; letter-spacing:.06em; }
+  /* On the dark console the accents take their light-on-dark pair. These sit
+     outside .col, so they cannot inherit it and are named here. */
+  .bd th.pays[data-elev="badger"], .bd td.pay[data-elev="badger"]{ color:#f0c778; }
+  .bd th.pays[data-elev="midwest"], .bd td.pay[data-elev="midwest"]{ color:#87c79c; }
+  .bd td.pay{ font-weight:600; }
+
+  /* ---- the floor: two elevators ---------------------------------------- */
+  .floor{
+    flex:1 1 auto; min-height:0;
+    /* One column by default at desktop width; the 940px block below promotes
+       it to two once there is height enough to keep the board on screen. */
+    display:grid; grid-template-columns:1fr;
+    /* minmax(0,1fr) ON THE ROW, NOT JUST auto. A grid row sizes to its content
+       by default, so the floor grew to whatever the tallest column wanted and
+       pushed the shell 178px past the window at 1920x1080 -- clipped, because
+       the shell is overflow:hidden. Constraining the row is what hands the
+       overflow down to the panes, which have a scrollbar to show for it. */
+    grid-template-rows:minmax(0,1fr);
+    gap:1px; background:var(--line);
+  }
+  .col{
+    min-width:0; min-height:0; background:var(--bg);
+    display:flex; flex-direction:column;
+  }
+
+  /* The column header is the answer to "which elevator is this". It never
+     scrolls away, because the moment it does the colour is the only thing
+     left saying so, and colour alone is not enough for everyone. */
+  .col-hd{
+    flex:0 0 auto; display:flex; align-items:center; gap:9px;
+    padding:7px 14px 7px 0; background:#11150f;
+    border-bottom:1px solid var(--line);
+  }
+  .col-rail{ width:4px; align-self:stretch; background:var(--site); flex:0 0 auto; }
+  .col-name{ font:600 .96rem/1 var(--font); color:var(--site); letter-spacing:.01em; }
+  .col-town{ font-size:.8rem; color:var(--grey); }
+  .col-live{ margin-left:auto; font-size:.72rem; color:var(--grey); font-variant-numeric:tabular-nums; letter-spacing:.01em; }
+
+  .col-form{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; padding:0; margin:0; }
+  /* A GRID, NOT A STACK. Each column is ~700-1200px across on a desk, so a
+     single file of cards wastes half its width and buys height it cannot
+     afford: stacked, the three daily cards wanted 890px more than the pane
+     had at 1920x1080. Side by side they mostly fit. The bid card spans both
+     sub-columns because its own body is already two columns wide. */
+  .col-panes{
+    flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+    padding:9px 12px 11px;
+    display:grid; grid-template-columns:1fr 1fr; gap:9px;
+    align-content:start;
+    /* grid-auto-rows:max-content IS LOAD-BEARING. Left implicit, the two rows
+       inside this height-constrained pane came out exactly equal -- 314.375px
+       each -- instead of sizing to their contents (525px and 681px). The cards
+       are align-self:start, so each one then PAINTED OUTSIDE ITS ROW and over
+       the card below it: the basis card's customer preview and small-print box
+       rendered underneath the hours card, looking like they belonged to it.
+       Measured, not reasoned about: rows 524.844px and 680.609px afterwards. */
+    grid-auto-rows:max-content;
+    scrollbar-width:thin; scrollbar-color:var(--line) transparent;
+  }
+  [data-id="c-bid"], [data-id="c-weekly"]{ grid-column:1 / -1; }
+  .col-panes::-webkit-scrollbar{ width:9px; }
+  .col-panes::-webkit-scrollbar-thumb{ background:var(--line); border-radius:9px; border:2px solid var(--bg); }
+  .col-panes::-webkit-scrollbar-track{ background:transparent; }
+
+  /* flex:0 0 auto IS THE WHOLE PANE. Without it the cards are flex children
+     with the default flex-shrink:1, so on a screen too short for all three
+     they do not overflow the pane -- they COMPRESS. Measured at 1440x900:
+     the bid card was 80px tall instead of ~400, the hours card 74px, and
+     their contents spilled out of a box with overflow:auto that believed its
+     content fitted, so scrollHeight equalled clientHeight and no scrollbar
+     ever appeared. The basis boxes were simply not on the screen and nothing
+     said so. A card keeps its own height; the PANE is what scrolls. */
+  .col-panes > .card{ align-self:start; margin:0; background:var(--paper); border:1px solid var(--line); }
+  .card h2{
+    background:#11150f; color:var(--ink); border-bottom:1px solid var(--line);
+    padding:6px 11px; font-size:.87rem; letter-spacing:.01em;
+    border-left:3px solid var(--site);
+  }
+  .card h2 .hint{ color:var(--grey); font-weight:400; }
+  .card > .body{ padding:9px 11px 10px; font-size:.88rem; }
+  .help{ font-size:.8rem; color:var(--grey); margin:0 0 6px; }
+
+  /* ---- inputs read as instrument fields -------------------------------- */
+  input[type="text"], input[type="time"], textarea{
+    background:#0f130d; border-color:var(--line); color:var(--ink);
+    padding:6px 8px; font-size:.88rem;
+  }
+  textarea{ min-height:62px; }
+  input[type="text"]{ font-variant-numeric:tabular-nums; }
+  .money span{ color:var(--grey); }
+  .counter{ font-size:.75rem; color:var(--grey); margin-top:2px; }
+  .opt{ padding:7px 9px; background:#12160f; border-color:var(--line); }
+  .opt b{ font-size:.88rem; } .opt small{ font-size:.76rem; color:var(--grey); }
+  .prev{ padding:6px 8px; margin:6px 0 4px; background:#12160f; border:1px dashed var(--line); }
+  .prev-bid, .prev-today, .prev-week{ font-size:.9rem; }
+  .prev .pb-row{ padding:2px 0; }
+  .prev-l{ font-size:9px; letter-spacing:.14em; color:var(--grey); margin-bottom:4px; }
+
+  /* ---- the two that change rarely fold away ---------------------------- */
+  [data-id="c-weekly"], [data-id="c-print"]{ display:none; }
+  body[data-rare="open"] [data-id="c-weekly"],
+  body[data-rare="open"] [data-id="c-print"]{ display:block; }
+  .rare-toggle{
+    font:600 .78rem/1 var(--font); cursor:pointer; color:var(--grey);
+    background:#131711; border:1px solid var(--line); border-radius:999px; padding:6px 13px;
+  }
+  .rare-toggle[aria-expanded="true"]{ background:#241d0f; border-color:#d4a23f; color:var(--ink); }
+
+  /* ---- each column's own command bar ----------------------------------- */
+  .save{
+    position:static; margin:0; flex:0 0 auto;
+    background:#0b0e0a; border-top:1px solid var(--line); box-shadow:none;
+    display:flex; align-items:center; gap:9px; padding:8px 14px;
+  }
+  .save .saved{ margin-left:auto; font-size:.78rem; color:var(--grey); }
+  .btn{ padding:8px 15px; font-size:.88rem; }
+  /* Save carries the elevator's colour and the elevator's NAME. A green button
+     saying "Save and put it live" is the same button in both columns; a gold
+     one saying "Save Badger Grain Supply" cannot be pressed by accident and
+     read as the other one afterwards. */
+  .btn-go{ background:var(--site); border-color:var(--site); color:#12160d; font-weight:700; }
+  .col[data-elev="midwest"] .btn-go{ color:#0c1a11; }
+  .save-who{ font-weight:700; }
+
+  /* ---- WHICH COLUMN AM I TYPING IN ------------------------------------
+     The one real hazard of putting both elevators on one screen. Colour marks
+     which column is which; this marks which one has the cursor. The column
+     being typed in lifts, the other one settles back — enough to be caught out
+     of the corner of an eye, not so much that the other column stops being
+     readable, because reading the other one while typing is half the point of
+     the screen. Opacity is deliberately NOT used: it would dim a warning on
+     the other column at the moment it most needs to be seen. */
+  .col:focus-within .col-hd{ background:var(--site-wash); }
+  .col:focus-within .col-rail{ width:6px; }
+  .col:focus-within .col-name{ color:var(--site-ink); }
+  .floor:has(.col:focus-within) .col:not(:focus-within) .col-hd{ background:#0e120c; }
+  .floor:has(.col:focus-within) .col:not(:focus-within) .col-name{ color:var(--grey); }
+  .floor:has(.col:focus-within) .col:not(:focus-within) .col-rail{ opacity:.5; }
+
+  /* A warning must not push the console off the screen. */
+  #adminWarn{ max-height:64px; overflow:auto; }
+  #adminWarn:not([hidden]){ margin:0; }
+}
+
+@media (min-width: 1440px) {
+  /* ---- A CHOSEN CHIP HAS TO BE READABLE -------------------------------
+     A chip carrying a solid accent takes ink for EVERY scrap of text in it,
+     including the small print, which inherits a grey that vanishes on gold.
+     White on the Midwest green measured 3.04:1 and a test caught it, not my
+     eye — so both accents, being mid-tone, take dark ink. A chosen chip then
+     reads the same way in either column. */
+  .choice:has(input:checked){
+    background:var(--site); border-color:var(--site);
+    box-shadow:inset 0 0 0 2px rgba(0,0,0,.35);
+  }
+  .choice:has(input:checked),
+  .choice:has(input:checked) b,
+  .choice:has(input:checked) small,
+  .choice:has(input:checked) span{ color:#12160d; }
+  .col[data-elev="midwest"] .choice:has(input:checked),
+  .col[data-elev="midwest"] .choice:has(input:checked) b,
+  .col[data-elev="midwest"] .choice:has(input:checked) small,
+  .col[data-elev="midwest"] .choice:has(input:checked) span{ color:#0c1a11; }
+
+  .opt.is-on{ background:var(--site-wash); border-color:var(--site); }
+}
+
+@media (min-width: 1440px) {
+  /* ══════════════════════════════════════════════════════════════════════
+     TERMINAL DENSITY — measured, not eyeballed
+     ══════════════════════════════════════════════════════════════════════
+     What "clunky" actually was, measured on the live page at 1920x1080:
+
+       Save button          836 x 40 px   a button as wide as a paragraph
+       one hours chip       215 x 152 px  to answer a four-way question
+       the four chips       259 px tall
+       prose vs controls    317 px of permanent explanation against 539 px
+                            of actual control -- 37% of the column is text
+                            that never changes and is read once, ever
+
+     A scale house screen is read the way a terminal is read: you already
+     know what the fields are, you are looking for the one number that is
+     wrong. Explanation that helps on day one is noise on day two hundred,
+     so it moves behind a key rather than being deleted -- it is still there
+     for the new hire, just not in the way of everybody else.
+     ══════════════════════════════════════════════════════════════════════ */
+
+  /* ---- the four-way question is one row, not four boxes --------------- */
+  /* SIZE TO THE TEXT, WRAP IF THEY MUST. Forced to equal widths the segments
+     came out 111px each and "Open, different hours" wrapped to three lines --
+     82px tall to answer a four-way question, which is most of what the big
+     chips cost in the first place. Sized to content they sit two-up on one
+     line each. Labels are NOT shortened: the office reads these. */
+  .choices{ display:flex; flex-wrap:wrap; gap:0; }
+  .col-panes .choice{
+    flex:0 1 auto; min-width:0; gap:6px; padding:5px 10px;
+    border-width:1px; border-radius:0; margin:0;
+    background:#12160f; border-color:var(--line);
+    font-weight:600; font-size:.82rem; align-items:center;
+  }
+  .col-panes .choice + .choice{ border-left:0; }
+  .col-panes .choices > .choice:first-child{ border-radius:4px 0 0 4px; }
+  .col-panes .choices > .choice:last-child{ border-radius:0 4px 4px 0; }
+  .col-panes .choice + .choice{ margin-left:-1px; }
+  /* The radio dot is redundant once the whole segment lights up, and at this
+     size it is most of the row's height. The checked state carries it. */
+  .col-panes .choice input{ position:absolute; opacity:0; width:1px; height:1px; }
+  .col-panes .choice b{ font-size:.82rem; font-weight:700; }
+  /* The sub-label is what made these 152px tall. It survives as a title so
+     it is still reachable, and as the help text behind the ? key. */
+  .col-panes .choice small{ display:none; }
+
+  /* ---- what the basis box actually means, always on ------------------- */
+  /* Deliberately NOT .counter and NOT .help: the ? key hides explanation,
+     and this is state. Hiding it would take away the only place the basis
+     -- the number the trade actually quotes -- appears on the screen. */
+  .basis-read{
+    font-size:.78rem; color:var(--grey); margin-top:3px;
+    font-variant-numeric:tabular-nums;
+  }
+  .basis-read b{ color:var(--site-ink); font-weight:700; }
+  .basis-read.is-zero{ color:var(--ink); }
+  .basis-read.is-zero b{ color:#f0c778; }
+
+  /* ---- Save is an action, not a banner -------------------------------- */
+  .col-save .btn-go{ flex:0 0 auto; min-width:0; padding:7px 14px; }
+  .col-save .btn{ padding:7px 12px; font-size:.84rem; }
+  /* The elevator's name belongs on the button; the words around it do not. */
+  .col-save .btn-go .save-who{ font-weight:700; }
+
+  /* ---- explanation moves behind a key --------------------------------- */
+  /* .board-note lives in the STRIP, not in a column, so scoping the whole
+     list to .col-panes left three full-width lines of explanation standing
+     under the board with the key switched off. */
+  /* .sanity is TWO things wearing one class: the static explainer under the
+     by-hand panel, and the box that appears when Save is REFUSED. Hiding the
+     class hid the refusal. The office pressed Save, the screen said nothing,
+     and nothing was saved -- the exact failure the refusal exists to prevent,
+     introduced by the key that was meant to reduce noise.
+
+     The help key hides EXPLANATION. It must never hide STATE. Same rule the
+     basis readouts follow, got right there and wrong here. */
+  body[data-help="off"] .help,
+  body[data-help="off"] .counter,
+  body[data-help="off"] .board-note,
+  body[data-help="off"] .prev-n,
+  body[data-help="off"] .sanity:not(.is-bad){ display:none; }
+  .helpkey{
+    font:600 .74rem/1 var(--font); cursor:pointer; color:var(--grey);
+    background:#131711; border:1px solid var(--line); border-radius:4px;
+    padding:5px 9px; letter-spacing:.04em;
+  }
+  .helpkey[aria-pressed="true"]{ background:#241d0f; border-color:#d4a23f; color:#f0c778; }
+
+  /* Same key shape as the two beside it, but it is a link and not a state:
+     no aria-pressed, no pressed colour. */
+  .docs{
+    font:600 .74rem/1 var(--font); color:var(--grey); text-decoration:none;
+    background:#131711; border:1px solid var(--line); border-radius:4px;
+    padding:5px 9px; letter-spacing:.04em;
+  }
+  .docs:hover, .docs:focus-visible{ color:#e8e2d4; border-color:var(--grey); }
+
+  /* ---- figures read as figures ---------------------------------------- */
+  .money input, .bd, .prev-bid, .pb-h, input[type="time"]{
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum" 1, "zero" 1;
+  }
+}
+
+@media (min-width: 1440px) {
+  /* ---- DENSITY: THE BASE SIZES ARE A PHONE'S ---------------------------
+     The shared rules above this block are sized for a scale house: 1.02rem
+     labels, a 1.6rem money input, 13px of padding, 46px targets. That is
+     right for one thumb in daylight and wrong for two elevators on a desk,
+     where it left two and a half cards visible per column out of five and
+     1300px of travel underneath them.
+
+     These are the same controls at desk scale. Nothing is hidden and nothing
+     is truncated -- the type comes down and the padding comes in, which is
+     the only honest way to fit more on a screen. */
+  label.fl{ font-size:.8rem; font-weight:700; margin-bottom:3px; letter-spacing:.005em; }
+  input[type=text], input[type=time], textarea, select{
+    font-size:.92rem; font-weight:600; padding:5px 8px; border-width:1px;
+  }
+  .money > span{ font-size:1rem; font-weight:700; }
+  .money input{ font-size:1.05rem; font-weight:700; padding:5px 9px; }
+  .money.sm input{ font-size:1rem; padding:5px 9px; }
+  .money input:focus{ outline-width:2px; }
+  textarea{ min-height:44px; }
+  .row{ margin-bottom:8px; }
+  .choice{ padding:6px 9px; min-height:0; gap:7px; }
+  .choice b{ font-size:.86rem; } .choice small{ font-size:.75rem; }
+  .sanity{ font-size:.78rem; padding:7px 9px; }
+  .byhand > summary{ font-size:.84rem; padding:6px 9px; }
+  .prev-bid, .pb-row{ font-size:.88rem; }
+  .prev-n{ font-size:.75rem; }
+
+  /* The bid and weekly cards are the two wide ones. A column is ~700-1200px
+     across on a desk, so their bodies read as two columns rather than one
+     long ribbon with half the card empty beside it.
+
+     GRID, NOT CSS COLUMNS. Written first as `columns:2` with `column-span:all`
+     on the by-hand panel, which OVERFLOWED THE CARD: a multi-column container
+     with a spanning child does not grow to fit what comes after it, so the
+     small-print box rendered outside the card and on top of the hours card
+     below it. Nothing was hidden -- it was drawn in the wrong place, which is
+     worse, because it looked like content belonging to another card. A grid
+     places the same five children with the same shape and cannot do that. */
+  [data-id="c-bid"] > .body,
+  [data-id="c-weekly"] > .body{
+    display:grid; grid-template-columns:1fr 1fr; gap:0 14px; align-content:start;
+  }
+  [data-id="c-bid"] > .body > .byhand,
+  [data-id="c-bid"] > .body > .help,
+  [data-id="c-weekly"] > .body > .help,
+  [data-id="c-weekly"] > .body > table{ grid-column:1 / -1; }
+
+  /* ---- WIDTH GOES TO WHAT NEEDS IT -----------------------------------
+     The two basis boxes are short numbers and sit happily two-up. The small
+     print is a 140-character sentence and was in a half-width cell, three
+     lines deep and clipping its own default text -- which is why it looked
+     like an afterthought. It gets the full width and the height its own
+     shipped sentence needs. The customer preview becomes a strip across the
+     same width instead of a tall box with a column of dead space beside it. */
+  [data-id="c-bid"] > .body > .prev,
+  [data-id="c-bid"] > .body > .row:last-child{ grid-column:1 / -1; }
+  [data-id="c-bid"] > .body > .row:last-child textarea{ min-height:52px; }
+
+  [data-id="c-bid"] .prev-bid{ display:flex; flex-wrap:wrap; gap:6px 22px; align-items:baseline; }
+  [data-id="c-bid"] .pb-row{ display:flex; align-items:baseline; gap:8px; padding:0; }
+  [data-id="c-bid"] .pb-l{ font-size:.78rem; color:var(--grey); }
+  [data-id="c-bid"] .pb-l small{ display:inline; margin-left:4px; }
+  [data-id="c-bid"] .pb-h{ font-size:1.15rem; font-weight:800; }
+
+  /* The warning band is an exception state, not chrome. It gets two lines and
+     its own travel; it must never be able to push the console off the screen,
+     which it did at 269px before it was capped. */
+  #adminWarn{ max-height:58px; overflow:auto; font-size:.82rem; }
+  #adminWarn p{ margin:0 0 2px; }
+  body > .wrap:has(#adminWarn[hidden]){ display:none; }
+  body > .wrap:has(#adminWarn){ padding-top:4px; padding-bottom:4px; }
+}
+
+/* Both keys belong to the console. Below 1440 the roomy layout never hides
+   its explanation -- a phone is where somebody unfamiliar is most likely to be
+   standing -- so a "? help" button there would flip aria-pressed and change
+   nothing on screen, which is a control that lies about its own state. */
+@media (max-width:1439px){ .rare-toggle, .helpkey{ display:none; } }
+
+/* THE HANDBOOK IS NOT ONE OF THOSE TWO. Both keys above are console controls
+   for a desk; hiding them on a phone is right. The handbook is the opposite
+   -- it is most useful to the person least familiar with this screen, and
+   that person is likelier to be holding a phone than sitting at the desk. So
+   it stays, and gets a tap target instead of a console key. */
+@media (max-width:1439px){
+  /* Every colour here is a token this layer already defines. Typing a hex
+     that "looks about right" is how one elevator's red ended up on the other
+     elevator's page. */
+  .docs{
+    display:inline-block; font:600 .82rem/1 var(--font); letter-spacing:.02em;
+    color:var(--green); background:var(--paper); border:1px solid var(--line);
+    border-radius:var(--radius); padding:9px 13px; text-decoration:none;
+  }
+  .docs:hover, .docs:focus-visible{ border-color:var(--green); color:var(--ink); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE PHONE IS A DIFFERENT SCREEN, NOT A NARROW ONE
+   ══════════════════════════════════════════════════════════════════════════
+   The console above is for a desk: dark, dense, both elevators at once. None
+   of it applies here. A phone in a scale house is held one-handed, often in
+   daylight, often by someone standing up — so this stays light, stays roomy,
+   and shows ONE elevator at a time.
+
+   That is not a smaller version of the desktop answer, it is the opposite one,
+   and deliberately: "both at once" is what a 27-inch monitor is for. On a
+   390px screen two columns of twenty-six controls each is not an ops view, it
+   is a scroll. The switcher at the top picks the elevator; the other column is
+   removed from the layout, not merely hidden, so nothing in it can be typed
+   into or tabbed to by accident.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (max-width: 1439px) {
+  /* The warning band is capped on the console and was uncapped here, so a
+     screen full of filler markers grew it to 267px on a 390px phone -- a
+     third of the screen, above the fold, before anything useful. Same idea as
+     the console's cap, sized for a phone. */
+  #adminWarn{ max-height:112px; overflow:auto; font-size:.9rem; }
+
+  .strip{ display:block; padding:0 0 6px; }
+  .floor{ display:block; }
+
+  .elev-switch{ display:flex; gap:8px; padding:10px 0 2px; }
+  .elev-switch button{
+    flex:1 1 0; min-height:46px; cursor:pointer;
+    font:700 .95rem/1.25 var(--font); color:var(--ink);
+    background:var(--paper); border:1px solid var(--line); border-radius:var(--radius);
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  }
+  .elev-switch button small{ font-weight:400; font-size:.78rem; color:var(--grey); }
+  .elev-switch button[aria-pressed="true"][data-elev="badger"]{
+    background:#fcf3dd; border-color:#d4a23f; box-shadow:inset 0 0 0 2px #d4a23f;
+  }
+  .elev-switch button[aria-pressed="true"][data-elev="midwest"]{
+    background:#e8f1eb; border-color:#1d5e3c; box-shadow:inset 0 0 0 2px #1d5e3c;
+  }
+
+
+  /* "Save files to midwestagsupply/badgergrain" is 289px of text on a 390px
+     phone, and on one line it pushed the page 45px sideways. It is not
+     shortened -- naming the repository in full is the point, it is what makes
+     saving the wrong elevator impossible to do unnoticed -- so it wraps to its
+     own line instead. */
+  .col-hd{
+    position:sticky; top:0; z-index:30;
+    display:flex; align-items:center; gap:4px 8px; flex-wrap:wrap;
+    padding:9px 0; margin:0 0 4px;
+    background:var(--band); border-bottom:2px solid var(--site);
+  }
+  .col-rail{ display:none; }
+  .col-name{ font:700 1rem/1.2 var(--font); color:var(--site-ink); }
+  .col-town{ font-size:.85rem; color:var(--grey); }
+  .col-live{ flex:1 0 100%; margin-left:0; font-size:.75rem; color:var(--grey); }
+  .col-panes{ display:block; }
+
+  /* SAVE FOLLOWS THE THUMB. The form is several screens long and a bar at the
+     bottom of all of it means scrolling past everything you just typed. */
+  .save{
+    position:sticky; bottom:0; z-index:40;
+    background:var(--paper); border-top:1px solid var(--line);
+    box-shadow:0 -6px 16px rgba(0,0,0,.10);
+    padding:10px 0; margin-top:18px;
+    display:flex; gap:10px; align-items:center;
+  }
+  .btn-go{ flex:1 1 auto; background:var(--site); border-color:var(--site); color:#fff; }
+  .col[data-elev="badger"] .btn-go{ color:#3a2905; }
+  .btn{ min-height:48px; }          /* a thumb, not a mouse pointer */
+
+  /* Every control clears the 44px the platform guidelines ask for. */
+  input[type="text"], input[type="time"], textarea, .choice{ min-height:46px; }
+  .choice{ display:flex; align-items:center; }
+}
+
+/* The switcher is hidden ONLY where both columns are actually on screen. */
+@media (min-width: 1440px) and (min-height: 940px) {
+  /* Tall enough for the board AND both elevators: promote to two columns and
+     retire the switcher, because there is nothing left to switch between. */
+  .floor{ grid-template-columns:1fr 1fr; }
+  .elev-switch{ display:none; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ONE ELEVATOR AT A TIME — AND WHY THERE ARE THREE STATES, NOT TWO
+   ══════════════════════════════════════════════════════════════════════════
+   Measured, not chosen. Driving the real page with real data and focusing
+   every one of its 43 controls in turn:
+
+     height >= 915   the whole Big River board is on screen
+     height <  915   the board runs off the bottom, at EVERY width from
+                     1440 to 2560 — so this is a height problem, not a
+                     width problem, and no amount of narrowing helps
+
+   Width barely matters: 1440x1050 shows the board, 1680x900 does not. The
+   floor is set at 940 rather than 915 to leave headroom for a longer board
+   than the five rows Big River posts today.
+
+   That matters because the shared board is the ENTIRE reason to put both
+   elevators on one screen. Two columns whose common reference has scrolled
+   off the top is just two forms crammed together. Below the floor the page
+   keeps the board and shows one elevator at a time instead.
+
+   REMOVED FROM THE LAYOUT, NOT HIDDEN BEHIND IT. display:none takes the
+   column's controls out of the tab order and out of its form's submission
+   entirely, so Tab cannot land in the elevator you are not looking at and
+   Save cannot pick up a value from it. The two forms stay separate; one of
+   them is simply not on the screen. This rule is deliberately outside every
+   width query so it governs the short desktop and the phone alike.
+   ══════════════════════════════════════════════════════════════════════════ */
+/* Scoped to the states that actually show ONE elevator. Written unscoped it
+   hid a column even where both were meant to be side by side -- measured
+   cols=1 at 2560x1440, i.e. the whole two-column layout silently gone. */
+@media (max-width: 1439px), (max-height: 939px) {
+  .floor[data-only="badger"]  .col[data-elev="midwest"],
+  .floor[data-only="midwest"] .col[data-elev="badger"]{ display:none; }
+}
+
+@media (min-width: 1440px) and (max-height: 939px) {
+  /* A short desk is still a desk: it keeps the dark console, the density and
+     the board. What it does not keep is the second column. */
+  .floor{ grid-template-columns:1fr; }
+
+  .elev-switch{
+    display:flex; gap:8px; padding:6px 20px 0; background:#11150f;
+    border-bottom:1px solid var(--line);
+  }
+  .elev-switch button{
+    flex:0 0 auto; cursor:pointer; min-height:0;
+    font:700 .82rem/1 var(--font); color:var(--grey);
+    background:#131711; border:1px solid var(--line);
+    border-bottom:none; border-radius:4px 4px 0 0; padding:7px 14px;
+    display:flex; align-items:baseline; gap:7px;
+  }
+  .elev-switch button small{ font-weight:400; font-size:.75rem; color:var(--grey); }
+  .elev-switch button[aria-pressed="true"][data-elev="badger"]{
+    background:#241d0f; border-color:#d4a23f; color:#f0c778;
+  }
+  .elev-switch button[aria-pressed="true"][data-elev="midwest"]{
+    background:#12220f; border-color:#4e9e6a; color:#87c79c;
+  }
+  .elev-switch button[aria-pressed="true"] small{ color:inherit; opacity:.8; }
+  /* The wrap around the switcher carries page padding it does not need here. */
+  body > main .wrap:has(.elev-switch){ padding:0; }
+}
