@@ -75,20 +75,25 @@
      screen shows both elevators at once: a figure that has stopped tracking
      is visible at a glance instead of needing two tabs and arithmetic. -->
 <section class="strip" id="boardStrip" aria-label="Big River board">
-        <div class="feed is-ok" data-sample>
-          <span class="feed-dot" aria-hidden="true"></span>
-          <div class="feed-t">
-            <strong>Reading Big River, Boyceville, through our own mirror.</strong>
-            Last read <span class="num">7:48 PM</span>, one minute ago. The mirror refuses any
-            reading where their cash and basis do not agree with the futures quote on their own
-            page. Nothing for you to do.
-          </div>
-        </div>        <!-- THE FEED, CHECKED FROM THIS BROWSER RATHER THAN DESCRIBED.
-             The line above is written by the Worker when it builds this page.
-             That is one opinion, from one moment, and if the Worker itself is
-             having a bad morning it is the opinion least likely to be right.
-             This block asks the feed directly. See the script for why it is a
-             second opinion rather than a second copy. -->
+        <!-- THERE USED TO BE A SECOND STATUS LINE HERE. IT IS GONE, 2026-08-22.
+             It read "Reading Big River, Boyceville, through our own mirror.
+             Last read 7:48 PM, one minute ago." and it was LITERAL MARKUP. The
+             Cloudflare Worker wrote that sentence when it built the page, and
+             the Worker was removed on 2026-08-20, so nothing had written it
+             since: it said 7:48 PM to everybody, for ever.
+
+             It carried data-sample, so it shipped outlined as filler. What
+             made it a defect rather than a leftover is what happened next --
+             setFeed() strips data-sample from everything in this strip when a
+             real reading lands, which took the outline off and left the
+             sentence. The frozen claim then sat directly above the live one,
+             with nothing left to say it was filler, saying "one minute ago"
+             while the block below said "nothing has read the board for 7
+             hours". Sig's screenshot is exactly that, both at once.
+
+             The block below is the only status line now. It does not describe
+             the feed, it asks it, and it says so when it cannot -- which is
+             what the removed line pretended to know. -->
         <div class="feedlive" id="feedLive" hidden>
           <span class="feedlive-dot" aria-hidden="true"></span>
           <div class="feedlive-t" id="feedLiveText" role="status"></div>
@@ -687,7 +692,13 @@
   var flGo = document.getElementById("feedLiveGo");
 
   function hoursAgo(h) {
-    if (h < 1) return Math.max(1, Math.round(h * 60)) + " minutes ago";
+    /* "1 minutes ago" shipped on the console screenshot. The floor at one is
+       right -- a reading taken thirty seconds ago should not say "0 minutes"
+       -- but it made the singular reachable, and nothing pluralised it. */
+    if (h < 1) {
+      var m = Math.max(1, Math.round(h * 60));
+      return m + (m === 1 ? " minute ago" : " minutes ago");
+    }
     if (h < 2) return "about an hour ago";
     if (h < 36) return Math.round(h) + " hours ago";
     return Math.round(h / 24) + " days ago";

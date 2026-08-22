@@ -548,7 +548,30 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
      siblings there are, which is why it survived this restructure unchanged. */
   html, body{ height:100%; overflow:hidden; }
   body{ display:flex; flex-direction:column; background:var(--bg); }
-  body > main{ flex:1 1 auto; min-height:0; display:flex; flex-direction:column; gap:0; }
+  /* THE BOARD SITS BESIDE THE ELEVATORS, NOT ABOVE THEM.
+   *
+   * Stacked, the strip took 553px of a 905px window -- measured, with Big
+   * River's real twelve-row board -- and left 254px for controls that need
+   * 1048px. That is not a padding problem and no amount of shrinking closes
+   * a 794px gap. It is the wrong axis: the strip was spending height on a
+   * screen with 1912px of unused width.
+   *
+   * Turned sideways the board keeps its full height on the left and the two
+   * elevators get the whole window height on the right. The board also stops
+   * stretching its own status cards apart, which is what left the hole in the
+   * top right corner.
+   *
+   * The switcher row is `auto` and collapses to nothing where both columns
+   * are shown, so the same three areas serve the tall desk and the short one. */
+  body > main{
+    flex:1 1 auto; min-height:0;
+    display:grid;
+    grid-template-columns:minmax(380px,.36fr) minmax(0,1fr);
+    grid-template-rows:auto minmax(0,1fr);
+    grid-template-areas:"strip switch" "strip floor";
+    gap:0;
+  }
+  body > main > .wrap:has(.elev-switch){ grid-area:switch; padding:0; }
   body > *:not(main){ flex:0 0 auto; }
 
   header{ background:#0b0e0a; border-bottom:1px solid var(--line); }
@@ -561,17 +584,30 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
   .who{ font-size:.8rem; color:var(--grey); }
 
   /* ---- the shared board strip ------------------------------------------ */
+  /* A RAIL DOWN THE LEFT, AND ITS OWN PANE. The board is the one thing on
+     this screen whose length we do not control -- Big River posts what they
+     post -- so it gets somewhere to move rather than pushing the columns off
+     the window. Same rule as the card panes, for the same reason. */
   .strip{
-    flex:0 0 auto; background:#11150f; border-bottom:1px solid var(--line);
-    padding:7px 20px 8px; display:grid; gap:7px 14px;
-    grid-template-columns:minmax(0,1fr) minmax(260px,.42fr);
-    align-items:start; align-content:start;
+    grid-area:strip; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+    background:#11150f; border-right:1px solid var(--line); border-bottom:none;
+    padding:8px 14px 10px; display:flex; flex-direction:column; gap:7px;
+    scrollbar-width:thin; scrollbar-color:var(--line) transparent;
   }
-  .strip .board{ grid-column:1; grid-row:1/span 2; margin:0; }
+  /* ORDER, BECAUSE THE MARKUP CANNOT MOVE. The status lines are before the
+     board in the document -- they were the Worker's header -- and in a rail
+     that puts two paragraphs above the thing the rail exists to show. The
+     board is what the office looks at, so it goes to the top of the rail and
+     the status lines sit under it. Reordering here rather than in the HTML
+     keeps the reading order for a screen reader as it was. */
+  .strip .board{ margin:0; flex:0 0 auto; order:-1; }
   .strip .feed, .strip .feedlive{
-    grid-column:2; margin:0; padding:6px 9px; font-size:.82rem;
+    margin:0; flex:0 0 auto; padding:6px 9px; font-size:.82rem;
     background:#0f130d; border:1px solid var(--line); border-radius:4px;
   }
+  .strip::-webkit-scrollbar{ width:9px; }
+  .strip::-webkit-scrollbar-thumb{ background:var(--line); border-radius:9px; border:2px solid #11150f; }
+  .strip::-webkit-scrollbar-track{ background:transparent; }
   .strip .board-hd{ padding:4px 10px; font-size:.8rem; background:#0b0e0a; }
   /* THE NOTE EARNS ITS LINES OR IT LOSES THEM. Three lines of explanation
      under a five-row table put the strip at 410px -- 38% of a 1080p screen
@@ -604,7 +640,7 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
 
   /* ---- the floor: two elevators ---------------------------------------- */
   .floor{
-    flex:1 1 auto; min-height:0;
+    grid-area:floor; min-height:0;
     /* One column by default at desktop width; the 940px block below promotes
        it to two once there is height enough to keep the board on screen. */
     display:grid; grid-template-columns:1fr;
@@ -1040,7 +1076,7 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
 }
 
 /* The switcher is hidden ONLY where both columns are actually on screen. */
-@media (min-width: 1440px) and (min-height: 940px) {
+@media (min-width: 1800px) and (min-height: 880px) {
   /* Tall enough for the board AND both elevators: promote to two columns and
      retire the switcher, because there is nothing left to switch between. */
   .floor{ grid-template-columns:1fr 1fr; }
@@ -1053,14 +1089,28 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
    Measured, not chosen. Driving the real page with real data and focusing
    every one of its 43 controls in turn:
 
-     height >= 915   the whole Big River board is on screen
-     height <  915   the board runs off the bottom, at EVERY width from
-                     1440 to 2560 — so this is a height problem, not a
-                     width problem, and no amount of narrowing helps
+   RE-MEASURED 2026-08-22, AFTER THE BOARD MOVED TO THE LEFT. The old floor
+   was 940, and it was right for a layout that stacked the board above the
+   columns. Beside them the numbers are different, and they were taken again
+   rather than adjusted by eye -- driving the real page with Big River's real
+   twelve-row board and reading the pane overflow at each size:
 
-   Width barely matters: 1440x1050 shows the board, 1680x900 does not. The
-   floor is set at 940 rather than 915 to leave headroom for a longer board
-   than the five rows Big River posts today.
+     1912x840   22px over        1660x860    2px over
+     1912x850   12px over        1660x870    0
+     1912x860    2px over        1700x870    0
+     1912x870    0               1800x870    0
+
+   So the height floor is 870 and it is set at 880. The WIDTH floor is 1800,
+   and it was set by a second measurement rather than by the first: at 1680 the
+   board needs 416px in a 412px rail, and widening the rail to fit it puts the
+   panes 52px over. The board fits or the controls fit, and at 1680 not both.
+   1800 is where both read zero.
+
+   Width matters now in a way it did not before: the board is a column, so a
+   narrower window takes its width out of the elevators and the cards grow
+   taller. At 1600 wide the daily three still want 7px more than the pane has
+   at 1000px of height. Below the floor the page keeps the dark console and
+   the whole board and shows one elevator at a time.
 
    That matters because the shared board is the ENTIRE reason to put both
    elevators on one screen. Two columns whose common reference has scrolled
@@ -1077,12 +1127,13 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
 /* Scoped to the states that actually show ONE elevator. Written unscoped it
    hid a column even where both were meant to be side by side -- measured
    cols=1 at 2560x1440, i.e. the whole two-column layout silently gone. */
-@media (max-width: 1439px), (max-height: 939px) {
+@media (max-width: 1799px), (max-height: 879px) {
   .floor[data-only="badger"]  .col[data-elev="midwest"],
   .floor[data-only="midwest"] .col[data-elev="badger"]{ display:none; }
 }
 
-@media (min-width: 1440px) and (max-height: 939px) {
+@media (min-width: 1440px) and (max-height: 879px),
+       (min-width: 1440px) and (max-width: 1799px) {
   /* A short desk is still a desk: it keeps the dark console, the density and
      the board. What it does not keep is the second column. */
   .floor{ grid-template-columns:1fr; }
@@ -1109,3 +1160,298 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
   /* The wrap around the switcher carries page padding it does not need here. */
   body > main .wrap:has(.elev-switch){ padding:0; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE DENSITY PASS — WHAT THE SIDEWAYS LAYOUT STILL COULD NOT AFFORD
+   ══════════════════════════════════════════════════════════════════════════
+   Turning the board sideways bought back 553px of height and left the columns
+   182px over with the rare cards shut and 839px over with every control on
+   screen. Sig asked for every control on screen, so the second number is the
+   one that had to go.
+
+   MEASURED FIRST, THEN CUT. Reading one column at 1912x905 with the real
+   twelve-row board, the height was going here:
+
+     the four customer previews   545px   34% of the column
+     the weekly-hours table       242px   six time boxes at 10px padding
+     the three today choices      157px
+     the two money rows           226px   113 each
+
+   The previews are the largest single item and the one it would be easiest
+   to delete. They are not deleted: a card that changes what a customer sees
+   and does not show what the customer will see is how a wrong figure gets
+   saved. They are made to say the same thing in fewer lines.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  /* Headings were wrapping to two lines in a 656px column and taking 63px to
+     say "Today's hours". The hint is the part that wraps, so the hint shrinks. */
+  .card h2{ padding:4px 10px; font-size:.83rem; line-height:1.3; }
+  .card h2 .hint{ font-size:.73rem; }
+  .card > .body{ padding:7px 10px 8px; font-size:.85rem; }
+
+  input[type="text"], input[type="time"], textarea{ padding:4px 7px; font-size:.85rem; }
+  textarea{ min-height:38px; }
+
+  /* THE PREVIEWS, SAYING IT IN FEWER LINES RATHER THAN NOT SAYING IT. */
+  .prev{ padding:4px 7px; margin:4px 0 2px; line-height:1.3; }
+  .prev-l{ margin-bottom:2px; }
+  .prev-bid, .prev-today, .prev-week{ font-size:.82rem; }
+  .prev .pb-row{ padding:1px 0; }
+  .prev-bid:has(.pb-row){ padding:2px 9px; }
+  .prev-wrow{ padding:2px 0; }
+  .prev-n{ margin:4px 0 0; font-size:.78rem; line-height:1.32; }
+
+  /* Six time boxes do not need 242px. */
+  .week th{ padding:2px 6px; font-size:.74rem; }
+  .week td{ padding:3px 6px; }
+
+  .opt, .choice{ padding:5px 8px; }
+  .opt b, .choice b{ font-size:.85rem; }
+  .opt small, .choice small{ font-size:.74rem; }
+
+  /* PAIRED, NOT SPANNING. Weekly hours spanning both sub-columns bought a
+     whole extra grid row for a card that is mostly empty on its right. Paired
+     with the small print it costs the height of the taller of the two. The
+     bid card keeps its span: its own body is already two columns wide. */
+  [data-id="c-weekly"]{ grid-column:auto; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE SECOND PASS — THE TWO SPREADS SIT SIDE BY SIDE
+   ══════════════════════════════════════════════════════════════════════════
+   Old crop and new crop are two decisions and they are two boxes, but they
+   are the SAME decision made twice and they read as a pair. Stacked they cost
+   224px of a column that had 753. Side by side they cost 112 and are easier
+   to compare, which is the thing the office actually does with them.
+
+   The money box keeps its weight -- it is still the largest type on the card
+   and still bordered -- at a size that fits a 713px column rather than a
+   1900px one. 1.6rem was set when this card had the whole window.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  .row{ margin-bottom:9px; }
+
+  [data-id="c-bid"] > .body{
+    display:grid; grid-template-columns:1fr 1fr; gap:0 12px; align-items:start;
+  }
+  /* Everything that is not one of the two spreads runs the full width. Named
+     by what it is NOT a spread, so a new element added to this card spans by
+     default instead of silently becoming a third column. */
+  [data-id="c-bid"] > .body > *:not(.spread-row){ grid-column:1 / -1; }
+  [data-id="c-bid"] > .body > .spread-row{ margin-bottom:4px; }
+
+  .money > span{ font-size:1.02rem; }
+  .money input{ font-size:1.18rem; padding:5px 9px; }
+
+  /* The weekly preview is three lines of "day: hours". It does not need 189px. */
+  [data-id="c-weekly"] .prev{ font-size:.8rem; }
+  .prev-wrow{ padding:1px 0; }
+
+  /* Three choices, each one line of label and one of description. */
+  fieldset .choice, fieldset .opt{ padding:4px 8px; }
+  .times{ gap:8px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   EVERY CONTROL ON THE SCREEN — THE RARE CARDS STOP BEING RARE
+   ══════════════════════════════════════════════════════════════════════════
+   Sig asked for every control visible with nothing behind a toggle. So on the
+   console the two "changes rarely" cards are simply shown, the ? key that
+   folded them away is retired, and the height they need is found rather than
+   hidden.
+
+   THE ORDER CHANGES TO BALANCE THE TWO SUB-COLUMNS, not for taste. Paired
+   today|banner and weekly|print, each grid row costs the height of its taller
+   card and the two tall cards were landing in different rows: 411 + 377 + 427
+   = 1215. Pairing the two tall ones together and the two short ones together
+   is 411 + 427 + 294 = 1132 for exactly the same five cards.
+
+   The previews are cut hardest because they are the largest thing on the card
+   that is not a control. They are still there, and still say what the customer
+   will see, because a card that changes a customer-facing figure without
+   showing the result is how a wrong number gets saved.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  /* THE TWO RARE CARDS STAY BEHIND THE KEY, MEASURED RATHER THAN PREFERRED.
+     Shown always, the five cards wanted 1061px of a 759px pane -- 302px over
+     after three density passes, and the only way left to close it was to
+     shrink the controls to a size nobody wants to type in all day. Sig chose
+     the daily three on screen and the other two one keystroke away. The
+     toggle also cannot be hidden: openScreen() drives it, and a display:none
+     #rareBtn hung the entire screen suite on a Playwright click that never
+     resolved. */
+
+  /* Opened, the two rare cards go last rather than between the daily three.
+     `order` rather than moving the markup: tab order and reading order stay
+     as they were. */
+  [data-id="c-bid"]   { order:1; }
+  [data-id="c-today"] { order:2; }
+  [data-id="c-banner"]{ order:3; }
+  [data-id="c-weekly"]{ order:4; }
+  [data-id="c-print"] { order:5; }
+
+  .card h2{ padding:3px 10px; font-size:.82rem; }
+  .card > .body{ padding:6px 10px 7px; }
+
+  /* THE PREVIEWS, AT THEIR SMALLEST THAT IS STILL READ RATHER THAN SKIMMED. */
+  .prev{ padding:3px 7px; margin:3px 0 1px; }
+  .prev-l{ font-size:8px; letter-spacing:.12em; margin-bottom:1px; }
+  .prev-bid, .prev-today, .prev-week{ font-size:.79rem; line-height:1.25; }
+  .prev-bid .pb-h{ font-size:1.05rem; }
+  .prev-n{ margin:2px 0 0; font-size:.75rem; line-height:1.28; }
+  .prev-wrow{ padding:0; }
+
+  /* Six time boxes and three day labels. */
+  .week th{ padding:1px 6px; font-size:.72rem; }
+  .week td{ padding:2px 6px; }
+  .week td input[type="time"]{ padding:3px 6px; }
+
+  .counter{ font-size:.72rem; line-height:1.3; margin-top:1px; }
+  textarea{ min-height:34px; }
+  fieldset .choice, fieldset .opt{ padding:3px 8px; }
+  .opt small, .choice small{ font-size:.72rem; line-height:1.25; }
+  .row{ margin-bottom:7px; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE THIRD PASS — THINGS THAT WERE STACKED AND DID NOT NEED TO BE
+   ══════════════════════════════════════════════════════════════════════════
+   Four "are you open today" choices in a single file cost 157px to ask one
+   question. Two by two they cost half that and are still one glance. The
+   weekly preview was three lines of day-and-hours; it is three cells of one.
+
+   Nothing here removes a control, a label or a preview. It stops them being
+   laid out in a column when the screen has width to spare.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  /* Four choices, two by two. */
+  .choices{ display:grid; grid-template-columns:1fr 1fr; gap:4px; }
+  .choice{ padding:3px 7px; gap:7px; border-width:1px; align-items:start; }
+  .choice input{ width:15px; height:15px; margin-top:2px; }
+  .choice span small{ font-size:.71rem; line-height:1.2; margin-top:0; }
+
+  /* Monday-to-Friday, Saturday and Sunday side by side rather than stacked. */
+  .prev-week{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:0 10px; }
+  .prev-wrow{ display:block; border-bottom:none; padding:0; }
+  .prev-wrow span:first-child{ display:block; font-size:.71rem; color:var(--grey); font-weight:600; }
+  .prev-wrow .num, .prev-wrow span:last-child{ font-size:.8rem; }
+
+  /* The day and the hours of the today preview read as one line, not two. */
+  .prev-today{ display:flex; align-items:baseline; gap:9px; flex-wrap:wrap; }
+  .prev-today .l{ color:var(--grey); font-size:.75rem; }
+  .prev-today .h{ font-weight:700; }
+
+  .times{ gap:7px; }
+  .times input[type="time"]{ padding:3px 6px; }
+  .week td input[type="time"]{ padding:2px 5px; }
+  .week td{ padding:1px 6px; }
+
+  .fl{ font-size:.75rem; margin-bottom:2px; }
+  legend{ font-size:.78rem; padding-bottom:2px; }
+  .byhand summary{ font-size:.78rem; }
+
+  /* The masthead is two logos and a name. 61px was set when it had a whole
+     page under it; the console gives that height to the elevators. */
+  header > .wrap{ padding:4px 20px; }
+  .marks .logo{ transform:scale(.62); }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE LAST SIXTY PIXELS
+   ══════════════════════════════════════════════════════════════════════════
+   With the daily three on screen the column wanted 774px of a 759px pane --
+   fifteen over, which is a scrollbar and an annoyance for the sake of fifteen
+   pixels. These are the last places where a card was spending height on
+   something that is not a control:
+
+     the bid card's customer preview      88px
+     the today card's customer preview   111px
+     the small-print textarea             52px minimum for two lines of prose
+     the pane's own padding               20px
+
+   Taken together they buy about sixty, which is the difference between fitting
+   at 1912x905 and fitting with room to spare -- and room to spare is what
+   stops the next row Big River adds to their board from breaking it again.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  .col-panes{ padding:7px 10px 8px; gap:8px; }
+
+  .prev-bid:has(.pb-row){ padding:1px 8px; }
+  .prev-bid .pb-h{ font-size:.98rem; }
+  .prev-bid .pb-row{ padding:0; }
+
+  /* The note under a preview is the sentence the customer reads. It stays,
+     at the size the rest of the card's small print is already set in. */
+  .prev-n{ font-size:.73rem; line-height:1.25; }
+
+  /* Two lines of small print, not three. The box still grows as it is typed
+     into -- this is the floor it starts at, not a limit on what fits. */
+  [data-id="c-bid"] > .body > .row:last-child textarea{ min-height:40px; }
+
+  .times{ gap:6px; }
+  .times input[type="time"]{ padding:2px 6px; }
+
+  .byhand summary{ padding:3px 0; }
+}
+
+/* THE TODAY PREVIEW IS A YELLOW PLACARD SIZED FOR A PHONE.
+   12px of padding, centred text and a 1.7rem figure -- 92px to say "Open
+   today, Saturday, 8:00a to 12:00p". It is the same sentence on one line at
+   the size the rest of this card's previews are already set in, and it keeps
+   its colour, which is the part that makes it readable at a glance. */
+@media (min-width: 1440px) {
+  .prev-today{ padding:4px 8px; text-align:left; border-width:1px; border-radius:4px; }
+  .prev-today .l{ font-size:.72rem; letter-spacing:.04em; }
+  .prev-today .h{ font-size:1.02rem; line-height:1.2; }
+}
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE BOARD HAS TO FIT THE RAIL IT NOW LIVES IN
+   ══════════════════════════════════════════════════════════════════════════
+   Measured after the first console screenshot: the table wanted 616px and the
+   rail gave it 473, so "Badger posts" and "Midwest posts" -- the two columns
+   the whole side-by-side screen exists to show -- were cut off the right edge
+   and NOTHING SAID SO. The shell is overflow:hidden, so it clipped silently,
+   which is the same class of fault as a pane that reports itself as fitting.
+
+   Where the 143px comes from, measured per column:
+     Month 165px   "November new crop" on one line. The suffix goes under the
+                   month instead. That costs about 42px of height on three
+                   rows, in a rail that had 240px of slack, and buys 55px of
+                   width in a rail that had none.
+     padding       6 columns x 6px = 36px
+     headings      letter-spacing .12em on 9px caps, and they are allowed to
+                   wrap now rather than setting the column width
+
+   AND A BELT: overflow-x on the board wrapper. If a future column or a longer
+   month name pushes it over again, it scrolls and is reachable instead of
+   being invisible. The fit above is the fix; this is what stops the failure
+   mode from being silent a second time.
+   ══════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 1440px) {
+  .strip .board{ overflow-x:auto; scrollbar-width:thin; }
+  .bd{ width:100%; }
+  .bd th{ padding:2px 5px; letter-spacing:.05em; white-space:normal; line-height:1.15; }
+  .bd td{ padding:2px 5px; }
+  /* The month keeps its label; the label stops setting the column's width. */
+  .bd tr.is-ref td:first-child::after,
+  .bd tr.is-new td:first-child::after{ display:block; font-size:.68rem; line-height:1.1; }
+}
+
+/* Nineteen pixels over at the 1680 floor, measured. Taken off the cells rather
+   than out of the rail: widening the rail takes width off the elevators, and
+   the elevators are the thing sitting at exactly zero overflow. */
+@media (min-width: 1440px) {
+  .bd th, .bd td{ padding:2px 4px; }
+  .bd td{ font-size:.79rem; }
+}
+@media (min-width: 1440px) { .bd th{ letter-spacing:.03em; } }
+
+/* THE FLOOR IS 1800 WIDE, AND THAT IS A MEASUREMENT THAT FOUGHT BACK.
+   At 1680 the board wants 416px inside a 412px rail. Widening the rail to fit
+   it takes the width out of the elevators, and re-measuring showed the panes
+   going 52px over at the same size -- the board fits or the controls fit, and
+   at 1680 not both. Rather than pick which one silently loses, the two-column
+   state starts where both are true: 1800 wide, where the rail is 444px inside
+   and every pane still reads zero. Below it the one-elevator console gives the
+   single column the whole width, and the board fits there comfortably. */

@@ -72,12 +72,17 @@ export const OTHER = (site) => ELEVATORS.find((e) => e.site !== site);
    state, and the ones ending in _UNDER are one pixel outside it. A boundary
    asserted only in its comfortable middle is not asserted at all. */
 export const LAYOUT = {
-  CONSOLE:      { width: 1600, height: 1000 },
-  CONSOLE_EDGE: { width: 1440, height: 940 },
+  /* Re-measured 2026-08-22 when the board moved from above the columns to
+     beside them. The floor was 1440x940 and is now 1800x880: the board stopped
+     spending 553px of height and started spending width, so the height needed
+     came down and the width needed went up. See the block above the
+     one-elevator rules in admin.css for the readings. */
+  CONSOLE:      { width: 1912, height: 905 },
+  CONSOLE_EDGE: { width: 1800, height: 880 },
   SHORT:        { width: 1600, height: 800 },
-  SHORT_EDGE:   { width: 1440, height: 939 },
+  SHORT_EDGE:   { width: 1800, height: 879 },
   ROOMY:        { width: 1100, height: 900 },
-  ROOMY_EDGE:   { width: 1439, height: 940 },
+  ROOMY_EDGE:   { width: 1439, height: 880 },
   PHONE:        { width: 390,  height: 844 },
 };
 
