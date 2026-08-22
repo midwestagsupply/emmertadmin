@@ -1,0 +1,56 @@
+# THE ONLY THING IN THIS SYSTEM THAT LOOKS AT THE LIVE SITES.
+#
+# Everything else is checked at build time, inside a repository, before
+# anything is published. That is good machinery and it is not the gap. The gap
+# is that if a scheduled run silently stops -- GitHub drops crons, or a job
+# fails and the email is not read -- the sites go on serving whatever was last
+# committed and the first person to notice is a farmer reading a stale price.
+#
+# WHY IT LIVES HERE and not in the site repos: this repository publishes
+# nothing, so its failures cannot be confused with a publishing failure, and it
+# keeps watching even when a site repo's own Actions are broken. It needs no
+# secret and no permissions -- it only reads two public websites.
+#
+# HOW IT TELLS YOU: by failing. A failed workflow emails the owner. There is no
+# new service, no webhook, and nothing else to keep alive.
+#
+# WHAT IT CANNOT CATCH, said plainly: itself. A watchdog on the same scheduler
+# as the thing it watches is silent when the scheduler is down. There is no
+# fixing that from inside GitHub, and it does not need fixing -- if everything
+# stops, the sites fall back to "Call for today's price" at 14 hours rather
+# than showing a wrong number, which is the correct way for a scale house to
+# fail.
+name: Watch the live sites
+
+on:
+  schedule:
+    # Through the market window and a little either side. Off the top of the
+    # hour, like every other cron in this project, because :00 is when the
+    # whole platform fires at once.
+    - cron: "23 13,15,17,19,21 * * 1-5"
+    # Once each weekend morning, so a Saturday outage is not found on Monday.
+    - cron: "23 15 * * 6,0"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: watch-live
+  cancel-in-progress: false
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+
+      # The watchdog's own guards run first. A watchdog whose logic is broken
+      # reports "all clear" just as convincingly as a working one.
+      - name: Test the watchdog before trusting it
+        run: node --test test/watch-live.test.mjs
+
+      - name: Look at the live sites
+        run: node tools/watch-live.mjs
