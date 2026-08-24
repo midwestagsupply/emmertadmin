@@ -187,9 +187,9 @@ pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; p
 
 <header class="mast">
   <h1>Emmert Sites Handbook</h1>
-  <p>How the two elevator websites get their numbers, what the staff screen actually does when you press Save, and what to check when something looks wrong.</p>
+  <p>How the two elevator websites get their numbers, what the staff screen actually does when you press Save, who owns which piece, and what to check when something looks wrong.</p>
   <div class="stamp">
-    <span>For the office</span><span>Rev. 22 August 2026</span><span>Keep at the desk</span>
+    <span>For Jessie &amp; Kristi</span><span>Rev. 24 August 2026</span><span>Keep at the desk</span>
   </div>
 </header>
 
@@ -228,7 +228,7 @@ pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; p
   <div class="sechd"><h2>Where the number on the page comes from</h2><span class="tag">nobody types the price</span></div>
   <figure>
     <div class="scroll">
-      <svg viewBox="0 0 880 348" role="img" aria-label="Big River's posted board is looked at every half hour and kept in the bids repository. From there each elevator's own Prices job takes it, subtracts that elevator's spread, and writes the result into that elevator's web page. The staff screen sits between the two jobs and supplies the spread to each of them; it never supplies a price.">
+      <svg viewBox="0 0 880 348" role="img" aria-label="Big River's posted board is read every ten minutes through the trading day and kept in the bids repository. From there each elevator's own Prices job takes it, subtracts that elevator's spread, and writes the result into that elevator's web page. The staff screen sits between the two jobs and supplies the spread to each of them; it never supplies a price.">
         <defs>
           <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
             <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
@@ -240,7 +240,7 @@ pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; p
         <text x="440" y="43" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">their posted board</text>
 
         <line x1="440" y1="54" x2="440" y2="84" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
-        <text x="450" y="73" font-size="10" fill="currentColor" opacity=".7">looked at every half hour, all day</text>
+        <text x="450" y="73" font-size="10" fill="currentColor" opacity=".7">read every 10 minutes, trading day</text>
 
         <rect x="340" y="86" width="200" height="58" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
         <text x="440" y="107" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">bids repository</text>
@@ -315,6 +315,149 @@ pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; p
     <h3>If the feed goes quiet, the price comes off — on purpose</h3>
     <p>The reader that watches Big River's board checks in every six hours. If nothing has arrived in <strong>14 hours</strong> — two missed check-ins — both sites stop showing a number and say <em>“Call for today's price”</em> instead.</p>
     <p>That is the system working. A wrong price on the page is worse than no price on the page.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Who owns which piece</h2><span class="tag">four things, three companies</span></div>
+  <p class="lede">Nothing here is a mystery service somebody set up and left. There are four moving parts and each one has a name, a company behind it, and somebody to ring. This page is where they are written down.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>The piece</th><th>What it is</th><th>Where it lives</th><th>If it breaks</th></tr></thead>
+      <tbody>
+        <tr>
+          <td><strong>The two domain names</strong></td>
+          <td class="mono">badgergrain.com<br>midwestcommodity.com</td>
+          <td>Registered and pointed at the website by <strong>GoDaddy</strong>. They renew on a date; a domain that lapses takes the website with it.</td>
+          <td>Sig. Nobody in the office needs to touch this, ever.</td>
+        </tr>
+        <tr>
+          <td><strong>The websites themselves</strong></td>
+          <td>Plain pages — no database, no login, nothing running behind them</td>
+          <td>Held and served by <strong>GitHub</strong>, free, at the two names above.</td>
+          <td>Sig. There is no hosting bill and no server to restart.</td>
+        </tr>
+        <tr>
+          <td><strong>The price reader</strong></td>
+          <td>The thing that looks at Big River's board every ten minutes</td>
+          <td>Also GitHub, in a separate place of its own.</td>
+          <td>Sig. It takes the price off the sites rather than guess — see below.</td>
+        </tr>
+        <tr>
+          <td><strong>This staff screen</strong></td>
+          <td>Where you set hours, notices and the basis</td>
+          <td>GitHub again, same family as the sites.</td>
+          <td>Sig — but read the triage table first, most of it is not broken.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="flag">
+    <h3>Today, the two domain names carry the website and nothing else</h3>
+    <p>No email is routed on either name. Checked on 24 August 2026 against three separate directory services — there is no mail record on <span class="mono">badgergrain.com</span> or <span class="mono">midwestcommodity.com</span>, so a note sent to anything@ either of them goes nowhere at all.</p>
+    <p>That is being changed. See below.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Mail to the two elevator names</h2><span class="tag">Kristi &middot; to be set up</span></div>
+  <p class="lede">A farmer who has the website will sooner or later write to <span class="mono">info@badgergrain.com</span>, because that is the address people assume exists. Right now that note bounces &mdash; or worse, quietly does not. The fix is forwarding: mail addressed to either elevator lands in Kristi's inbox at <span class="mono">midwestagsupply.com</span>, which is where the office already reads its mail.</p>
+
+  <div class="how">
+    <div class="card">
+      <h3>Set up the forwarding</h3>
+      <ol>
+        <li>Sign in at <span class="mono">godaddy.com</span> &mdash; both elevator names are registered there.</li>
+        <li>Open <strong>badgergrain.com</strong> and find the email forwarding section for that domain.</li>
+        <li>Forward <span class="mono">info@badgergrain.com</span> to <span class="mono">kristi@midwestagsupply.com</span>.</li>
+        <li>Add a second forward for <span class="mono">office@</span> if you want it. Keep the list short &mdash; every address you invent is one more thing to check.</li>
+        <li>Do the same for <strong>midwestcommodity.com</strong>.</li>
+        <li>Send yourself a test to each new address. It can take an hour or two to start working; if nothing has arrived by the next morning, something is wrong.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Then put the address on the sites</h3>
+      <ol>
+        <li>Tell Sig once the forwarding is tested and working.</li>
+        <li>An address on a website that bounces is worse than no address at all, so the sites do not get one until a real note has arrived.</li>
+        <li>The phone number stays the main way to reach either elevator. This is for the people who write instead of ring.</li>
+      </ol>
+    </div>
+  </div>
+
+  <div class="flag">
+    <h3>Two records that stop somebody pretending to be us</h3>
+    <p>While the domain is open in GoDaddy, add these. They are the reason a fraudster cannot send a convincing &ldquo;our bank details have changed&rdquo; note that appears to come from the elevator &mdash; which is a known and specific way grain businesses get hit.</p>
+    <p><strong>Add, never replace.</strong> Adding a record is safe; replacing one that is already there is how mail goes down.</p>
+    <p>On <strong>each</strong> of the two elevator domains, add two <span class="mono">TXT</span> records:</p>
+  </div>
+
+  <pre>Type   Name      Value
+────   ──────    ─────────────────────────────
+TXT    @         v=spf1 -all
+TXT    _dmarc    v=DMARC1; p=reject;</pre>
+
+  <div class="flag">
+    <h3>What those two lines mean, and the one way they could bite</h3>
+    <p>The first says <em>nothing on the internet is allowed to send mail claiming to be this name</em>. The second says <em>and if anything tries, throw it away</em>. Forwarding is unaffected: forwarding is mail coming <strong>in</strong>, and these two records only govern mail going <strong>out</strong>.</p>
+    <p><strong>The one way they could bite:</strong> if the office ever starts <em>sending</em> mail as <span class="mono">kristi@badgergrain.com</span> rather than just receiving it, these records will block your own mail. That is fixable in a minute &mdash; but it has to be done at the same time, not discovered afterwards. Tell Sig before that changes.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>GitHub, in plain words</h2><span class="tag">five words, once</span></div>
+  <p class="lede">Every part of this runs on GitHub, and the words it uses are not words anybody uses about a website. Here they are once, in the order you will meet them. You will only ever need the last two.</p>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Their word</th><th>What it actually is</th><th>Yours?</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">account</td><td>Your login. Yours is yours — your name shows on every change you make, which is how the screen can say <em>“last change today 10:09 AM by jessie”</em>.</td><td>Yes — you need one</td></tr>
+        <tr><td class="mono">organisation</td><td>The company folder everything sits in. Ours is <span class="mono">midwestagsupply</span>.</td><td>You are a member</td></tr>
+        <tr><td class="mono">repository</td><td>A folder of files. One per elevator, plus one for this staff screen. That's it — “repo” is a folder.</td><td>Rarely</td></tr>
+        <tr><td class="mono">issue</td><td>A numbered note filed against a folder. <strong>This is what Save makes.</strong> The screen writes the whole form into one and you press Submit.</td><td><strong>Yes — every save</strong></td></tr>
+        <tr><td class="mono">action</td><td>A job that runs on its own when something happens. One reads your issue and writes the files; others rebuild the pages.</td><td>No — they run themselves</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="flag">
+    <h3>Why a ticket and not a password</h3>
+    <p>There used to be a password on this screen, kept in a box on another company's service, guarding a button that changed two small files. That was removed in August 2026.</p>
+    <p>A ticket is better for a plain reason: <strong>a password says what you know, an account says who you are.</strong> Every change now carries your name and the time, nothing has to be remembered or shared, and there is no password to leak, expire or be written on a note by the till.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>The price reader, in detail</h2><span class="tag">the part nobody has to run</span></div>
+  <p class="lede">This is the piece people ask about most, so here it is properly. Nobody in the office runs it, starts it, or can break it — but knowing what it does answers most of the questions a farmer will put to you.</p>
+  <div class="how">
+    <div class="card">
+      <h3>What it reads</h3>
+      <ol>
+        <li>Big River Resources posts a cash-bid board on their own website, publicly, the same board any farmer can look at.</li>
+        <li>Every ten minutes through the trading day, a job opens that page and reads the whole table.</li>
+        <li>It keeps one copy. Both elevators price off the same copy, which is why the two columns on the staff screen can be checked against each other.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>What it refuses</h3>
+      <ol>
+        <li>A reading where their cash and their basis do not agree with the futures quote on their own page — that is a half-loaded page, not a price.</li>
+        <li>A corn price outside two to twelve dollars. That is a decimal point in the wrong place, not a market.</li>
+        <li>Anything older than 14 hours. Both sites then say <em>“Call for today's price”</em> rather than show it.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>What it never does</h3>
+      <ol>
+        <li>It never invents a number. If it cannot read one, the price comes off the page.</li>
+        <li>It never rounds Big River's figures. <span class="mono">$4.2825</span> stays <span class="mono">$4.2825</span> so you can check it line for line.</li>
+        <li>It never sets our price. Our price is their board minus the spread <em>you</em> set, worked out by each site itself.</li>
+      </ol>
+    </div>
+  </div>
+  <div class="flag">
+    <h3>So if a farmer asks “where does this price come from?”</h3>
+    <p>The honest answer, and the one on the page: <strong>it is Big River's posted board less our basis, read automatically and rebuilt through the day.</strong> It is not a quote, and it is not final until he rings.</p>
   </div>
 </section>
 
@@ -421,7 +564,7 @@ pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; p
 
     <details><summary>A farmer says our price is “as of” hours ago. Is it stale?</summary>
       <div class="a"><p>Almost always no. Two different times are involved and only one of them is on the page.</p>
-      <p><strong>The board is looked at every half hour, all day.</strong> The copy of it is only re-stamped when a number actually moves — or once every six hours if nothing has. So on a flat afternoon the stamp can read six hours old while the board has in fact been checked twelve times since.</p>
+      <p><strong>The board is read every ten minutes through the trading day</strong> — hourly outside it, every three hours at weekends. The copy of it is only re-stamped when a number actually <em>moves</em>, or once every six hours if nothing has. So on a flat afternoon the stamp can read six hours old while the board has in fact been read dozens of times since.</p>
       <p>What it means is <em>“this is still the price”</em>, not <em>“nobody has looked”</em>. If it goes past 14 hours the site takes the price down on its own.</p></div></details>
 
     <details><summary>Somebody shared the site and the preview looked wrong.</summary>

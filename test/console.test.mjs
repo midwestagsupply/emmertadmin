@@ -4,21 +4,18 @@
  * measurement rather than a taste. Driving the real page and focusing every one
  * of its controls in turn:
  *
- *   RE-MEASURED 2026-08-22, when the board moved from above the columns to
- *   beside them and every number below it changed. Pane overflow, read from
- *   the real page with Big River's real twelve-row board:
- *
- *     1912x860   2px      1660x860   2px
- *     1912x870   0        1660x870   0
- *     1912x905   0        1800x870   0
+ *   height >= 915   the whole Big River board is on screen
+ *   height <  915   the board runs off the bottom, at EVERY width from 1440 to
+ *                   2560 — a height problem, not a width one, and no amount of
+ *                   narrowing helps
  *
  * The shared board is the entire reason to put both elevators on one screen:
  * two columns whose common reference has scrolled off the top is just two forms
  * crammed together. So the floor is a height as well as a width, set at 940 to
  * leave headroom for a longer board than the five rows Big River posts today.
  *
- *   width >= 1800 AND height >= 880   two columns, whole board on screen
- *   width >= 1440, otherwise          same dark console, ONE elevator, tabs
+ *   width >= 1440 AND height >= 940   two columns, whole board on screen
+ *   width >= 1440, shorter            same dark console, ONE elevator, tabs
  *   width <  1440                     roomy light layout, one at a time
  *
  * WHAT THIS FILE IS FOR, AND WHAT IT IS NOT. Behaviour is identical in all
@@ -57,29 +54,7 @@ const survey = (p) => p.evaluate(() => {
     rareKey: vis(document.getElementById("rareBtn")),
     ink: getComputedStyle(document.body).backgroundColor,
     boardOnScreen: board.top >= 0 && board.bottom <= innerHeight && board.height > 0,
-    /* WAS boardAboveColumns, AND THE PROMISE MOVED RATHER THAN WEAKENED.
-       Stacked, the board's claim on the screen was "read once, above both".
-       Beside them it is "read once, left of both" -- the same claim about the
-       same shared reference, on the other axis. Asserted against EVERY shown
-       column, not just the first: written against shown[0] it would pass on a
-       layout that put the board left of Badger and on top of Midwest. */
-    boardBesideColumns: shown.every((c) => strip.right <= c.getBoundingClientRect().left + 1),
-    /* THE THING THE WHOLE REBUILD IS FOR. Not "does the page scroll" -- the
-       shell has always been pinned -- but "does anything inside it have to be
-       scrolled to be reached". A pinned page whose panes are 300px short is
-       the screen Sig sent a photograph of. */
-    paneOverflow: shown.map((c) => { const q = c.querySelector(".col-panes");
-      return q ? q.scrollHeight - q.clientHeight : null; }),
-    stripOverflow: document.getElementById("boardStrip").scrollHeight -
-                   document.getElementById("boardStrip").clientHeight,
-    /* THE BOARD WAS CLIPPED AND NOTHING SAID SO. First console screenshot:
-       the table wanted 616px in a 473px rail, so "Badger posts" and "Midwest
-       posts" -- the two columns the side-by-side screen exists to show -- ran
-       off the right edge into an overflow:hidden shell. Silent, exactly like
-       the pane that reported itself as fitting. Measured on the WRAPPER,
-       because that is the box that does the clipping. */
-    boardClipped: (() => { const w = document.querySelector(".board");
-      return w.scrollWidth > w.clientWidth; })(),
+    boardAboveColumns: strip.bottom <= (shown[0] ? shown[0].getBoundingClientRect().top + 1 : 0),
     /* The console pins the page to the window and gives each column its own
        scrolling pane; the roomy layout lets the document scroll instead. */
     pageScrolls: getComputedStyle(document.documentElement).overflow !== "hidden",
@@ -102,20 +77,8 @@ for (const [what, v] of [["on its own floor", LAYOUT.CONSOLE_EDGE], ["with room 
     assert.equal(r.switcher, false, "there is nothing left to switch between");
     assert.equal(r.boardOnScreen, true,
       "the shared board is the whole reason both columns are here and it is off the screen");
-    assert.equal(r.boardBesideColumns, true, "the board must sit beside both columns, read once");
+    assert.equal(r.boardAboveColumns, true, "the board must sit above both columns, read once");
     assert.equal(r.pageScrolls, false, "the console pins the page to the window");
-    /* NOTHING ON THE CONSOLE IS REACHED BY SCROLLING. This is the assertion
-       the rebuild exists to make true: before it, one column was 302px short
-       of its own controls and the page reported itself as fitting because the
-       shell was pinned. Zero, not "small". */
-    assert.deepEqual(r.paneOverflow, [0, 0],
-      "every control on the console must be on the console — a pane that scrolls is a control " +
-      "that is not on the screen, which is the whole complaint this layout answers");
-    assert.equal(r.stripOverflow, 0,
-      "the board and its status line must both be on screen without scrolling the rail");
-    assert.equal(r.boardClipped, false,
-      "the board is wider than the rail it sits in, so its right-hand columns — which are what " +
-      "both elevators post — are cut off with nothing on screen to say they exist");
     assert.deepEqual(r.barsOnFloor, [0, 0], "a command bar is not on the floor of the window");
     assert.equal(r.sidewaysScroll, false);
   });

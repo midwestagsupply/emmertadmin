@@ -553,7 +553,16 @@ each("Undo in one column does not undo the other", async (E) => {
   const p = await open();
   await p.fill(id(E.site, "off"), "0.41");
   await p.fill(id(other.site, "off"), "0.42");
-  await p.click(`${col(E.site)} button[type=reset]`);
+  /* press(), not p.click(). Playwright's click scrolls the target into view
+     first even when it is already fully on screen, the console's pinShell()
+     guard answers that scroll by putting the document back, and the button
+     moves between mousedown and mouseup -- so NO click event is dispatched.
+     This test used p.click() and passed only because the geometry happened to
+     make the pre-click scroll a no-op; adding the rail moved the button and
+     it started reporting Undo as broken. Undo was never broken: a raw mouse
+     click at the button's own coordinates fires reset, measured. The harness
+     has press() for exactly this and its comment says so. */
+  await press(p, `${col(E.site)} button[type=reset]`);
   await p.waitForTimeout(150);
   const r = await p.evaluate((pair) => ({
     mine: document.getElementById(pair[0] + "-off").value,

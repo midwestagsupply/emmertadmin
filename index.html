@@ -58,6 +58,53 @@
 
 <p id="sampleWhat" class="sr-only">This box is still showing the value the screen ships with. Nothing has filled it in. Check it before saving.</p>
 
+<!-- ══════════════ THE CONSOLE RAIL ══════════════
+     One screen was four screens pretending to be one: the board, the basis,
+     the hours and the small print all competing for the same 1000px, and the
+     two things the office touches every morning falling off the bottom.
+
+     The rail is not decoration. Each section here is a JOB -- look at it,
+     change the basis, change the hours, change the things that change twice
+     a year -- and only one of them is ever the reason somebody opened this
+     page. Showing the other three costs height that the one they came for
+     needs.
+
+     BOTH ELEVATORS STAY ON EVERY TAB. The tabs slice the screen by JOB, never
+     by elevator: doing a thing for Badger and forgetting Midwest is the one
+     mistake this screen exists to prevent, and putting them behind separate
+     tabs would build that mistake in.
+
+     THE HIDDEN SECTIONS ARE STILL IN THE FORM. CSS display does not take a
+     field out of a submission, so a Save carries the whole column whichever
+     tab is showing -- the same property the folded "weekly hours & small
+     print" panel has always relied on. -->
+<nav class="rail" id="rail" aria-label="Sections">
+  <div class="rail-mark">
+    <span class="rail-m1">EMMERT</span>
+    <span class="rail-m2">Staff terminal</span>
+  </div>
+  <button type="button" class="rail-b" data-go="overview" aria-current="true">
+    <span class="rail-t">Overview</span>
+    <span class="rail-s">Both elevators, as published</span>
+  </button>
+  <button type="button" class="rail-b" data-go="basis">
+    <span class="rail-t">Basis</span>
+    <span class="rail-s">What we post under Big River</span>
+  </button>
+  <button type="button" class="rail-b" data-go="hours">
+    <span class="rail-t">Hours &amp; notices</span>
+    <span class="rail-s">Today, the banner, the week</span>
+  </button>
+  <button type="button" class="rail-b" data-go="settings">
+    <span class="rail-t">Settings</span>
+    <span class="rail-s">Small print, by-hand price</span>
+  </button>
+  <div class="rail-foot">
+    <a class="rail-doc" href="handbook.html">Handbook</a>
+    <span class="rail-clock" id="railClock" aria-hidden="true"></span>
+  </div>
+</nav>
+
 <main id="content">
 
 <!-- ══════════════ ONE BOARD, BOTH ELEVATORS ══════════════
@@ -75,25 +122,26 @@
      screen shows both elevators at once: a figure that has stopped tracking
      is visible at a glance instead of needing two tabs and arithmetic. -->
 <section class="strip" id="boardStrip" aria-label="Big River board">
-        <!-- THERE USED TO BE A SECOND STATUS LINE HERE. IT IS GONE, 2026-08-22.
-             It read "Reading Big River, Boyceville, through our own mirror.
-             Last read 7:48 PM, one minute ago." and it was LITERAL MARKUP. The
-             Cloudflare Worker wrote that sentence when it built the page, and
-             the Worker was removed on 2026-08-20, so nothing had written it
-             since: it said 7:48 PM to everybody, for ever.
-
-             It carried data-sample, so it shipped outlined as filler. What
-             made it a defect rather than a leftover is what happened next --
-             setFeed() strips data-sample from everything in this strip when a
-             real reading lands, which took the outline off and left the
-             sentence. The frozen claim then sat directly above the live one,
-             with nothing left to say it was filler, saying "one minute ago"
-             while the block below said "nothing has read the board for 7
-             hours". Sig's screenshot is exactly that, both at once.
-
-             The block below is the only status line now. It does not describe
-             the feed, it asks it, and it says so when it cannot -- which is
-             what the removed line pretended to know. -->
+        <div class="feed is-ok" data-sample>
+          <span class="feed-dot" aria-hidden="true"></span>
+          <div class="feed-t">
+            <!-- THE SAMPLE MATCHES THE SHAPE OF THE LIVE MESSAGE, and it did not.
+                 setFeed's own "ok" text is two lines. The sample that shipped ran
+                 to six, explaining how the mirror's identity check works -- true,
+                 and not what somebody opening the screen at seven in the morning
+                 is reading. It cost four lines of the strip on every load until
+                 the feed answered, and the strip is what the columns compete with
+                 for height. That explanation lives in the handbook now. -->
+            <strong>The price feed is live.</strong>
+            Last read <span class="num">7:48 PM</span>, 12 rows. Both sites are
+            publishing from it. Nothing for you to do.
+          </div>
+        </div>        <!-- THE FEED, CHECKED FROM THIS BROWSER RATHER THAN DESCRIBED.
+             The line above is written by the Worker when it builds this page.
+             That is one opinion, from one moment, and if the Worker itself is
+             having a bad morning it is the opinion least likely to be right.
+             This block asks the feed directly. See the script for why it is a
+             second opinion rather than a second copy. -->
         <div class="feedlive" id="feedLive" hidden>
           <span class="feedlive-dot" aria-hidden="true"></span>
           <div class="feedlive-t" id="feedLiveText" role="status"></div>
@@ -174,13 +222,33 @@
     </div>
     <form class="col-form" novalidate>
       <div class="col-panes">
+    <!-- ============ OVERVIEW ============ -->
+    <!-- WHAT THIS ELEVATOR IS PUBLISHING RIGHT NOW, in one card, read and not
+         recomputed. Every value in here is copied out of a node the screen
+         had already worked out -- the basis readouts, the customer previews,
+         the applier's own stamp. Nothing new is calculated, because a second
+         implementation of the rounding rule is the one thing this screen is
+         forbidden to grow. -->
+    <div class="card" data-id="c-over" data-tab="overview">
+      <h2>Live on the site <span class="hint" data-id="overWhen"></span></h2>
+      <div class="body">
+        <dl class="over">
+          <dt>Cash basis</dt><dd data-id="overCash">&mdash;</dd>
+          <dt>New crop</dt><dd data-id="overNew">&mdash;</dd>
+          <dt>Price shown</dt><dd data-id="overBid">&mdash;</dd>
+          <dt>Today</dt><dd data-id="overToday">&mdash;</dd>
+          <dt>Banner</dt><dd data-id="overBanner">&mdash;</dd>
+        </dl>
+      </div>
+    </div>
+
     <!-- ============ OUR BASIS ============ -->
     <!-- What used to be the whole corn-bid card. Big River's board is one
          board and it now sits once, above both columns, with a column each
          for what the two elevators publish against it. What stays here is
          the part that is genuinely this elevator's: its basis, its
          break-glass by-hand price, and the small print under its table. -->
-    <div class="card" data-id="c-bid">
+    <div class="card" data-id="c-bid" data-tab="basis">
       <h2>Our basis <span class="hint"><span class="who-town"></span> &middot; the board is above</span></h2>
       <div class="body">
         <!-- Two boxes because old crop and new crop are two decisions. Blank
@@ -265,7 +333,15 @@
           <p class="prev-n" data-id="prevBidNote"></p>
         </div>
 
-        <div class="row">
+        <!-- THE BUTTON AT THE TOP OF THE SCREEN ALREADY SAYS "Weekly hours &
+             small print". This IS the small print, it changes about twice a
+             year, and it sat 85px tall in the middle of the card somebody opens
+             every morning to change a basis. It folds with the rest of the
+             rarely-touched controls now. It is still IN the form when folded --
+             CSS display does not take a field out of a submission -- so a Save
+             carries it either way, which is the same argument the weekly hours
+             table has always relied on. -->
+        <div class="row rare-row">
           <label class="fl" data-for="pnote">Small print under the price table</label>
           <textarea data-id="pnote" name="price_note" maxlength="240">Prices change with the market and are not final until you call. Grain is bought subject to the drying and discount schedule below.</textarea>
           <div class="counter">Shows under the prices on both sites. Keep the last sentence: it ties a posted price to the drying schedule.</div>
@@ -274,7 +350,7 @@
     </div>
 
     <!-- ============ TODAY ============ -->
-    <div class="card" data-id="c-today">
+    <div class="card" data-id="c-today" data-tab="hours">
       <h2>Today&rsquo;s hours <span class="hint" data-id="todayDate"></span></h2>
       <div class="body">
         <p class="help">The big box at the top of the site. Nothing changed today? Leave it on the first choice.</p>
@@ -307,7 +383,7 @@
     </div>
 
     <!-- ============ NOTICE ============ -->
-    <div class="card" data-id="c-banner">
+    <div class="card" data-id="c-banner" data-tab="hours">
       <h2>Notice banner <span class="hint">The yellow bar</span></h2>
       <div class="body">
         <p class="help">Anything a customer needs to know before they haul.</p>
@@ -333,7 +409,7 @@
     </div>
 
     <!-- ============ WEEKLY ============ -->
-    <div class="card" data-id="c-weekly">
+    <div class="card" data-id="c-weekly" data-tab="hours">
       <h2>Regular weekly hours <span class="hint">Changes rarely</span></h2>
       <div class="body">
         <p class="help">Only change this when the normal schedule changes for good.</p>
@@ -370,7 +446,7 @@
     </div>
 
     <!-- ============ HARVEST NOTE ============ -->
-    <div class="card" data-id="c-print">
+    <div class="card" data-id="c-print" data-tab="settings">
       <h2>Small print under the hours</h2>
       <div class="body">
         <div class="row">
@@ -692,13 +768,7 @@
   var flGo = document.getElementById("feedLiveGo");
 
   function hoursAgo(h) {
-    /* "1 minutes ago" shipped on the console screenshot. The floor at one is
-       right -- a reading taken thirty seconds ago should not say "0 minutes"
-       -- but it made the singular reachable, and nothing pluralised it. */
-    if (h < 1) {
-      var m = Math.max(1, Math.round(h * 60));
-      return m + (m === 1 ? " minute ago" : " minutes ago");
-    }
+    if (h < 1) return Math.max(1, Math.round(h * 60)) + " minutes ago";
     if (h < 2) return "about an hour ago";
     if (h < 36) return Math.round(h) + " hours ago";
     return Math.round(h / 24) + " days ago";
@@ -2209,6 +2279,103 @@
   }
 
   Object.keys(COLS).forEach(function (site) { wire(COLS[site], site); });
+
+  /* ══════════════ THE RAIL ══════════════
+     Four jobs, one showing. The state lives on <body> so the stylesheet does
+     all the hiding -- which matters for more than tidiness: a field hidden by
+     CSS is still submitted, so a Save carries the whole column whichever tab
+     is up. Anything that removed nodes instead would silently drop half the
+     form. */
+  (function wireRail() {
+    var rail = document.getElementById("rail");
+    if (!rail) return;
+    var btns = [].slice.call(rail.querySelectorAll(".rail-b"));
+    function go(tab) {
+      document.body.setAttribute("data-tab", tab);
+      btns.forEach(function (b) {
+        var on = b.getAttribute("data-go") === tab;
+        /* aria-current, not aria-pressed: these are places, not switches. */
+        if (on) b.setAttribute("aria-current", "true");
+        else b.removeAttribute("aria-current");
+      });
+      try { localStorage.setItem("emmert-tab", tab); } catch (e) { /* private window */ }
+      syncOver();
+    }
+    btns.forEach(function (b) {
+      b.addEventListener("click", function () { go(b.getAttribute("data-go")); });
+    });
+    var want = "overview";
+    try { want = localStorage.getItem("emmert-tab") || want; } catch (e) { /* ignore */ }
+    if (!btns.some(function (b) { return b.getAttribute("data-go") === want; })) want = "overview";
+    go(want);
+
+    /* The clock is Central, like every other time on this screen, and not the
+       reader's own. An office in Wheeler reading a laptop still set to
+       Pacific should not be told it is three in the afternoon. */
+    function tick() {
+      var el = document.getElementById("railClock");
+      if (!el) return;
+      el.textContent = new Date().toLocaleTimeString("en-US", {
+        timeZone: "America/Chicago", hour: "numeric", minute: "2-digit"
+      }) + " Central";
+    }
+    tick();
+    setInterval(tick, 20000);
+  })();
+
+  /* Copies what the screen has already worked out into the overview card.
+     READS, never recomputes -- see the card's own comment. */
+  function syncOver() {
+    if (document.body.getAttribute("data-tab") !== "overview") return;
+    Object.keys(COLS).forEach(function (site) {
+      var root = COLS[site];
+      /* JOIN THE BLOCKS, DO NOT CONCATENATE THEM. textContent of a node whose
+         children are <div>s runs them together -- the today preview came out
+         "Open today, Monday8:00a to 5:00p", which is two true sentences read
+         as one wrong one. Block-level children are separated the way they are
+         separated on screen. */
+      var get = function (id) {
+        var el = root.querySelector('[data-id="' + id + '"]');
+        if (!el) return "";
+        if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") return (el.value || "").trim();
+        var kids = [].slice.call(el.children).filter(function (k) {
+          return getComputedStyle(k).display !== "inline";
+        });
+        if (!kids.length) return (el.textContent || "").trim();
+        return kids.map(function (k) { return (k.textContent || "").trim(); })
+                   .filter(Boolean).join(" \u00b7 ");
+      };
+      /* Two figures with a separator only when there are two figures. */
+      var pair = function (a, b) {
+        return [a, b].filter(Boolean).join("  \u00b7  ");
+      };
+      var put = function (id, txt) {
+        var el = root.querySelector('[data-id="' + id + '"]');
+        if (el) el.textContent = txt || "\u2014";
+      };
+      var off = root.querySelector('[data-id="off"]');
+      put("overCash", pair(off && off.value ? "\u2212$" + off.value : "", get("basisCash")));
+      put("overNew", get("basisNew"));
+      put("overBid", get("prevBid").replace(/\s+/g, " "));
+      put("overToday", get("prevToday").replace(/\s+/g, " "));
+      var on = root.querySelector('[name="banner"]:checked');
+      var msg = get("msg");
+      put("overBanner", on && on.value === "on"
+        ? "Showing \u00b7 " + (msg.length > 64 ? msg.slice(0, 64) + "\u2026" : msg)
+        : "Not showing");
+      /* The heading's hint is the applier's own "last change" stamp, when the
+         file carries one. It is NOT whoNote -- that says which repository this
+         column saves to, which the column header already says two lines above
+         and which is not news. */
+      var when = root.querySelector('[data-id="overWhen"]');
+      var said = root.querySelector('[data-id="lastChange"]');
+      if (when) when.textContent = said ? (said.textContent || "").trim() : "";
+    });
+  }
+  /* Any edit anywhere re-reads it, so switching to Overview never shows a
+     figure the form has since moved past. */
+  document.addEventListener("input", syncOver, true);
+  document.addEventListener("change", syncOver, true);
 })();
 </script>
 </body>
