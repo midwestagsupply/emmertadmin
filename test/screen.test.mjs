@@ -1232,8 +1232,17 @@ test("THE SCREEN NEVER SHOWS A DATE NOTHING FILLED IN", { skip: NO_BROWSER }, as
      for the previews already. */
   const p = await open();
   const r = await p.evaluate(() => {
-    const today = new Date();
-    const want = today.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+    /* CENTRAL, BECAUSE THE SCREEN IS CENTRAL. todayCentral() fills this hint
+       from America/Chicago -- every other time on this page is Central, and an
+       office in Wheeler reading a laptop still set to another zone must not be
+       told a different day. This test computed the expectation from the
+       machine's own clock, so it agreed only while the runner happened to be
+       on the same date as Chicago. At 00:05 UTC on 25 August it failed: the
+       card correctly said Monday 24 August and the test wanted Tuesday 25.
+       A latent flake, not a regression -- and the fix is the test, not the
+       screen. */
+    const want = new Date().toLocaleDateString("en-US", {
+      timeZone: "America/Chicago", weekday: "long", month: "long", day: "numeric" });
     return { hints: [...document.querySelectorAll('[data-id="c-today"] .hint')]
              .map((e) => e.textContent.replace(/^Sample content[^.]*\.\s*/, "").trim()), want };
   });
@@ -1420,12 +1429,26 @@ each("it says these are the published figures, not a preview of an unsaved chang
 
 each("if this elevator's published prices cannot be read, its preview is left alone", async (E) => {
   const p = await open({ sites: files({ [E.site]: { bids: null } }) });
-  const r = await p.evaluate((s) => ({
-    rows: document.querySelectorAll("#" + s + "-prevBid .pb-row").length,
-    raw: document.getElementById(s + "-prevBid").textContent,
-  }), E.site);
+  const r = await p.evaluate((s) => {
+    const el = document.getElementById(s + "-prevBid");
+    /* THE PRISTINE COPY IS STILL IN THE <template>, which nothing on the page
+       ever touches. Comparing against it is the literal meaning of "left
+       alone" and it depends on no fixture value and no marker.
+
+       Two earlier versions of this check were wrong. It counted .pb-row and
+       required zero -- which stopped meaning anything the moment the shipped
+       sample grew the second row the live preview has always rendered. Then
+       it looked for the data-sample attribute, which the page's own filler
+       sweep removes regardless of whether the preview was rebuilt. The
+       builder's early return leaves the ELEMENT untouched, so the element is
+       what to compare. */
+    const pristine = document.getElementById("elevTpl").content
+      .querySelector('[data-id="prevBid"]');
+    const norm = (x) => x.innerHTML.replace(/\s+/g, " ").trim();
+    return { same: norm(el) === norm(pristine), raw: el.textContent };
+  }, E.site);
   await p.done();
-  assert.equal(r.rows, 0, "rows were built out of a read that failed");
+  assert.equal(r.same, true, "the preview was rebuilt out of a read that failed");
   assert.match(r.raw, /Cash, corn/, "and what was already there is untouched");
 });
 

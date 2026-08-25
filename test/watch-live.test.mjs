@@ -19,7 +19,14 @@ function fake({ checkedAt, price = 4.05, callForPrice = false, pricing, hours,
     const body = (o) => ({ status, body: badJson ? "{oh no" : JSON.stringify(o) });
     if (url.endsWith("/")) return { status, body: callForPrice ? "<p>Call for today's price</p>" : "<p>$4.05</p>" };
     if (url.endsWith("bids.json"))
-      return body({ checkedAt, bids: price == null ? [] : [{ delivery: "August", cashPrice: price }] });
+      /* THE SHAPE THE LIVE SITES ACTUALLY SERVE, captured from
+         raw.githubusercontent 2026-08-24: schema emmert-cash-bids/2 with
+         `observed` and `pricedAt`, and NO checkedAt. The old fixture emitted
+         checkedAt, which no site has ever published, so every test here
+         agreed with the watchdog about a file neither had seen. */
+      return body({ schema: "emmert-cash-bids/2", observed: checkedAt,
+                    pricedAt: checkedAt, generated: checkedAt, status: "ok",
+                    bids: price == null ? [] : [{ delivery: "August", cashPrice: price }] });
     if (url.endsWith("pricing.json")) return body(pricing ?? { spread: 0.1, contact });
     if (url.endsWith("hours.json")) return body(hours ?? { weekday: "8:00a to 5:00p" });
     throw new Error("unexpected " + url);
@@ -126,4 +133,56 @@ test("report puts critical first and counts only what blocks", async () => {
   assert.ok(r.text.indexOf("[critical]") < r.text.indexOf("[low]"), r.text);
   assert.ok(r.blocking > 0);
   assert.ok(!r.ok);
+});
+
+/* THE FIELD NAME IS THE WHOLE BUG, SO IT GETS ITS OWN TESTS. */
+test("a file with only the legacy checkedAt is still aged, not called unreadable", async () => {
+  const get = async (url) => {
+    if (url.endsWith("/")) return { status: 200, body: "<p>$4.05</p>" };
+    if (url.endsWith("bids.json"))
+      return { status: 200, body: JSON.stringify({ checkedAt: ago(MARKET, 0.1),
+        bids: [{ delivery: "August", cashPrice: 4.05 }] }) };
+    if (url.endsWith("pricing.json"))
+      return { status: 200, body: JSON.stringify({ spread: 0.1, contact: "accounting@midwestagsupply.com" }) };
+    if (url.endsWith("hours.json")) return { status: 200, body: JSON.stringify({ weekday: "8:00a to 5:00p" }) };
+    throw new Error("unexpected " + url);
+  };
+  const found = await watch({ now: MARKET, get });
+  assert.equal(found.filter((f) => /no readable/.test(f.what)).length, 0,
+    "an older file with checkedAt was reported as having no time at all");
+});
+
+test("a file with no time at all is still critical", async () => {
+  const get = async (url) => {
+    if (url.endsWith("/")) return { status: 200, body: "<p>$4.05</p>" };
+    if (url.endsWith("bids.json"))
+      return { status: 200, body: JSON.stringify({ bids: [{ delivery: "August", cashPrice: 4.05 }] }) };
+    if (url.endsWith("pricing.json"))
+      return { status: 200, body: JSON.stringify({ spread: 0.1, contact: "accounting@midwestagsupply.com" }) };
+    if (url.endsWith("hours.json")) return { status: 200, body: JSON.stringify({ weekday: "8:00a to 5:00p" }) };
+    throw new Error("unexpected " + url);
+  };
+  const found = await watch({ now: MARKET, get });
+  assert.ok(found.some((f) => f.severity === "critical" && /no readable/.test(f.what)),
+    "a bids.json with no time of any kind should still be critical");
+});
+
+test("a flat market is not a dead feed", async () => {
+  /* pricedAt is when the price last MOVED. Ageing against it would report a
+     quiet afternoon as a stopped reader, which is the confusion this file
+     exists to avoid. */
+  const get = async (url) => {
+    if (url.endsWith("/")) return { status: 200, body: "<p>$4.05</p>" };
+    if (url.endsWith("bids.json"))
+      return { status: 200, body: JSON.stringify({ schema: "emmert-cash-bids/2",
+        observed: ago(MARKET, 0.2), pricedAt: ago(MARKET, 30),
+        bids: [{ delivery: "August", cashPrice: 4.05 }] }) };
+    if (url.endsWith("pricing.json"))
+      return { status: 200, body: JSON.stringify({ spread: 0.1, contact: "accounting@midwestagsupply.com" }) };
+    if (url.endsWith("hours.json")) return { status: 200, body: JSON.stringify({ weekday: "8:00a to 5:00p" }) };
+    throw new Error("unexpected " + url);
+  };
+  const found = await watch({ now: MARKET, get });
+  assert.deepEqual(found.filter((f) => f.severity === "critical"), [],
+    "a board read 12 minutes ago whose price last moved 30 hours ago is a quiet market, not an outage");
 });

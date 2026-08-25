@@ -80,13 +80,37 @@ export async function checkSite(site, { now, get }) {
      showing a figure. A page showing a price from a reading it has itself
      given up on is the one failure that puts a wrong number in front of a
      farmer, and it is invisible from inside the repository. */
-  const checked = Date.parse(bids.checkedAt);
+  /* THE FIELD THE SITES ACTUALLY PUBLISH.
+   *
+   * This read `bids.checkedAt` and failed both live sites at 23:33 on
+   * 2026-08-24 with "carries no readable checkedAt". The sites were fine. The
+   * watchdog was wrong: `emmert-cash-bids/2` publishes
+   *
+   *     observed   when the board was last READ      23:43, a minute ago
+   *     pricedAt   when the price last MOVED         19:09, four hours ago
+   *     generated  when this file was last written
+   *
+   * and no checkedAt at all. Fifteen tests passed against it because the test
+   * fixture invented `checkedAt` too -- the code and its tests agreed with
+   * each other and both disagreed with the thing being watched.
+   *
+   * `observed` is the right one and the choice matters. The age limit asks
+   * "has anything looked at the board lately"; `pricedAt` would answer "has
+   * the price moved lately", so a flat afternoon would read as a dead feed --
+   * the exact confusion update-prices.mjs warns about at its own FEED_MAX_AGE.
+   *
+   * checkedAt is still accepted, second, so an older file is aged rather than
+   * called unreadable. */
+  const stampField = ["observed", "checkedAt", "generated"]
+    .find((k) => Number.isFinite(Date.parse(bids[k])));
+  const checked = stampField ? Date.parse(bids[stampField]) : NaN;
   const showsPrice = Array.isArray(bids.bids) && bids.bids.length > 0
                      && bids.bids.some((b) => typeof b.cashPrice === "number");
   const callForPrice = /call for/i.test(page.body);
 
   if (!Number.isFinite(checked)) {
-    say("critical", "bids.json carries no readable checkedAt, so nothing can tell how old the price is");
+    say("critical", "bids.json carries no readable observed, checkedAt or generated time, " +
+      "so nothing can tell how old the price is");
   } else {
     const age = hoursBetween(now, checked);
     const maxAge = typeof bids.maxAgeH === "number" ? bids.maxAgeH : FEED_MAX_AGE_H;

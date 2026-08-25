@@ -235,7 +235,8 @@
         <dl class="over">
           <dt>Cash basis</dt><dd data-id="overCash">&mdash;</dd>
           <dt>New crop</dt><dd data-id="overNew">&mdash;</dd>
-          <dt>Price shown</dt><dd data-id="overBid">&mdash;</dd>
+          <dt>Cash price</dt><dd data-id="overCashPrice">&mdash;</dd>
+          <dt>Harvest price</dt><dd data-id="overHarvestPrice">&mdash;</dd>
           <dt>Today</dt><dd data-id="overToday">&mdash;</dd>
           <dt>Banner</dt><dd data-id="overBanner">&mdash;</dd>
         </dl>
@@ -329,7 +330,16 @@
 
         <div class="prev">
           <div class="prev-l">What customers will see</div>
-          <div class="prev-bid" data-id="prevBid" data-sample><span class="pb-l">Cash, corn</span><span class="pb-h num">$3.97</span></div>
+          <!-- TWO ROWS, BECAUSE THE SITE POSTS TWO. The live preview under this
+               has always rendered a cash row AND a harvest row, but the shipped
+               sample carried a single "Cash, corn" line -- so every time the
+               screen was opened before the feed answered it taught the wrong
+               shape, and the new-crop basis box appeared to govern nothing.
+               The sample now has the shape the real thing has. -->
+          <div class="prev-bid" data-id="prevBid" data-sample>
+            <div class="pb-row"><span class="pb-l">Cash, corn<small>August delivery</small></span><span class="pb-h num">$3.97</span></div>
+            <div class="pb-row"><span class="pb-l">Harvest<small>October and November delivery</small></span><span class="pb-h num">$4.18</span></div>
+          </div>
           <p class="prev-n" data-id="prevBidNote"></p>
         </div>
 
@@ -2356,7 +2366,29 @@
       var off = root.querySelector('[data-id="off"]');
       put("overCash", pair(off && off.value ? "\u2212$" + off.value : "", get("basisCash")));
       put("overNew", get("basisNew"));
-      put("overBid", get("prevBid").replace(/\s+/g, " "));
+      /* THE SITE POSTS A CASH PRICE AND A HARVEST PRICE, so the overview names
+         both. Flattening the preview into one line ran them together and made
+         the screen look as though there were only ever one price -- which is
+         also why the new-crop basis box looked as if it governed nothing.
+         Read row by row; each row already carries its own delivery window. */
+      var bidRows = [].slice.call(root.querySelectorAll('[data-id="prevBid"] .pb-row'));
+      var rowText = function (r) {
+        var l = r.querySelector(".pb-l"), h = r.querySelector(".pb-h");
+        var sub = l && l.querySelector("small");
+        var when = sub ? (sub.textContent || "").trim() : "";
+        return pair(h ? (h.textContent || "").trim() : "", when);
+      };
+      var isHarvest = function (r) {
+        var l = r.querySelector(".pb-l");
+        return !!l && /harvest/i.test(l.textContent || "");
+      };
+      var cashRow = bidRows.filter(function (r) { return !isHarvest(r); })[0];
+      var harvRow = bidRows.filter(isHarvest)[0];
+      put("overCashPrice", cashRow ? rowText(cashRow) : "");
+      /* Absent is not zero. When the nearest delivery IS harvest the preview
+         renders one row on purpose, and saying so beats printing a dash. */
+      put("overHarvestPrice", harvRow ? rowText(harvRow)
+        : (cashRow ? "Same row \u2014 the nearest delivery is harvest" : ""));
       put("overToday", get("prevToday").replace(/\s+/g, " "));
       var on = root.querySelector('[name="banner"]:checked');
       var msg = get("msg");
