@@ -471,7 +471,16 @@
            fell through to a fallback that buried the note inside the collapsed
            by-hand panel, where a refusal is invisible. -->
       <div class="col-save save">
-        <button class="btn btn-go" type="submit">Save <span class="save-who"></span></button>
+        <!-- THE BUTTON SAYS WHAT IT DOES. It said "Save Badger Grain Supply",
+             which is a promise this page cannot keep on its own: it is a
+             static file, it holds no password, and the only thing that can
+             write to the site is GitHub. So Save opens a second page where
+             the change is actually filed, and until 2026-08-25 nothing on
+             this screen said so -- the word GitHub appeared nowhere a person
+             could read. Somebody typed a notice, pressed a big button, saw
+             nothing change, and closed the tab that opened. -->
+        <button class="btn btn-go" type="submit">Save <span class="save-who"></span>
+          <small class="btn-sub">opens a second page to finish</small></button>
         <button class="btn" type="reset">Undo</button>
         <!-- What Save is about to change, counted against what the site is
              actually serving right now. role=status so it is spoken, not just
@@ -479,6 +488,17 @@
              redundant channel and neither is the only one. -->
         <span class="chg" data-id="chgNote" role="status" aria-live="polite"></span>
         <span class="saved" data-id="savedNote"></span>
+        <!-- INSIDE the command bar, not under it. Put underneath, it became the
+             last thing in the column and the bar stopped being the floor of the
+             window -- five layout tests said so immediately. It wraps to its own
+             line within the bar instead.
+
+             Deliberately NOT .help: the ? key hides EXPLANATION and this is the
+             procedure. Somebody who does not do the second step has not saved,
+             so it must not be switchable. -->
+        <p class="save-how" data-id="saveHow">Save opens a GitHub page with this form
+          already filled in. <b>It is not saved until you press the green
+          &ldquo;Submit new issue&rdquo; button there.</b></p>
       </div>
     </form>
   </section>
@@ -1602,7 +1622,11 @@
         e.preventDefault();
         checkNote.hidden = true;
         clearBad();
-        dirty = false;
+        /* dirty IS NOT CLEARED HERE. It used to be, three lines before the
+           window was opened -- so the "you have unsaved changes" guard was
+           already off while the work was still unsaved, and closing the
+           browser at that moment warned about nothing. It is cleared below,
+           and only once the second page is actually open. */
         var url = issueUrl(form);
         /* 8k is the practical ceiling on a URL. Nothing this form can hold gets
            near it, but a silent truncation would file a HALF-FILLED issue, so it
@@ -1614,10 +1638,46 @@
           checkNote.focus();
           return;
         }
-        window.open(url, "_blank", "noopener");
+        /* A BLOCKED POPUP IS THE FAILURE THAT LOOKS LIKE SUCCESS. window.open
+           returns null when the browser refuses, and the return value was
+           thrown away -- so a blocked popup left the screen looking exactly
+           like a successful save. The Big River link already checks this; so
+           does this now. */
+        var win = window.open(url, "_blank", "noopener");
+        if (!win) {
+          checkNote.innerHTML = "<b>Nothing was saved.</b> Your browser blocked the " +
+            "page this needs to open. Allow pop-ups for this screen, or " +
+            "<a href=\"" + url.replace(/&/g, "&amp;").replace(/"/g, "&quot;") +
+            "\" target=\"_blank\" rel=\"noopener\">open the form in a new tab</a> " +
+            "and press the green Submit button there.";
+          checkNote.hidden = false;
+          checkNote.focus();
+          return;
+        }
+        dirty = false;
+        /* WHAT TO DO NEXT, ON THE SCREEN THEY ARE LOOKING AT. The second page
+           opens in another tab and may be behind this one. */
+        var how = byId("saveHow");
+        if (how) {
+          if (!how.dataset.standing) how.dataset.standing = how.innerHTML;
+          how.innerHTML = "<b>Not finished yet.</b> A GitHub tab has opened with " +
+            "this form filled in \u2014 press the green &ldquo;Submit new issue&rdquo; " +
+            "button there. The change is live about a minute after that.";
+          how.classList.add("is-now");
+        }
       });
       form.addEventListener("reset", function () {
-        setTimeout(function () { sync(); checkNote.hidden = true; clearBad(); dirty = false; }, 0);
+        setTimeout(function () {
+          sync(); checkNote.hidden = true; clearBad(); dirty = false;
+          var how = byId("saveHow");
+          /* Put the STANDING wording back, not just the colour. Removing the
+             class alone left "Not finished yet. A GitHub tab has opened..."
+             on screen after Undo, describing a tab that was never opened. */
+          if (how && how.dataset.standing) {
+            how.innerHTML = how.dataset.standing;
+            how.classList.remove("is-now");
+          }
+        }, 0);
       });
     }
     /* ---- COMING BACK ------------------------------------------------------

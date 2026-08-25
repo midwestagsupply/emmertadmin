@@ -1067,6 +1067,17 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
      The help key hides EXPLANATION. It must never hide STATE. Same rule the
      basis readouts follow, got right there and wrong here. */
   body[data-help="off"] .help,
+  /* .counter is TWO THINGS wearing one class, the same trap .sanity fell into
+     on 2026-08-20. Most of a .counter is explanation -- "Two lines on a
+     phone", "Only used for different hours" -- and the ? key is right to hide
+     that. But the "N left" tag that the script appends INTO it is STATE, and
+     hiding state is how somebody types a sentence into the notice box, has it
+     stop at 160 characters mid-word with no beep and no red, and reads the
+     preview showing "...please p" without noticing.
+
+     The rule this file already states: the help key hides EXPLANATION. It
+     must never hide STATE. So the tag is excepted, and it stays visible with
+     the words around it gone. */
   body[data-help="off"] .counter,
   body[data-help="off"] .board-note,
   body[data-help="off"] .prev-n,
@@ -1453,3 +1464,44 @@ body[data-tab="settings"] .strip{ display:none; }
             color:var(--grey); }
   .over dd{ margin:0; }
 }
+
+/* ---- Save says what it does ------------------------------------------- */
+/* The second line rides inside the button, smaller and lighter, because it is
+   a consequence of pressing it rather than a separate thing to read. */
+.btn-go{ display:inline-flex; flex-direction:column; align-items:flex-start; gap:1px; line-height:1.15; }
+.btn-sub{ font-size:.68rem; font-weight:600; letter-spacing:.02em; opacity:.85; }
+
+/* NOT .help. The ? key hides explanation; this is the procedure, and a person
+   who does not do the second step has not saved. It must not be switchable. */
+.save{ flex-wrap:wrap; }
+.save-how{
+  flex:1 0 100%; font-size:.76rem; line-height:1.4; color:var(--grey);
+  margin:4px 0 0; max-width:64ch;
+}
+.save-how b{ color:var(--ink); }
+.save-how.is-now{
+  color:var(--ink); background:var(--yellow); border-radius:4px;
+  padding:6px 9px;
+}
+@media (min-width: 1440px){
+  .save-how{ font-size:.73rem; }
+}
+
+/* ---- the character tag is state, and outlives the ? key ---------------- */
+/* SCOPED TO THE CONSOLE, because the ? key is. Written unscoped, this hid the
+   counters on the PHONE layer too -- where there is no key to press and the
+   explanation is deliberately never taken away, since a phone is where
+   somebody unfamiliar is most likely to be standing. A test said so within a
+   minute of it being written, which is exactly what that test is for. */
+@media (min-width: 1440px) {
+  body[data-help="off"] .counter{ display:none; }
+  body[data-help="off"] .counter:has(.left){
+    display:block; font-size:0;            /* the prose collapses ... */
+  }
+  body[data-help="off"] .counter .left{
+    font-size:.72rem;                       /* ... the figure does not */
+  }
+}
+.counter .left{ font-variant-numeric:tabular-nums; }
+/* Running out is a state change, so it looks like one. */
+.counter .left.is-full{ color:var(--flag); font-weight:700; }
