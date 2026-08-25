@@ -53,15 +53,49 @@ the "signed in as" line.
 
 ## What serves this screen
 
-A small Cloudflare Worker, and nothing else in the system runs on a request.
-It serves this page, checks one password, and writes `hours.json` and
-`pricing.json` into whichever site repository is being edited. The workflows
-in those repositories do the rest.
+**Nothing. There is no server any more.** Changed 2026-08-20.
 
-It exists for one reason: the Save button posts to `/save`, and a static host
-has nothing there and no way to add one. Everything else — reading Big
-River's board, publishing the price, rebuilding the hours box — is GitHub
-Actions on a schedule with no secrets at all.
+This used to be a Cloudflare Worker: it served the page, checked one password,
+held a session store and a per-IP lockout, and wrote `hours.json` and
+`pricing.json` into whichever site repository was being edited. All of that
+existed so a button could write two JSON files.
+
+Save now builds a **prefilled GitHub issue** on the elevator being edited and
+opens it. Somebody presses Submit; `.github/workflows/staff-update.yml` in that
+repository runs `tools/apply-update.mjs` from here, commits the two files,
+comments what it changed, and closes the issue.
+
+What that buys: no server, no password to lose, no secret anywhere, and every
+change is a commit with a name on it. What it costs: the office needs GitHub
+logins with write access, it is two clicks rather than one, and the change
+lands about a minute later instead of instantly.
+
+**The authority is the GitHub account.** `apply-update.mjs` refuses any issue
+whose author is not an OWNER, MEMBER or COLLABORATOR. The page itself holds no
+credential of any kind — it builds a link.
+
+### It is served by GitHub Pages
+
+Decided 2026-08-20. Turn Pages on for this repository, from `main`, root.
+The address is `https://midwestagsupply.github.io/emmertadmin/`.
+
+**The screen is public, and that is understood.** It holds no secret and no
+authority: it builds a link. Anyone can open it, fill it in and press Save —
+the issue they file is then refused by `checkWhoAsked`, which only accepts an
+OWNER, MEMBER or COLLABORATOR. `robots.txt` disallows everything, so it stays
+out of search results.
+
+**The screen fills itself.** The Worker used to render this page with the real
+settings already in the boxes. Nothing renders it now, so the page reads
+`hours.json` and `pricing.json` from the site repository and fills its own
+form. Without that, every box would hold the value this file ships with and
+the first Save would publish those samples over the elevator's real hours,
+banner and basis. It fills only boxes nobody has typed in, and a test asserts
+both halves of that.
+
+Checked served from a subpath, not assumed: no 404s, Save enabled and pointing
+at the right elevator's issues, no console errors, no false "showing filler"
+warning, and every box holding what the site is actually running.
 
 **The screen is filled in before it is served.** This file ships with sample
 values in every box: a spread of `0.10`, hours of 08:00 to 17:00, a banner
@@ -116,6 +150,12 @@ The posted corn bid itself is not typed. A number typed every morning goes stale
 afternoon, and a wrong price is worse than no price.
 
 ---
+
+## GitHub Pages — read the section above first
+
+*(This section was written while a Cloudflare Worker served the screen
+privately. The Worker is gone. The reasoning below is still correct about what
+Pages does; whether that is now a problem is the open question above.)*
 
 ## Do not turn on GitHub Pages for this repository
 

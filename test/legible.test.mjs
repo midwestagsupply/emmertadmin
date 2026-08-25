@@ -287,3 +287,103 @@ test("the characters-left figure survives the ? help key", { skip: NB }, async (
     for (const t of r.text) assert.match(t, /\d+\s+left/, `"${t}" is not a readable count`);
   } finally { await browser.close(); dropFixture(dir); }
 });
+
+/* ══════════════════════════════════════════════════════════════════════════
+   NOTHING RUNS OFF THE EDGE OF ITS OWN COLUMN, on any tab.
+   ══════════════════════════════════════════════════════════════════════════
+   Found 2026-08-25 on the Basis tab at 1600x1000: the c-bid card's two-up
+   grid sized its tracks from a nowrap label plus a fixed money box -- a 445px
+   min-content in a 330px cell -- and since a grid track cannot shrink below
+   min-content, the card ran 128px past the viewport with no scrollbar to
+   reach it. The clipped edge was the new-crop box itself: a field for a
+   number, half off the screen, on the tab whose whole job is that number.
+
+   The general form of the guard, not the specific one: for every tab, no
+   element inside a column may extend past the column's own right edge unless
+   an ancestor actually scrolls sideways. The contrast probe cannot catch
+   this -- clipped text is perfectly legible right up to the pixel where it
+   stops existing. */
+test("no tab clips its own content at the column edge", { skip: NB }, async () => {
+  const dir = makeFixture();
+  const browser = await chromium.launch();
+  const bad = [];
+  try {
+    for (const [w, h] of [[1600, 1000], [1440, 940]]) {
+      const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+      const p = await ctx.newPage();
+      await p.goto("file://" + join(dir, "filled.html"));
+      await p.waitForTimeout(300);
+      for (const tab of ["overview", "basis", "hours", "settings"]) {
+        await p.click(`.rail-b[data-go="${tab}"]`);
+        await p.waitForTimeout(60);
+        const clipped = await p.evaluate(() => {
+          const out = [];
+          for (const col of document.querySelectorAll(".col")) {
+            if (getComputedStyle(col).display === "none") continue;
+            const edge = col.getBoundingClientRect().right + 1;
+            for (const el of col.querySelectorAll("*")) {
+              const cs = getComputedStyle(el);
+              if (cs.display === "none" || cs.visibility === "hidden") continue;
+              const r = el.getBoundingClientRect();
+              if (!r.width || !r.height || r.right <= edge) continue;
+              /* An ancestor that really scrolls sideways is a pane, not a
+                 clip: the phone's board table lives in one on purpose. */
+              let n = el.parentElement, scrolls = false;
+              while (n && n !== col.parentElement) {
+                const ncs = getComputedStyle(n);
+                if (/auto|scroll/.test(ncs.overflowX) && n.scrollWidth > n.clientWidth + 1) { scrolls = true; break; }
+                n = n.parentElement;
+              }
+              if (!scrolls)
+                out.push(`${el.tagName}.${String(el.className).split(" ")[0]} right=${Math.round(r.right)} past ${Math.round(edge)}`);
+            }
+          }
+          return [...new Set(out)].slice(0, 6);
+        });
+        for (const c of clipped) bad.push(`${tab} at ${w}x${h}: ${c}`);
+      }
+      await ctx.close();
+    }
+  } finally { await browser.close(); dropFixture(dir); }
+  assert.deepEqual(bad, [], "content past its column's edge with nothing to scroll —\n  " + bad.join("\n  "));
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   ONE LIVENESS LINE, not a stale one above a live one.
+   ══════════════════════════════════════════════════════════════════════════
+   The shipped .feed block was written for the Worker to replace, and there is
+   no Worker: on Pages it is forever the sample sentence with the sample time
+   in it. The live check below it already stands the sample DOWN in script --
+   but `hidden` is UA-level display:none and `.feed{display:flex}` is an
+   author rule, so the attribute lost and both lines rendered: "the feed is
+   live, 7:48 PM" above "the feed is live, 1 minute ago". Two claims, two
+   times, one truth. This drives the real page and counts what is visible. */
+test("once the live check answers, the shipped feed line is gone", { skip: NB }, async () => {
+  const dir = makeFixture();
+  const browser = await chromium.launch();
+  try {
+    const ctx = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
+    const p = await ctx.newPage();
+    await p.goto("file://" + join(dir, "filled.html"));
+    /* No routes are mocked here, so the live check FAILS -- which is still an
+       answer written into #feedLive, and exactly the moment two lines about
+       the feed must not both be up. */
+    await p.waitForFunction(() => {
+      const t = document.getElementById("feedLiveText");
+      return t && t.textContent.trim().length > 0 && !/Asking the feed/.test(t.textContent);
+    }, { timeout: 8000 });
+    const r = await p.evaluate(() => {
+      const vis = (el) => el && el.offsetParent !== null &&
+        getComputedStyle(el).display !== "none";
+      return {
+        shipped: vis(document.querySelector(".strip .feed")),
+        live: vis(document.getElementById("feedLive")),
+      };
+    });
+    await ctx.close();
+    assert.equal(r.live, true, "the live check never wrote its line");
+    assert.equal(r.shipped, false,
+      "the shipped sample line is still on screen above the live one — two claims about " +
+      "the same feed with two different times");
+  } finally { await browser.close(); dropFixture(dir); }
+});

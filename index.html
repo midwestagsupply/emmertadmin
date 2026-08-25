@@ -97,7 +97,7 @@
   </button>
   <button type="button" class="rail-b" data-go="settings">
     <span class="rail-t">Settings</span>
-    <span class="rail-s">Small print, by-hand price</span>
+    <span class="rail-s">Small print under the hours</span>
   </button>
   <div class="rail-foot">
     <a class="rail-doc" href="handbook.html">Handbook</a>
@@ -482,11 +482,6 @@
         <button class="btn btn-go" type="submit">Save <span class="save-who"></span>
           <small class="btn-sub">opens a second page to finish</small></button>
         <button class="btn" type="reset">Undo</button>
-        <!-- What Save is about to change, counted against what the site is
-             actually serving right now. role=status so it is spoken, not just
-             coloured -- the highlight on the fields themselves is a second,
-             redundant channel and neither is the only one. -->
-        <span class="chg" data-id="chgNote" role="status" aria-live="polite"></span>
         <span class="saved" data-id="savedNote"></span>
         <!-- INSIDE the command bar, not under it. Put underneath, it became the
              last thing in the column and the bar stopped being the floor of the
@@ -525,6 +520,16 @@
   var SIGN_OUT_URL = "";          // set when the Worker has somewhere to send it
 
   var STRIP = document.getElementById("boardStrip");
+  /* MONEY IS PRINTED AS STORED: at least two decimals, and any real extra
+     precision (Big River posts quarter cents) kept rather than rounded away.
+     Rounding to 4dp first sheds float noise only. One copy, used by the posts
+     columns, the customer preview and the box filler alike, so they cannot
+     drift apart. */
+  function moneyQ(v) {
+    var a = Math.round(v * 10000) / 10000;
+    var t = String(Math.abs(a)), i = t.indexOf("."), dp = i === -1 ? 0 : t.length - i - 1;
+    return a.toFixed(Math.max(2, dp));
+  }
   var warnBox = document.getElementById("adminWarn");
   /* THERE ARE TWO FORMS ON THIS PAGE NOW, one per elevator, so nothing at
      this level may reach for "the form" -- every form lookup happens inside
@@ -567,7 +572,15 @@
      hyphen with the typographic minus in the same sentence looks like two
      different numbers from two different places, which is exactly what it
      must not look like. */
-  var fmt = function (v) { return (v < 0 ? "\u2212" : "") + Math.abs(v).toFixed(2); };
+  /* AT LEAST two decimals, AND the quarter-cents when they are there. This
+     was toFixed(2), which printed a computed −0.6425 as −0.64 —
+     a rounding rule invented on this screen, the one thing the pipeline
+     forbids. Rounded to 4 first to shed float noise, not to shed quarters. */
+  var fmt = function (v) {
+    var a = Math.round(Math.abs(v) * 10000) / 10000;
+    var t = String(a), i = t.indexOf("."), dp = i === -1 ? 0 : t.length - i - 1;
+    return (v < 0 ? "\u2212" : "") + a.toFixed(Math.max(2, dp));
+  };
 
   /* ---- is this the live screen at all? ----------------------------------
      The Worker marks the page it serves. A copy from anywhere else -- Pages,
@@ -684,6 +697,10 @@
   function showOnly(site) {
     shown = site;
     floor.setAttribute("data-only", site);
+    /* Mirrored on <body> because the BOARD sits above the floor in the
+       document and no CSS selector can reach backwards to it from the floor's
+       attribute. The phone board's pinned posts column follows this. */
+    document.body.setAttribute("data-only", site);
     switchBox.querySelectorAll("button").forEach(function (b) {
       b.setAttribute("aria-pressed", b.getAttribute("data-elev") === site ? "true" : "false");
     });
@@ -798,7 +815,10 @@
   var flGo = document.getElementById("feedLiveGo");
 
   function hoursAgo(h) {
-    if (h < 1) return Math.max(1, Math.round(h * 60)) + " minutes ago";
+    if (h < 1) {
+      var m = Math.max(1, Math.round(h * 60));
+      return m + (m === 1 ? " minute ago" : " minutes ago");
+    }
     if (h < 2) return "about an hour ago";
     if (h < 36) return Math.round(h) + " hours ago";
     return Math.round(h / 24) + " days ago";
@@ -808,6 +828,14 @@
     fl.hidden = false;
     fl.className = "feedlive is-" + kind;
     flText.innerHTML = html;
+    /* THE SHIPPED LINE STANDS DOWN. The block above this one was written by
+       the Worker, and there is no Worker: on Pages it is forever the sample
+       sentence with the sample time in it. The moment this live check has
+       anything to say -- even "asking" -- two lines saying "the feed is live"
+       with two different times is one line too many, and the stale one is
+       the one that goes. */
+    var shipped = STRIP ? STRIP.querySelector(".feed") : null;
+    if (shipped) shipped.hidden = true;
     /* The shipped "Reading Big River... Last read 7:48 PM" line sits OUTSIDE
        both columns, so the per-column filler machinery never saw it: no
        outline, no count, and nothing to withdraw it. It is filler until a real
@@ -970,7 +998,10 @@
         ((bj && bj.bids) || []).forEach(function (r) { by[r.delivery] = r.cashPrice; });
         cells.forEach(function (td) {
           var v = by[td.getAttribute("data-delivery")];
-          td.textContent = typeof v === "number" ? "$" + v.toFixed(2) : "\u2014";
+          /* Same rule as the board above: printed as published, to the last
+             quarter cent. toFixed(2) here put $4.2825 and its own $4.28
+             rendering of the same figure side by side. */
+          td.textContent = typeof v === "number" ? "$" + moneyQ(v) : "\u2014";
           td.removeAttribute("title");
         });
       })
@@ -1443,7 +1474,7 @@
       if (changed) {
         var n = document.createElement("div");
         n.className = "flag";
-        n.textContent = "Not saved yet. The We pay column above still shows the saved figures.";
+        n.textContent = "Not saved yet. The posts columns above still show the saved figures.";
         basisOut.appendChild(n);
       }
     }
@@ -1556,12 +1587,20 @@
         }
       });
 
-      [[cashBox, "cash basis", true], [cropBox, "new crop basis", false]].forEach(function (p) {
+      /* NAMED AS THE CARD NAMES THEM. These two boxes were deliberately
+         renamed from "our basis" to "Under Big River" because they hold the
+         SPREAD, not the basis -- and then the refusals kept calling them "the
+         cash basis", coaching exactly the mistake the rename exists to stop:
+         somebody told "the cash basis goes in as a positive number" types
+         0.65 where the spread 0.13 belongs. The panel's grain-desk reviewer
+         caught it. */
+      [[cashBox, "Under Big River — cash", true],
+       [cropBox, "Under Big River — new crop", false]].forEach(function (p) {
         var el = p[0]; if (!el) return;
         var v = el.value.trim();
-        if (v === "") { if (p[2]) out.push("The cash basis is blank. Type 0 if we are paying the board."); return; }
-        if (bad(el)) { out.push("The " + p[1] + ", “" + v + "”, is not a number."); markBad(el); }
-        else if (parseFloat(v) < 0) out.push("The " + p[1] + " goes in as a positive number under " +
+        if (v === "") { if (p[2]) out.push("The Under Big River — cash box is blank. Type 0 if we are paying the board."); return; }
+        if (bad(el)) { out.push("The " + p[1] + " box, “" + v + "”, is not a number."); markBad(el); }
+        else if (parseFloat(v) < 0) out.push("The spread goes in as a positive number under " +
           "the board; the minus is already printed beside the box.");
       });
       MANUAL.forEach(function (n) {
@@ -1574,7 +1613,67 @@
           var b = byName(p[0]), c = byName(p[1]);
           if (b && c && b.value.trim() !== "" && c.value.trim() === "")
             out.push("There is a " + p[2] + " typed with no " + p[3] + " beside it.");
+          /* THE SANITY BOX PROMISED THIS CHECK AND IT DID NOT EXIST. "This
+             screen refuses a basis further than $1.50 from zero" had no code
+             behind it -- a 2.00 basis sailed through to the applier, which is
+             where the refusal would finally have happened, one save too late.
+             The 1.50 is the applier's own limit (tools/apply-update.mjs),
+             mirrored, not invented; the panel's grain-desk reviewer measured
+             the gap. */
+          if (b && !bad(b) && b.value.trim() !== "" && Math.abs(parseFloat(b.value)) > 1.5)
+            out.push("The " + p[2] + ", “" + b.value.trim() + "”, is further than $1.50 " +
+              "from zero — the site will refuse it.");
         });
+
+      /* A DAY THAT ENDS BEFORE IT STARTS. "Opens 5:00 PM, Closes 8:00 AM"
+         filed without a word and the preview dutifully promised customers a
+         backwards day. An elevator office is not open overnight. */
+      var mins = function (v) { var m = /^(\d\d):(\d\d)$/.exec(v || ""); return m ? +m[1] * 60 + +m[2] : null; };
+      (function () {
+        var r = qs('input[name="today"]:checked');
+        var oEl = byName("open"), cEl = byName("close");
+        if (r && r.value === "custom" && oEl && cEl && !oEl.disabled) {
+          var o = mins(oEl.value), c = mins(cEl.value);
+          if (o !== null && c !== null && c <= o) {
+            out.push("Today’s hours end before they start.");
+            markBad(oEl); markBad(cEl);
+          }
+        }
+      })();
+      [["Mon to Fri", "wk_open", "wk_close", "wk_closed"],
+       ["Saturday", "sat_open", "sat_close", "sat_closed"],
+       ["Sunday", "sun_open", "sun_close", "sun_closed"]].forEach(function (d) {
+        var x = byName(d[3]);
+        if (x && x.checked) return;
+        var oEl = byName(d[1]), cEl = byName(d[2]);
+        if (!oEl || !cEl) return;
+        var o = mins(oEl.value), c = mins(cEl.value);
+        if (o !== null && c !== null && c <= o) {
+          out.push(d[0] + "’s hours end before they start.");
+          markBad(oEl); markBad(cEl);
+        }
+      });
+
+      /* A BANNER SET TO SHOW WITH NOTHING ON IT, and one pasted past the
+         limit. maxlength stops the keyboard but not a paste through script,
+         and the counter going red is a report, not a refusal -- the panel
+         filed 500 characters into a 160-character bar to prove it. */
+      (function () {
+        var picked = qs('input[name="banner"]:checked');
+        var box = byName("message");
+        if (!picked || !box) return;
+        if (picked.value === "on" && box.value.trim() === "") {
+          out.push("The banner is set to show with nothing written in it. " +
+            "Type a message, or choose Hide it.");
+          markBad(box);
+        }
+        var max = parseInt(box.getAttribute("maxlength"), 10);
+        if (max && box.value.length > max) {
+          out.push("The banner message is " + (box.value.length - max) +
+            " characters over the " + max + " the site will show.");
+          markBad(box);
+        }
+      })();
       return out;
     }
 
@@ -1643,7 +1742,15 @@
            thrown away -- so a blocked popup left the screen looking exactly
            like a successful save. The Big River link already checks this; so
            does this now. */
-        var win = window.open(url, "_blank", "noopener");
+        /* NO "noopener" IN THE FEATURES. With it, window.open returns null
+           WHETHER IT WORKED OR WAS BLOCKED -- the comment on the Big River
+           opener spells out this exact trap -- so every successful save fell
+           into the blocked branch and announced "Nothing was saved" in red
+           next to the GitHub tab it had just opened. Found by all five people
+           on the 2026-08-25 panel, independently. The opener reference is
+           dropped by hand instead, while the new tab is still about:blank. */
+        var win = null;
+        try { win = window.open(url, "_blank"); } catch (_) { win = null; }
         if (!win) {
           checkNote.innerHTML = "<b>Nothing was saved.</b> Your browser blocked the " +
             "page this needs to open. Allow pop-ups for this screen, or " +
@@ -1654,6 +1761,8 @@
           checkNote.focus();
           return;
         }
+        try { win.opener = null; } catch (_) {}
+        checkNote.hidden = true;
         dirty = false;
         /* WHAT TO DO NEXT, ON THE SCREEN THEY ARE LOOKING AT. The second page
            opens in another tab and may be behind this one. */
@@ -2019,7 +2128,7 @@
             if (harvest && spot && harvest.delivery === spot.delivery) harvest = null;
 
             var money = function (v) {
-              return typeof v === "number" ? "$" + v.toFixed(2) : "\u2014";
+              return typeof v === "number" ? "$" + moneyQ(v) : "\u2014";
             };
             function row(label, sub2, r) {
               var d = document.createElement("div");
@@ -2106,7 +2215,11 @@
            the screen reads "0.10" — and worse, the box ships with "0.10", so a
            string comparison called it changed and the screen announced "Not
            saved yet" to somebody who had only just opened it. */
-        var money2 = function (v) { return v == null ? "" : Number(v).toFixed(2); };
+        /* toFixed(2) here would have REWRITTEN a stored 0.1225 as 0.12 the
+           moment the box was filled — and the next save would have posted
+           the mangled figure back. Minimum two decimals for the eye, every
+           decimal the file actually carries for the arithmetic. */
+        var money2 = function (v) { return v == null ? "" : moneyQ(Number(v)); };
         put("spread", money2(pr.spread));
 
         /* ---- A LIVE OVERRIDE HAS TO BE VISIBLE ---------------------------
@@ -2459,8 +2572,12 @@
          file carries one. It is NOT whoNote -- that says which repository this
          column saves to, which the column header already says two lines above
          and which is not news. */
+      /* This read [data-id="lastChange"], an element that exists nowhere —
+         the applier's stamp lands in savedNote — so the hint was empty on
+         every screen ever rendered. A dead wire, found by the owner on the
+         2026-08-25 panel. */
       var when = root.querySelector('[data-id="overWhen"]');
-      var said = root.querySelector('[data-id="lastChange"]');
+      var said = root.querySelector('[data-id="savedNote"]');
       if (when) when.textContent = said ? (said.textContent || "").trim() : "";
     });
   }
@@ -2470,7 +2587,5 @@
   document.addEventListener("change", syncOver, true);
 })();
 </script>
-</body>
-</html>
 </body>
 </html>

@@ -356,6 +356,11 @@ tr.is-off > th[scope=row], tr.is-off > td:not(:last-child){opacity:.55}
 
 .sanity.is-bad{border-color:var(--flag);color:var(--flag)}
 .feed.is-bad .feed-dot{background:var(--flag)}
+/* [hidden] must actually hide it: .feed{display:flex} is an author rule and
+   beats the attribute's UA display:none, so the stood-down sample line kept
+   rendering above the live one -- two "the feed is live" claims with two
+   different times. Measured before this rule existed. */
+.feed[hidden]{display:none}
 
 /* Characters left in a box that has a limit. */
 .left{margin-left:.5em}
@@ -467,6 +472,26 @@ html{scroll-padding-bottom:180px}
   }
   .bd .is-ref td:last-child{background:var(--yellow)}
   .bd th:last-child{background:var(--card, #fff)}
+  /* THE PINNED COLUMN IS THE ELEVATOR BEING EDITED. :last-child pinned
+     Midwest's posts for everyone — the panel's scale-house reviewer, editing
+     Badger, had Badger's own posts sliding away under Midwest's. When one
+     elevator is chosen, the other's posts column stands down and the chosen
+     one becomes the last child the pin already targets. body[data-only] is
+     set by the same switch that shows the column. */
+  body[data-only="badger"] .bd .pays[data-elev="midwest"],
+  body[data-only="badger"] .bd .pay[data-elev="midwest"],
+  body[data-only="midwest"] .bd .pays[data-elev="badger"],
+  body[data-only="midwest"] .bd .pay[data-elev="badger"]{ display:none; }
+  body[data-only="badger"] .bd .pay[data-elev="badger"],
+  body[data-only="badger"] .bd .pays[data-elev="badger"],
+  body[data-only="midwest"] .bd .pay[data-elev="midwest"],
+  body[data-only="midwest"] .bd .pays[data-elev="midwest"]{
+    position:sticky; right:0; z-index:1;
+    background:var(--card, #fff);
+    box-shadow:-6px 0 6px -6px rgba(0,0,0,.45);
+  }
+  body[data-only="badger"] .bd .is-ref td.pay[data-elev="badger"],
+  body[data-only="midwest"] .bd .is-ref td.pay[data-elev="midwest"]{ background:var(--yellow); }
 }
 
 /* ---- A CLOSED DAY IS DIMMED, NOT ILLEGIBLE --------------------------------
@@ -840,17 +865,24 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
      clips its own placeholder is a field that has stopped explaining itself.
      Both the same width, because two boxes doing the same job at two widths
      read as two different kinds of box. */
-  .spread-row{ display:grid; grid-template-columns:auto max-content; align-items:center;
+  /* FLEX WITH WRAP, NOT A GRID. The grid version sized its tracks from a
+     nowrap label plus a fixed 12ch box -- a 445px min-content in a 330px
+     cell -- and a grid track cannot shrink below that, so the card overflowed
+     its own column by 128px and the clipped edge was the new-crop box itself.
+     Measured 2026-08-25 at 1600x1000: .row right=1697 on a 1600 screen. Flex
+     lets the money drop under the label the moment the cell is too narrow,
+     and nothing is ever clipped. */
+  .spread-row{ display:flex; flex-wrap:wrap; align-items:center;
                gap:2px 9px; margin:0; }
-  .spread-row > .fl{ margin:0; white-space:nowrap; font-size:.8rem; }
+  .spread-row > .fl{ margin:0; font-size:.8rem; }
   .spread-row .money.sm{ display:inline-flex; align-items:center; gap:3px; margin:0; }
   /* 12ch, not 7: the empty new-crop box says "same as cash", and a field that
      clips its own placeholder has stopped explaining itself. Both the same
      width -- two boxes doing the same job at two widths read as two kinds of
      box. */
   .spread-row .money.sm input{ width:12ch; padding:4px 7px; }
-  .spread-row .counter{ grid-column:1/-1; margin:0; }
-  .spread-row .basis-read{ grid-column:1/-1; margin:1px 0 0; }
+  .spread-row .counter{ flex:1 0 100%; margin:0; }
+  .spread-row .basis-read, .spread-row .basis-out{ flex:1 0 100%; margin:1px 0 0; }
   .col-panes .times .fl{ white-space:nowrap; }
 
   /* THE PREVIEW IS ONE LINE, SO IT IS ONE LINE. "What customers will see /
@@ -1012,7 +1044,10 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
   .col-panes .times{ display:flex; gap:10px; align-items:center; margin-top:4px; }
   .col-panes .times > div{ flex:1 1 0; min-width:0; display:flex; align-items:center; gap:6px; }
   .col-panes .times .fl{ margin:0; flex:0 0 auto; font-size:.78rem; }
-  .col-panes .times input[type="time"]{ flex:1 1 auto; min-width:0; padding:4px 6px; }
+  /* min-width in ch, not 0: with min-width:0 the flex row shrank the field
+     to "08:00 /" -- a time box clipping its own time. 8.5em holds "08:00 AM"
+     plus the picker icon at this layer's .92rem. */
+  .col-panes .times input[type="time"]{ flex:1 1 auto; min-width:8.5em; padding:4px 6px; }
   .col-panes .choice b{ font-size:.82rem; font-weight:700; }
   /* The sub-label is what made these 152px tall. It survives as a title so
      it is still reachable, and as the help text behind the ? key. */
@@ -1066,6 +1101,18 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
 
      The help key hides EXPLANATION. It must never hide STATE. Same rule the
      basis readouts follow, got right there and wrong here. */
+  /* The by-hand drawer is break-glass: whoever has it open is in the one
+     situation where the guidance ("Only when the automatic reading is down…",
+     the blank-vs-zero rule, the sanity ranges) matters most — and the ? key
+     was hiding all of it precisely there. Open drawer shows its own words,
+     help key or no. */
+  body[data-help="off"] .byhand[open] .help,
+  body[data-help="off"] .byhand[open] .sanity{ display:block !important; }
+  /* The basis tab's preview note explains why the preview can lawfully differ
+     from board-minus-spread (it reads what the site is PUBLISHING). Hidden,
+     that difference reads as a six-cent error — the panel's grain-desk
+     reviewer went hunting for it. On the tab about those numbers, it shows. */
+  body[data-tab="basis"] [data-id="c-bid"] .prev-n{ display:block !important; }
   body[data-help="off"] .help,
   /* .counter is TWO THINGS wearing one class, the same trap .sanity fell into
      on 2026-08-20. Most of a .counter is explanation -- "Two lines on a
@@ -1144,9 +1191,12 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
      below it. Nothing was hidden -- it was drawn in the wrong place, which is
      worse, because it looked like content belonging to another card. A grid
      places the same five children with the same shape and cannot do that. */
+  /* minmax(0,1fr), not 1fr: a bare 1fr's floor is the cell's min-content,
+     and one nowrap child made that 445px -- wider than half the card -- so
+     the whole grid, and everything spanning it, ran off the column's edge. */
   [data-id="c-bid"] > .body,
   [data-id="c-weekly"] > .body{
-    display:grid; grid-template-columns:1fr 1fr; gap:0 14px; align-content:start;
+    display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); gap:0 14px; align-content:start;
   }
   [data-id="c-bid"] > .body > .byhand,
   [data-id="c-bid"] > .body > .help,
@@ -1195,9 +1245,10 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
      that "looks about right" is how one elevator's red ended up on the other
      elevator's page. */
   .docs{
-    display:inline-block; font:600 .82rem/1 var(--font); letter-spacing:.02em;
+    display:inline-flex; align-items:center; font:600 .82rem/1 var(--font); letter-spacing:.02em;
     color:var(--green); background:var(--paper); border:1px solid var(--line);
-    border-radius:var(--radius); padding:9px 13px; text-decoration:none;
+    border-radius:var(--radius); padding:9px 13px; min-height:44px; box-sizing:border-box;
+    text-decoration:none;
   }
   .docs:hover, .docs:focus-visible{ border-color:var(--green); color:var(--ink); }
 }
@@ -1372,15 +1423,39 @@ body[data-tab="hours"]    .card[data-tab="hours"],
 body[data-tab="settings"] .card[data-tab="settings"]{ display:block; }
 /* The weekly table and the small print keep their own fold INSIDE the tab
    that owns them, so "Weekly hours & small print" still means something. */
-body[data-tab="hours"] [data-id="c-weekly"]{ display:none; }
-body[data-tab="hours"][data-rare="open"] [data-id="c-weekly"]{ display:block; }
+/* .card added for SPECIFICITY, not description: without it this rule is
+   (0,2,1) against the tab-show rule's (0,3,1) above and LOSES — measured
+   2026-08-25, the weekly table stood open on the hours tab at every size and
+   pushed the customer previews below the fold on a 1440x940 monitor, while
+   the "Weekly hours & small print" button appeared to do nothing because the
+   thing it folds was already up. */
+body[data-tab="hours"] .card[data-id="c-weekly"]{ display:none; }
+body[data-tab="hours"][data-rare="open"] .card[data-id="c-weekly"]{ display:block; }
 body[data-tab="settings"] .rare-row{ display:block; }
+/* The button folds the weekly table (hours tab) and the price small print
+   (basis tab). On the other two tabs it flips state and changes nothing a
+   person can see — the panel's first-timer pressed it on Overview, watched
+   nothing happen, and reasonably concluded it was broken. A control is only
+   offered where it does something. */
+body[data-tab="overview"] .rare-toggle,
+body[data-tab="settings"] .rare-toggle{ display:none; }
 
 /* THE BOARD IS THE REFERENCE FOR THE BASIS AND FOR NOTHING ELSE. On the hours
    and settings tabs it is 234px of a table nobody in that job is reading, so
    it stands down and the columns take the height. */
 body[data-tab="hours"] .strip,
 body[data-tab="settings"] .strip{ display:none; }
+
+/* A TAB WITH ONE SHORT CARD GIVES ITS FIELD THE ROOM THE FOUR-UP VIEW CANNOT.
+   The settings note is a 200-character sentence in a box the console layer
+   trims to 44px -- right when it shares a column with three other cards,
+   wrong when it is the only thing on the tab and clips its own shipped text
+   with a screen of white below it. Scoped to the tab so the everything-at-once
+   state, which is measured against the fold, is untouched. */
+body[data-tab="settings"] [data-id="c-print"] textarea{ min-height:112px; }
+body[data-tab="settings"] [data-id="c-print"] .row{ max-width:64ch; }
+body[data-tab="basis"] [data-id="c-bid"] .rare-row textarea{ min-height:88px; }
+body[data-tab="basis"] [data-id="c-bid"] .rare-row{ max-width:64ch; }
 
 @media (min-width: 1440px) {
   /* THE RAIL IS FIXED AND THE BODY IS INDENTED PAST IT.
@@ -1455,8 +1530,11 @@ body[data-tab="settings"] .strip{ display:none; }
   .rail{ display:flex; gap:6px; overflow-x:auto; padding:8px 16px;
          background:var(--ink); align-items:center; }
   .rail-mark, .rail-s, .rail-foot{ display:none; }
+  /* 44px minimum: the tab chips are the single most-used control on a phone
+     and measured 35px tall on the panel's gloves-on run. */
   .rail-b{ flex:0 0 auto; background:none; border:1px solid #39434a; border-radius:999px;
-           color:#cfd6da; padding:7px 13px; font-family:var(--font); cursor:pointer; }
+           color:#cfd6da; padding:11px 15px; min-height:44px;
+           font-family:var(--font); cursor:pointer; }
   .rail-t{ font-size:.82rem; font-weight:600; white-space:nowrap; }
   .rail-b[aria-current]{ background:var(--paper); color:var(--ink); border-color:var(--paper); }
   .over{ display:grid; grid-template-columns:auto 1fr; gap:5px 14px; margin:0; }
