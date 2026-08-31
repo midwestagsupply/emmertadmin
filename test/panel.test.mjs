@@ -166,6 +166,36 @@ test("THE $1.50 THE SANITY BOX PROMISES IS ENFORCED, not just described", { skip
   assert.match(why, /further than \$1\.50/);
 });
 
+/* THE ONE MISTAKE ON THIS FORM THAT COSTS MONEY, refused before it is filed.
+   tools/apply-update.mjs caps both spread boxes at SPREAD_MAX = 1.00 and says
+   why: "10 typed instead of 0.10 pays ten dollars under the board." Measured
+   2026-08-31: the screen did not mirror that cap. Typing 10 and pressing Save
+   opened the GitHub issue with no complaint, and the refusal arrived later as
+   a comment from a workflow run -- one save too late, which is the same defect
+   the $1.50 test above was written for, on a box that matters more.
+
+   Asserted through SAVE rather than through the check function, because "the
+   validator returns a string" and "the office cannot file this" are different
+   claims and only the second one is the guard. */
+for (const [box, label] of [["off", "Under Big River — cash"],
+                            ["offh", "Under Big River — new crop"]])
+  test(`a spread of $10 is refused at the screen, not at the applier — ${label}`,
+    { skip: NB }, async () => {
+    const p = await open({});
+    const sel = id("badger", box);
+    if (!(await p.$(sel))) { await p.done(); assert.fail(`${sel} is not on the screen`); }
+    await p.fill(sel, "");
+    await p.fill(sel, "10");
+    await p.waitForFunction((s) => document.querySelector(s).value === "10", sel);
+    const url = await save(p, "badger");
+    const why = await refusalOf(p, "badger");
+    await p.done();
+    assert.equal(url, null, "a $10 spread sailed through to a filed issue");
+    assert.match(why, /past the \$1\.00 limit/);
+    assert.match(why, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+      "the refusal must name the box as the card names it");
+  });
+
 test("the spread refusals name the box as the card names it", { skip: NB }, async () => {
   /* The card was renamed from "our basis" to "Under Big River" because the
      box holds the SPREAD — and the refusals kept saying "the cash basis",
@@ -236,26 +266,76 @@ test("the weekly table folds on the hours tab until asked for", { skip: NB }, as
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
-   5. THE PHONE PINS THE ELEVATOR BEING EDITED
-   ══════════════════════════════════════════════════════════════════════════ */
-test("editing Badger on a phone pins Badger's posts, not Midwest's", { skip: NB }, async () => {
+   5. ON THEIR BOARD, THEIR CASH IS THE FIGURE THAT NEVER LEAVES THE PHONE
+   ══════════════════════════════════════════════════════════════════════════
+   This test used to assert the opposite -- that the phone pinned the EDITED
+   ELEVATOR'S posts column -- and it passed while the screen was wrong.
+
+   Measured 2026-08-31 at 390px: the table is 628px in a 390px box, "Their
+   cash" begins at x=361, and the pinned posts column covered everything from
+   x=240. So a table headed "Their posted board" showed, without scrolling:
+   Month, Contract, and OUR price. Their cash and their basis -- the two
+   columns the note beneath calls "the check" -- were both hidden, one of them
+   underneath ours.
+
+   Sig, in his own words: "their posted board should always show their posted
+   cash price not what badger posts or midwest posts."
+
+   So the assertion is inverted and made about POSITION ON SCREEN rather than
+   about a CSS keyword, because "position: sticky" is what the stylesheet says
+   and "is the number in the box" is what the office sees. Our own price is not
+   lost: it is checked by test 6 below, in the panel where it is larger. */
+test("their cash is pinned on a phone; our posts is not on top of it", { skip: NB }, async () => {
   const p = await open({ viewport: LAYOUT.PHONE, query: "?site=badger" });
   const r = await p.evaluate(() => {
-    const cell = (sel) => {
+    const box = document.querySelector(".board").getBoundingClientRect();
+    const read = (sel) => {
       const e = document.querySelector(sel);
       if (!e) return null;
-      const cs = getComputedStyle(e);
-      return { pos: cs.position, display: cs.display };
+      const cs = getComputedStyle(e), b = e.getBoundingClientRect();
+      /* How much of this cell is actually inside the box, with the box left
+         un-scrolled -- which is the state the reader arrives in. */
+      const onScreen = Math.max(0, Math.min(b.right, box.right) - Math.max(b.left, box.left));
+      return { pos: cs.position, display: cs.display, onScreen: Math.round(onScreen),
+               width: Math.round(b.width) };
     };
     return {
-      badger: cell('.bd td.pay[data-elev="badger"]'),
-      midwest: cell('.bd td.pay[data-elev="midwest"]'),
       only: document.body.getAttribute("data-only"),
+      cash: read(".bd td.cash-cell"),
+      badger: read('.bd td.pay[data-elev="badger"]'),
+      midwest: read('.bd td.pay[data-elev="midwest"]'),
+      scrolls: document.querySelector(".board").scrollWidth >
+               document.querySelector(".board").clientWidth,
     };
   });
   await p.done();
   assert.equal(r.only, "badger");
-  assert.equal(r.badger.pos, "sticky", "Badger's own posts slide away under the pin");
+  assert.ok(r.scrolls, "if the board no longer scrolls sideways this test proves nothing");
+  assert.equal(r.cash.pos, "sticky", "their cash must be the pinned column on their own board");
+  assert.equal(r.cash.onScreen, r.cash.width,
+    `their cash is ${r.cash.width - r.cash.onScreen}px short of fully on screen unscrolled`);
+  assert.equal(r.badger.pos, "static",
+    "our posts must not be pinned as well -- two cells at right:0 means one covers the other");
+  assert.equal(r.badger.onScreen, 0,
+    "our posts should be off to the right, reachable by dragging, not sitting over theirs");
   assert.equal(r.midwest.display, "none",
     "the other elevator's posts column crowds a 390px screen it was not asked onto");
+});
+
+/* The half of the old decision that still has to hold: taking our price off
+   the pin is only acceptable because it is somewhere better. */
+test("our own posted price is still on the phone, in our own panel", { skip: NB }, async () => {
+  const p = await open({ viewport: LAYOUT.PHONE, query: "?site=badger" });
+  const r = await p.evaluate(() => {
+    const prev = document.querySelector('.col[data-elev="badger"] [data-id="prevBid"]');
+    if (!prev) return { found: false };
+    const cs = getComputedStyle(prev);
+    const head = prev.querySelector(".pb-h");
+    return { found: true, shown: cs.display !== "none" && prev.getBoundingClientRect().height > 0,
+             text: (head ? head.textContent : "").trim() };
+  });
+  await p.done();
+  assert.ok(r.found, "the panel that carries our own posted price is gone");
+  assert.ok(r.shown, "our own posted price is not visible on a phone, so the pin should not have moved");
+  assert.match(r.text, /\$\d/, `our own posted price reads "${r.text}"`);
 });

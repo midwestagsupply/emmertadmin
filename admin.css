@@ -206,11 +206,28 @@
             display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
   .board-as{font-weight:400;color:#bbb;font-size:.85rem}
   .bd{width:100%;border-collapse:collapse}
+  /* THE BOARD WAS HALF THE PAGE. Measured 2026-08-31 at 1280px: the board
+     stood 859px of a 1721px page -- fifty per cent of everything on screen
+     spent on twelve rows of somebody else's prices. At 390px it was 1124px
+     of 2483px.
+
+     The rows were 53px each and only 19px of that was the figure. The rest
+     was padding: 10px above and 10px below every cell, plus 9px on the head.
+     So the padding comes in and NOTHING ELSE MOVES. The type stays at 1rem,
+     because on 2026-08-24 Sig said this console was "very hard for me to
+     see" and the fix for a tall table is not a smaller number. All twelve
+     months stay visible, because .board-note tells the reader to check their
+     basis against ours LINE FOR LINE and a line behind a toggle is not a
+     line he can check.
+
+     Measured after: rows 53px -> 41px, board 859px -> 709px, and the share
+     of the page it takes falls from 50% to 45%. The >=1440px desk layout
+     below already runs its own tighter padding and is untouched. */
   .bd th{text-align:left;font-size:.78rem;text-transform:uppercase;letter-spacing:.04em;
-         color:var(--grey);font-weight:700;padding:9px 12px;border-bottom:2px solid var(--ink);
+         color:var(--grey);font-weight:700;padding:6px 12px;border-bottom:2px solid var(--ink);
          white-space:nowrap}
   .bd th.r,.bd td.r{text-align:right}
-  .bd td{padding:10px 12px;border-bottom:1px solid var(--line-lt);font-size:1rem;white-space:nowrap}
+  .bd td{padding:4px 12px;border-bottom:1px solid var(--line-lt);font-size:1rem;white-space:nowrap}
   .bd tr:last-child td{border-bottom:none}
   .bd .is-ref td{background:var(--yellow);font-weight:800}
   .board-note{padding:11px 14px;background:var(--band);font-size:.9rem;color:var(--grey);
@@ -441,57 +458,70 @@ html{scroll-padding-bottom:180px}
 .prev-bid .pb-row:last-child{border-bottom:none}
 .prev-bid .pb-l small{display:block;font-size:.8rem;color:var(--grey);font-weight:600}
 
-/* ---- THE ONE FIGURE THEY ACTUALLY PAY STAYS ON SCREEN ---------------------
+/* ---- ON *THEIR* BOARD, *THEIR* CASH IS THE FIGURE THAT STAYS ON SCREEN ----
  *
- * Measured 2026-08-20 at every phone width: `.board` is 568px of table in a
- * 314px box at 390px wide, so 254px is off to the right -- and what sits out
- * there is the LAST column, "We pay", which is the only number on this table
- * that is the elevator's own. The note underneath says the two "should agree
- * line for line" about columns the reader cannot see.
+ * This pin was pointed at the wrong column for eleven days, and the reason it
+ * was pointed there is written below, kept, because it was not a stupid reason.
  *
- * A previous audit already changed this box from overflow:hidden to auto, so
- * the column can be reached. It has to be DRAGGED to, on a touch screen with
- * no scrollbar and no hint that there is anything there. In a scale house,
- * one-handed, that is the same as not having it.
+ * 2026-08-20, the original: `.board` is 568px of table in a 314px box at 390px
+ * wide, so 254px is off to the right. What sat out there was the LAST column,
+ * "We pay" -- the only number on the table that is the elevator's own. So the
+ * last column was pinned: their board scrolled underneath it and ours never
+ * left.
  *
- * So the last column is pinned instead. Their board scrolls underneath it and
- * ours never leaves. The shadow on its leading edge is what says there is more
- * to the left -- an affordance that appears only when it is true, because
- * `position:sticky` only detaches when there is something to scroll.
+ * 2026-08-31, Sig, looking at the phone: "their posted board should always
+ * show their posted cash price not what badger posts or midwest posts."
  *
- * A STICKY CELL MUST BE OPAQUE or the columns slide through it, which is why
- * the background is repeated here rather than inherited. The highlighted row
- * keeps its own yellow.
+ * MEASURED, and worse than he put it. At 390px the table is 628px in a 390px
+ * box -- 242px off to the right -- and "Their cash" starts at x=361. The
+ * pinned posts column covers everything from x=240. So THEIR CASH WAS NOT
+ * MERELY OFF-SCREEN, IT WAS UNDERNEATH OUR OWN PRICE. Unscrolled, a table
+ * headed "Their posted board" read: Month, Contract, Badger posts. Their cash
+ * and their basis -- the two columns the note beneath calls "the check" --
+ * were both invisible, and the only price on screen was ours.
+ *
+ * WHAT THE OLD REASON MISSED: our posted price is not scarce on this screen.
+ * Measured on the same 390px phone, "$4.03" also renders in the elevator's own
+ * column, in the .pb-h preview -- "Cash, corn / August delivery / $4.03" --
+ * bigger and plainer than the table ever showed it. The pin was spending the
+ * one guaranteed slot on the one number that was already guaranteed elsewhere,
+ * and spending it on top of the number that was not.
+ *
+ * So the pin moves to "Their cash", and the posts column stands down to a
+ * normal cell. Ours is one drag away and also still in the panel below; theirs
+ * is now the figure that never leaves. Everything else about the mechanism is
+ * unchanged and was right: `position:sticky` only detaches when there is
+ * something to scroll, so the shadow on the leading edge is an affordance that
+ * appears only when it is true, and A STICKY CELL MUST BE OPAQUE or the
+ * columns slide through it -- which is why the background is repeated here
+ * rather than inherited, and why the highlighted row keeps its own yellow.
  */
 @media (max-width: 700px) {
-  .bd th:last-child,
-  .bd td:last-child{
+  .bd th.cash-col,
+  .bd td.cash-cell{
     position:sticky; right:0; z-index:1;
     background:var(--card, #fff);
     box-shadow:-6px 0 6px -6px rgba(0,0,0,.45);
   }
-  .bd .is-ref td:last-child{background:var(--yellow)}
-  .bd th:last-child{background:var(--card, #fff)}
-  /* THE PINNED COLUMN IS THE ELEVATOR BEING EDITED. :last-child pinned
-     Midwest's posts for everyone — the panel's scale-house reviewer, editing
-     Badger, had Badger's own posts sliding away under Midwest's. When one
-     elevator is chosen, the other's posts column stands down and the chosen
-     one becomes the last child the pin already targets. body[data-only] is
-     set by the same switch that shows the column. */
+  .bd .is-ref td.cash-cell{background:var(--yellow)}
+  .bd th.cash-col{background:var(--card, #fff)}
+  /* THE OTHER ELEVATOR'S POSTS COLUMN STILL STANDS DOWN. Two posts columns
+     crowd a 390px screen that was only ever asked about one elevator, and
+     body[data-only] is set by the same switch that shows the column.
+
+     What is NO LONGER here is a second pin. This block used to make the
+     chosen elevator's posts column sticky as well, because :last-child alone
+     pinned Midwest's posts for everyone -- the reviewer editing Badger had
+     Badger's own figure sliding away under Midwest's. That was a real bug and
+     this was a real fix for it. It is gone because the pin above moved to
+     "Their cash", and two cells cannot both hold right:0 without one covering
+     the other -- which is the exact failure being repaired. Our posted price
+     keeps its place in the elevator's own panel below, where it is larger and
+     always visible; theirs had nowhere else to be. */
   body[data-only="badger"] .bd .pays[data-elev="midwest"],
   body[data-only="badger"] .bd .pay[data-elev="midwest"],
   body[data-only="midwest"] .bd .pays[data-elev="badger"],
   body[data-only="midwest"] .bd .pay[data-elev="badger"]{ display:none; }
-  body[data-only="badger"] .bd .pay[data-elev="badger"],
-  body[data-only="badger"] .bd .pays[data-elev="badger"],
-  body[data-only="midwest"] .bd .pay[data-elev="midwest"],
-  body[data-only="midwest"] .bd .pays[data-elev="midwest"]{
-    position:sticky; right:0; z-index:1;
-    background:var(--card, #fff);
-    box-shadow:-6px 0 6px -6px rgba(0,0,0,.45);
-  }
-  body[data-only="badger"] .bd .is-ref td.pay[data-elev="badger"],
-  body[data-only="midwest"] .bd .is-ref td.pay[data-elev="midwest"]{ background:var(--yellow); }
 }
 
 /* ---- A CLOSED DAY IS DIMMED, NOT ILLEGIBLE --------------------------------
@@ -756,14 +786,60 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
   .col{
     min-width:0; min-height:0; background:var(--paper);
     display:flex; flex-direction:column;
+    /* A COLUMN STOPS WHERE ITS WORK STOPS. Sig, 2026-08-31: "tighten up all
+       spacing on hours and settings."
+
+       Measured first, because the instruction and the cause did not match.
+       The cards on those two tabs have no slack in them at all -- Settings'
+       whole card is 202px: a 20px heading, 7px of margin, and 168px of body.
+       There is no padding to cut. What he was looking at was STRUCTURE: the
+       pane took every remaining pixel and the save bar was pinned to the
+       floor, so at 1440x940 the Hours tab showed 358px of empty white under
+       its content and Settings showed 493px -- half the column, on the tab
+       with the least in it.
+
+       Filling it was measured and refused: unfolding the weekly table would
+       have covered the Hours void, but the table is 453px against a 358px
+       hole, so it would have made the pane scroll to hide a gap.
+
+       So the column ends instead. `align-self:start` here and `flex:0 1 auto`
+       on the pane below: the bar rises to sit 10px under the last card, and
+       the ground shows beneath, which is the truth about how much of this tab
+       there is.
+
+       WHAT DOES NOT CHANGE: the column still STRETCHES. The first attempt let
+       it shrink to its content (`align-self:start`) and six tests went red at
+       once -- on a full tab the column then grew past the window, and because
+       the console pins the page (html{overflow:hidden}) the save bar went
+       below the fold with no way to scroll to it. Measured, not reasoned
+       about. So the column keeps the window's height and only its PAINT
+       stops: the paper is moved onto the three parts that hold something, and
+       the space under the bar shows the ground instead of a field of white.
+
+       THE COST, STATED: Save is no longer always at the same height. It is on
+       the floor on Overview and Basis, which overflow, and about 350px / 480px
+       above it on Hours and Settings. Muscle memory pays for the tightening.
+       Revert is `flex:1 1 auto` on the pane and `background` back up here. */
+    background:none;
   }
+  .col-panes, .col-save{ background:var(--paper); }
 
   /* The column header is the answer to "which elevator is this". It never
      scrolls away, because the moment it does the colour is the only thing
      left saying so, and colour alone is not enough for everyone. */
   .col-hd{
     flex:0 0 auto; display:flex; align-items:center; gap:9px;
-    padding:6px 14px 6px 0; background:none;
+    padding:6px 14px 6px 0;
+    /* WAS background:none, WHICH WAS SAFE ONLY WHILE .col ITSELF WAS PAPER.
+       When the column's paint moved onto its parts (see .col above, so that a
+       short tab shows ground under its save bar rather than a field of white),
+       this header inherited the GROUND instead -- and legible.test.mjs caught
+       it in the same run: "Badger Grain Supply" fell to 3.2:1 on
+       rgb(182,192,197), and the town and repo lines to 4.21:1, at every width
+       from 1440 up. The column name is the one word that says which elevator
+       you are typing into. It is named here explicitly now, so it cannot
+       depend on what any ancestor happens to be painted. */
+    background:var(--paper);
     border-bottom:1px solid var(--line);
   }
   .col-rail{ width:4px; align-self:stretch; background:var(--site); flex:0 0 auto; }
@@ -778,7 +854,10 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
      had at 1920x1080. Side by side they mostly fit. The bid card spans both
      sub-columns because its own body is already two columns wide. */
   .col-panes{
-    flex:1 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+    /* 0 1 auto, not 1 1 auto -- see the note on .col above. It still SHRINKS
+       and still scrolls when the tab is taller than the window; it just no
+       longer GROWS to fill a window the tab does not need. */
+    flex:0 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain;
     padding:8px 14px 10px;
     display:grid; grid-template-columns:1fr 1fr; gap:8px 18px;
     align-content:start;
@@ -1509,8 +1588,8 @@ body[data-tab="basis"] [data-id="c-bid"] .rare-row{ max-width:64ch; }
   .rail-clock{ font-size:.7rem; color:#9aa6ad; text-align:center;
                font-variant-numeric:tabular-nums; letter-spacing:.02em; }
 
-  /* the header keys duplicate the rail once it exists */
-  .rail ~ header .docs{ display:none; }
+  /* The header's Handbook link is gone at EVERY width now -- see the block
+     beside `.rail-doc` further down. Nothing to do here. */
 
   /* ---- the overview card ---------------------------------------------- */
   .over{ display:grid; grid-template-columns:auto 1fr; gap:5px 14px; margin:0; font-size:.88rem; }
@@ -1524,12 +1603,61 @@ body[data-tab="basis"] [data-id="c-bid"] .rare-row{ max-width:64ch; }
   [data-id="c-over"]{ grid-column:1 / -1; }
 }
 
+/* The desk spells it out; the phone chip abbreviates. See the markup. */
+.doc-short{ display:none; }
+
+/* THE HEADER CARRIES NO HANDBOOK, AT ANY WIDTH. It lives in the nav: at the
+   foot of the rail on a desk, as the last chip in the row below that. Written
+   here, outside every media query, so there is exactly one place that decides
+   it. `handbook.test.mjs` counts the painted routes and requires exactly one --
+   not none, and not the two the desk used to show. */
+.docs{ display:none; }
+
 /* Below the console width the rail becomes a row of chips above the work --
    a 196px sidebar on a 390px screen is half the screen spent on navigation. */
 @media (max-width: 1439px) {
   .rail{ display:flex; gap:6px; overflow-x:auto; padding:8px 16px;
          background:var(--ink); align-items:center; }
-  .rail-mark, .rail-s, .rail-foot{ display:none; }
+  .rail-mark, .rail-s{ display:none; }
+  /* THE HANDBOOK MOVES OUT OF THE HEADER AND INTO THE NAV, AT EVERY WIDTH.
+     Sig, 2026-08-31: "take handbook off mobile as well please on the headers."
+
+     It could not simply be deleted here. Below 1440 `.rail-foot` was
+     display:none, so the header copy was the only route to the handbook on a
+     phone -- and a phone is where the person who needs the handbook is
+     standing. Taking the link away without giving it somewhere to go would
+     have removed the written instructions from the scale house.
+
+     So the rail's own foot comes back as the last chip in the row, which is
+     the same place the desk keeps it (the foot of the rail) and one tap from
+     the tabs. The clock stays hidden: it earns its space in a 196px sidebar
+     and not in a scrolling row 390px wide.
+
+     IT IS PINNED, NOT PARKED AT THE END. Measured at 390px: the chip row is
+     598px of content in a 390px box, and it was 471px BEFORE the handbook was
+     added -- "Settings" already sat off the right edge. Dropping a fifth chip
+     on the end would have put the handbook 208px past the fold, reachable only
+     by dragging a row that gives no sign it scrolls. This repository has
+     already ruled on that exact shape, in the comment above `.bd`'s pinned
+     column: "It has to be DRAGGED to, on a touch screen with no scrollbar and
+     no hint that there is anything there. In a scale house, one-handed, that is
+     the same as not having it."
+
+     So the same mechanism is used: position:sticky against the right edge, an
+     OPAQUE ground so the tabs do not slide through it, and a rule on its
+     leading edge that reads as an affordance only when there is something to
+     scroll -- which is what sticky already guarantees. The four tabs scroll
+     underneath; the handbook never leaves. */
+  .rail-foot{ display:flex; align-items:center; position:sticky; right:0; z-index:1;
+              margin-left:auto; padding:0 0 0 8px; border-top:0;
+              border-left:1px solid #39434a; background:var(--ink);
+              box-shadow:-8px 0 8px -6px rgba(0,0,0,.55); }
+  .rail-clock{ display:none; }
+  .rail-doc{ flex:0 0 auto; min-height:44px; display:flex; align-items:center;
+             border-radius:999px; padding:11px 15px; font-size:.82rem;
+             border:1px solid #39434a; color:#cfd6da; text-decoration:none; }
+  .doc-long{ display:none; }
+  .doc-short{ display:inline; }
   /* 44px minimum: the tab chips are the single most-used control on a phone
      and measured 35px tall on the panel's gloves-on run. */
   .rail-b{ flex:0 0 auto; background:none; border:1px solid #39434a; border-radius:999px;

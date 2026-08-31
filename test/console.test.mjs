@@ -58,11 +58,40 @@ const survey = (p) => p.evaluate(() => {
     /* The console pins the page to the window and gives each column its own
        scrolling pane; the roomy layout lets the document scroll instead. */
     pageScrolls: getComputedStyle(document.documentElement).overflow !== "hidden",
-    barsOnFloor: [...document.querySelectorAll(".col")].filter(vis)
-      .map((c) => Math.round(innerHeight - c.querySelector(".col-save").getBoundingClientRect().bottom)),
+    /* WHERE THE SAVE BAR SITS, AND WHY IT IS NO LONGER ALWAYS THE FLOOR.
+       Until 2026-08-31 the pane was flex:1 1 auto, so it swallowed every
+       spare pixel and the bar was pinned to the bottom of the window at every
+       size. That is what left the Hours tab 358px of empty white above its own
+       bar, and Settings 493px. The pane now takes only what it needs.
+
+       So the invariant is no longer "always zero". It is: the bar is FULLY ON
+       SCREEN, and it is on the floor exactly when the pane has more work than
+       window. Both facts are collected here and asserted together. */
+    bars: [...document.querySelectorAll(".col")].filter(vis).map((c) => {
+      const bar = c.querySelector(".col-save").getBoundingClientRect();
+      const pane = c.querySelector(".col-panes");
+      return { fromFloor: Math.round(innerHeight - bar.bottom),
+               onScreen: bar.top >= 0 && bar.bottom <= innerHeight + 1,
+               paneOverflows: pane.scrollHeight > pane.clientHeight + 1 };
+    }),
     sidewaysScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
   };
 });
+
+/* Every save bar must be reachable, and it is on the floor exactly when its
+   pane has more to show than the window can hold. A bar off the bottom is the
+   serious one: the console pins the page (html{overflow:hidden}), so there is
+   no scrolling to it. That is the failure the first attempt at tightening the
+   short tabs produced, and this is what caught it. */
+function assertBars(bars, expected, where) {
+  assert.equal(bars.length, expected, `${where}: ${bars.length} save bars, expected ${expected}`);
+  bars.forEach((b, i) => {
+    assert.ok(b.onScreen, `${where}: save bar ${i} is off the screen (${b.fromFloor}px from the floor)`);
+    if (b.paneOverflows)
+      assert.equal(b.fromFloor, 0,
+        `${where}: save bar ${i} is ${b.fromFloor}px off the floor while its pane is still scrolling`);
+  });
+}
 
 /* ---- state one: two columns -------------------------------------------- */
 
@@ -79,7 +108,7 @@ for (const [what, v] of [["on its own floor", LAYOUT.CONSOLE_EDGE], ["with room 
       "the shared board is the whole reason both columns are here and it is off the screen");
     assert.equal(r.boardAboveColumns, true, "the board must sit above both columns, read once");
     assert.equal(r.pageScrolls, false, "the console pins the page to the window");
-    assert.deepEqual(r.barsOnFloor, [0, 0], "a command bar is not on the floor of the window");
+    assertBars(r.bars, 2, `${what} (${v.width}x${v.height})`);
     assert.equal(r.sidewaysScroll, false);
   });
 
@@ -105,7 +134,41 @@ for (const [what, v] of [["one pixel under the floor", LAYOUT.SHORT_EDGE],
     assert.equal(r.ink, consoleInk, "a short desk is a desk — it must not fall back to the light layout");
     assert.equal(r.boardOnScreen, true, "the board is kept; that is the point of the state");
     assert.equal(r.pageScrolls, false);
-    assert.deepEqual(r.barsOnFloor, [0], "the command bar is not on the floor of the window");
+    assertBars(r.bars, 1, `${what} (${v.width}x${v.height})`);
+  });
+
+/* ══════════════════════════════════════════════════════════════════════════
+   A SHORT TAB DOES NOT LEAVE HALF THE COLUMN EMPTY
+   ══════════════════════════════════════════════════════════════════════════
+   Measured 2026-08-31 at 1440x940, before: the Hours tab ended 358px above its
+   own save bar and Settings ended 493px above it -- half the column, white,
+   on the tab with the least in it. Not padding: Settings' whole card is 202px
+   of which 188px is heading and body. The pane was taking every remaining
+   pixel because it was flex:1 1 auto.
+
+   The two tabs that overflow are checked the other way in the tests above, and
+   they still put the bar on the floor. This one is about the two that do not.
+   Guarded as a MEASURED GAP rather than as a CSS keyword -- rule 32. */
+for (const tab of ["hours", "settings"])
+  test(`the ${tab} tab does not end in a field of white — the bar comes up to meet it`,
+    { skip: SKIP }, async () => {
+    const p = await open(LAYOUT.CONSOLE, { tab });
+    const r = await p.evaluate(() => [...document.querySelectorAll(".col")]
+      .filter((c) => getComputedStyle(c).display !== "none")
+      .map((c) => {
+        const cards = [...c.querySelectorAll(".card")]
+          .filter((x) => getComputedStyle(x).display !== "none");
+        const last = cards[cards.length - 1];
+        const bar = c.querySelector(".col-save");
+        return { elev: c.getAttribute("data-elev"), cards: cards.length,
+                 gap: Math.round(bar.getBoundingClientRect().top - last.getBoundingClientRect().bottom) };
+      }));
+    await p.done();
+    for (const c of r) {
+      assert.ok(c.cards > 0, `${c.elev} shows no cards on the ${tab} tab`);
+      assert.ok(c.gap >= 0 && c.gap <= 40,
+        `${c.elev}'s ${tab} tab leaves ${c.gap}px between its last card and its save bar`);
+    }
   });
 
 /* ---- state three: the roomy light layout ------------------------------- */

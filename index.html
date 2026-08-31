@@ -100,7 +100,13 @@
     <span class="rail-s">Small print under the hours</span>
   </button>
   <div class="rail-foot">
-    <a class="rail-doc" href="handbook.html">Handbook</a>
+    <!-- TWO LENGTHS, ONE LINK. On the desk the rail is 196px wide and the word
+         fits; below that it is a chip pinned to the right of a scrolling row,
+         where every pixel it takes is a pixel of tab it covers. The accessible
+         name stays "Handbook" either way -- aria-label wins over the text, so
+         a screen reader never has to read "Hndbk" out loud. -->
+    <a class="rail-doc" href="handbook.html" aria-label="Handbook"><span
+       class="doc-long">Handbook</span><span class="doc-short">Hndbk</span></a>
     <span class="rail-clock" id="railClock" aria-hidden="true"></span>
   </div>
 </nav>
@@ -161,21 +167,21 @@
           <table class="bd num">
             <thead>
               <tr><th>Month</th><th>Contract</th><th class="r">Their basis</th>
-                  <th class="r">Their cash</th>
+                  <th class="r cash-col">Their cash</th>
                   <th class="r pays" data-elev="badger">Badger posts</th>
                   <th class="r pays" data-elev="midwest">Midwest posts</th></tr>
             </thead>
             <tbody data-sample>
               <tr class="is-ref"><td>August</td><td>Sep 26</td><td class="r">&minus;0.52</td>
-                  <td class="r">$4.07</td><td class="r pay" data-elev="badger">$3.97</td><td class="r pay" data-elev="midwest">$3.97</td></tr>
+                  <td class="r cash-cell">$4.07</td><td class="r pay" data-elev="badger">$3.97</td><td class="r pay" data-elev="midwest">$3.97</td></tr>
               <tr><td>September</td><td>Sep 26</td><td class="r">&minus;0.46</td>
-                  <td class="r">$4.13</td><td class="r pay" data-elev="badger">$4.03</td><td class="r pay" data-elev="midwest">$4.03</td></tr>
+                  <td class="r cash-cell">$4.13</td><td class="r pay" data-elev="badger">$4.03</td><td class="r pay" data-elev="midwest">$4.03</td></tr>
               <tr><td>October</td><td>Dec 26</td><td class="r">&minus;0.55</td>
-                  <td class="r">$4.2825</td><td class="r pay" data-elev="badger">$4.18</td><td class="r pay" data-elev="midwest">$4.18</td></tr>
+                  <td class="r cash-cell">$4.2825</td><td class="r pay" data-elev="badger">$4.18</td><td class="r pay" data-elev="midwest">$4.18</td></tr>
               <tr><td>December</td><td>Dec 26</td><td class="r">&minus;0.50</td>
-                  <td class="r">$4.3325</td><td class="r pay" data-elev="badger">$4.23</td><td class="r pay" data-elev="midwest">$4.23</td></tr>
+                  <td class="r cash-cell">$4.3325</td><td class="r pay" data-elev="badger">$4.23</td><td class="r pay" data-elev="midwest">$4.23</td></tr>
               <tr><td>January</td><td>Mar 27</td><td class="r">&minus;0.60</td>
-                  <td class="r">$4.39</td><td class="r pay" data-elev="badger">$4.29</td><td class="r pay" data-elev="midwest">$4.29</td></tr>
+                  <td class="r cash-cell">$4.39</td><td class="r pay" data-elev="badger">$4.29</td><td class="r pay" data-elev="midwest">$4.29</td></tr>
             </tbody>
           </table>
           <p class="board-note"><strong>This table is the check.</strong> Their basis and
@@ -962,7 +968,7 @@
       if (NEW_CROP.indexOf(r.delivery) !== -1) cls.push("is-new");
       if (cls.length) tr.className = cls.join(" ");
       [[r.delivery, ""], [r.futuresMonth, ""], [signed(r.basisDollars), "r basis-cell"],
-       [money(r.cash), "r"]].forEach(function (pair) {
+       [money(r.cash), "r cash-cell"]].forEach(function (pair) {
         var td = document.createElement("td");
         if (pair[1]) td.className = pair[1];
         td.textContent = pair[0] == null ? "\u2014" : String(pair[0]);
@@ -1602,6 +1608,25 @@
         if (bad(el)) { out.push("The " + p[1] + " box, “" + v + "”, is not a number."); markBad(el); }
         else if (parseFloat(v) < 0) out.push("The spread goes in as a positive number under " +
           "the board; the minus is already printed beside the box.");
+        /* THE FAT FINGER. The applier caps both spread boxes at SPREAD_MAX =
+           1.00 and its own comment says why: "10 typed instead of 0.10 pays
+           ten dollars under the board... nothing else here can cost money, so
+           nothing else has a cap."
+
+           That cap was not mirrored here. Measured 2026-08-31 by typing 10
+           into this box and pressing Save: the screen said nothing and opened
+           the issue; the refusal arrived later, as a comment on a filed issue,
+           from a workflow run. Exactly the gap the by-hand basis check below
+           was written to close -- "one save too late" -- still open on the one
+           box the applier calls the only mistake here that costs money.
+
+           1.00 is the applier's figure (tools/apply-update.mjs, SPREAD_MAX),
+           mirrored, not invented. The box is named as the CARD names it, not
+           as the applier does, for the reason in the comment above. */
+        else if (parseFloat(v) > 1) out.push("The " + p[1] + " box, “" + v + "”, is $" +
+          parseFloat(v).toFixed(2) + " under the board — past the $1.00 limit the site will " +
+          "accept. If that is really the number it has to be changed in pricing.json, " +
+          "so that it takes two people to notice.");
       });
       MANUAL.forEach(function (n) {
         var el = byName(n);

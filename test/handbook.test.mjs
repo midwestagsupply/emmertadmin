@@ -71,15 +71,44 @@ test("the handbook link is reachable on the desk AND on a phone", { skip: NB }, 
       const ctx = await browser.newContext({ viewport: { width: w, height: h } });
       const p = await ctx.newPage();
       await p.goto("file://" + join(dir, "live.html"));
-      const a = p.locator("a.docs");
-      assert.equal(await a.count(), 1, `the handbook link is not on the page at ${w}x${h}`);
-      assert.ok(await a.isVisible(), `the handbook link is hidden on ${where} (${w}x${h})`);
-      const box = await a.boundingBox();
-      assert.ok(box && box.width > 0 && box.height > 0,
+      /* ASK FOR A ROUTE TO THE HANDBOOK, NOT FOR ONE PARTICULAR ELEMENT.
+         This used to name `a.docs` and only `a.docs`, which made it impossible
+         to remove the header copy on the desk without failing a test whose
+         real subject is "can the office get to the handbook from here". The
+         desk has TWO candidates -- the header link and the one at the foot of
+         the rail -- and below 1440 the rail's is display:none and the header's
+         is the only one. Either satisfies this; neither being visible does not. */
+      const links = await p.$$eval('a[href="handbook.html"]', (els) =>
+        els.map((e) => {
+          const c = getComputedStyle(e), b = e.getBoundingClientRect();
+          /* How much of the link is inside the WINDOW, unscrolled — which is
+             the state the office arrives in. */
+          const on = Math.max(0, Math.min(b.right, innerWidth) - Math.max(b.left, 0));
+          return { cls: e.className,
+                   shown: c.display !== "none" && c.visibility !== "hidden" && b.width > 0,
+                   w: Math.round(b.width), h: Math.round(b.height),
+                   onScreen: Math.round(on) };
+        }));
+      const shown = links.filter((l) => l.shown);
+      assert.ok(links.length >= 1, `no handbook link is on the page at ${w}x${h}`);
+      assert.equal(shown.length, 1,
+        `${where} (${w}x${h}) shows ${shown.length} handbook links: ` +
+        `${JSON.stringify(shown)} — one route, not none and not two`);
+      assert.ok(shown[0].w > 0 && shown[0].h > 0,
         `the handbook link has no box on ${where}`);
       if (w < 1440)
-        assert.ok(box.height >= 32,
-          `the handbook link is ${Math.round(box.height)}px tall on a phone — too small to tap`);
+        assert.ok(shown[0].h >= 32,
+          `the handbook link is ${shown[0].h}px tall on a phone — too small to tap`);
+      /* PAINTED IS NOT ON SCREEN. Below the console width the nav is a
+         horizontal scroller — 598px of chips in a 390px box — so a link can
+         satisfy every check above and still sit 200px past the right edge of a
+         row that gives no sign it scrolls. It is pinned there for that reason
+         (see .rail-foot in admin.css); this is the assertion that holds the
+         pin, and it fails if the pin is ever removed. Rule 32: measure what is
+         inside the box, not what the stylesheet says. */
+      assert.ok(shown[0].onScreen === shown[0].w,
+        `the handbook link is ${shown[0].w - shown[0].onScreen}px off the edge on ` +
+        `${where} — reachable only by dragging a row with no scrollbar`);
       await ctx.close();
     }
   } finally {

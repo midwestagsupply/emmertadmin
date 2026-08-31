@@ -185,8 +185,23 @@ test("EVERY CONTROL ON THE SCREEN HAS SOMEWHERE TO GO", () => {
   /* Every day OPEN in the starting state, so that ticking Closed is a real
      change. With the shipped fixture (Saturday and Sunday already null) the
      applier correctly reported no change, and the test read that as the field
-     being ignored — the fixture was wrong, not the code. */
-  const OPEN_WEEK = { ...HOURS, saturday: "8:00a to 12:00p", sunday: "9:00a to 1:00p" };
+     being ignored — the fixture was wrong, not the code.
+
+     SECOND TIME, 2026-08-31, and the same fault one field over. "The notice
+     banner": "Hide it" was probed against a state with no banner in it. That
+     passed only while the applier reported hiding an already-hidden banner as
+     a change; once it started comparing first — as every other field on this
+     form always has — the correct silence read here as "applyUpdate ignores
+     it". So the starting state now has a banner up, the way it needs a day
+     open before Closed can mean anything.
+
+     The lesson is the same both times and worth saying plainly: THIS TEST
+     PROBES WHETHER A FIELD IS READ, and the only way to ask that is to make
+     the field's value DIFFERENT from what is already there. A fixture that
+     already agrees with the probe cannot tell "read and unchanged" from
+     "not read at all". */
+  const OPEN_WEEK = { ...HOURS, saturday: "8:00a to 12:00p", sunday: "9:00a to 1:00p",
+                      banner: "There is something on the bar to take down." };
   for (const label of Object.values(ROUTED)) {
     const value = SAMPLE[label] ?? (/opens|closes/i.test(label) ? "9:00"
                  : /basis|price by hand/i.test(label) ? "0.15" : "something new");

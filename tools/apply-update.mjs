@@ -107,21 +107,57 @@ export function applyUpdate(form, { hours, pricing, todayISO, by, whenISO }) {
   const p = { ...pricing };
   const did = [];
 
+  /* LOOK BEFORE YOU SPEAK.
+   *
+   * These two answers -- today's hours and the banner -- used to be written
+   * and REPORTED every time the form arrived, without ever being compared to
+   * what was already there. Every other field on this form compares first
+   * ("a note set to what it already said is not a change" is a test), and
+   * these two did not.
+   *
+   * Measured 2026-08-31 by opening the console against the live files and
+   * pressing Save with nothing typed: it filed an issue, and the comment
+   * came back "Done. — Open today on the usual hours. — Banner showing:
+   * ..." while `diff` on both files showed nothing but the updated_at stamp.
+   * The office was told two things had changed on a day nobody had touched
+   * either of them.
+   *
+   * It also disabled the refusal below. `did` was never empty, so
+   * "nothing on the form asked for a change" -- which exists precisely to
+   * catch an accidental Save -- could not fire from this screen at all.
+   *
+   * The comparison is on the WHOLE resulting state, not one field, because
+   * one answer moves four of them. today_date is part of it deliberately:
+   * re-affirming "closed today" on a NEW day genuinely is a change, since
+   * yesterday's closure was about to expire.
+   *
+   *   `?? null` matters: an hours.json written before today_date existed
+   *   carries no such key at all, and `undefined !== null` would have
+   *   reported a change on every one of those files for ever. */
+  const sameDay = (a, b) =>
+    !!a.closed_today === !!b.closed_today &&
+    (a.today_override ?? null) === (b.today_override ?? null) &&
+    !!a.harvest_mode === !!b.harvest_mode &&
+    (a.today_date ?? null) === (b.today_date ?? null);
+
   const today = form["Are you open today?"];
   if (today && today !== LEAVE) {
+    const before = { closed_today: h.closed_today, today_override: h.today_override,
+                     harvest_mode: h.harvest_mode, today_date: h.today_date };
+    let said;
     if (today === "Open, usual hours") {
       h.closed_today = false; h.today_override = null; h.harvest_mode = false;
-      did.push("Open today on the usual hours.");
+      said = "Open today on the usual hours.";
     } else if (today === "Open, different hours") {
       const s = span(form["Opens"], form["Closes"]);
       h.closed_today = false; h.harvest_mode = false; h.today_override = s;
-      did.push(`Open today, ${s}.`);
+      said = `Open today, ${s}.`;
     } else if (today === "Closed today") {
       h.closed_today = true; h.today_override = null;
-      did.push("Closed today.");
+      said = "Closed today.";
     } else if (today === "Harvest hours") {
       h.harvest_mode = true; h.closed_today = false; h.today_override = null;
-      did.push(`Harvest hours, ${h.harvest}, seven days a week.`);
+      said = `Harvest hours, ${h.harvest}, seven days a week.`;
     } else {
       throw new Refused(`“${today}” is not one of the choices on the form`);
     }
@@ -132,6 +168,11 @@ export function applyUpdate(form, { hours, pricing, todayISO, by, whenISO }) {
        for the rest of the year. See tools/update-today.mjs. */
     h.today_date = today === "Harvest hours" ? null : todayISO;
     if (today === "Open, usual hours") h.today_date = null;
+
+    /* THE TIMES ARE STILL CHECKED EVEN WHEN NOTHING MOVES: span() throws on a
+       time that is not a time and has already run above, so a mistyped hour is
+       refused rather than quietly passed off as "no change". */
+    if (!sameDay(before, h)) did.push(said);
   }
 
   const banner = form["The notice banner"];
@@ -144,11 +185,9 @@ export function applyUpdate(form, { hours, pricing, todayISO, by, whenISO }) {
           `the message is ${msg.length} characters and the bar fits ${MESSAGE_MAX}. ` +
           `Shorten it and open a new one.`);
       if (/[<>]/.test(msg)) throw new Refused("the message cannot contain < or >");
-      h.banner = msg;
-      did.push(`Banner showing: “${msg}”`);
+      if (h.banner !== msg) { h.banner = msg; did.push(`Banner showing: “${msg}”`); }
     } else if (banner === "Hide it") {
-      h.banner = null;
-      did.push("Banner hidden.");
+      if (h.banner !== null) { h.banner = null; did.push("Banner hidden."); }
     } else {
       throw new Refused(`“${banner}” is not one of the choices on the form`);
     }

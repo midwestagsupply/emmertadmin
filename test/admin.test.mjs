@@ -216,6 +216,90 @@ test("an empty form changes nothing and says so", () => {
     (e) => e instanceof Refused && /nothing on the form asked for a change/.test(e.message));
 });
 
+/* ══════════════════════════════════════════════════════════════════════════
+   THE FORM THE SCREEN ACTUALLY SENDS, WITH NOTHING TYPED IN IT
+   ══════════════════════════════════════════════════════════════════════════
+   The `form()` helper above sends "Leave it as it is" for today and the
+   banner, and no real screen ever does: the console has no such radio, so
+   every Save carries a concrete answer for both. That gap is why the
+   over-report below survived — the only test of an untouched form tested a
+   shape the screen cannot produce.
+
+   Measured 2026-08-31 against the live files: Save with nothing typed filed
+   an issue, the applier accepted it, and the comment said "Done. — Open today
+   on the usual hours. — Banner showing: …" while `diff` on hours.json and
+   pricing.json showed nothing but the updated_at stamp. */
+const asTheScreenSends = (o = {}) => ({
+  "Are you open today?": "Open, usual hours",
+  "The notice banner": "Show it",
+  Message: "We are not accepting corn until harvest starts.",
+  ...o,
+});
+const AS_PUBLISHED = {
+  ...HOURS, closed_today: false, today_override: null, harvest_mode: false,
+  today_date: null, banner: "We are not accepting corn until harvest starts.",
+};
+const asCtx = (over = {}) => ({
+  hours: { ...AS_PUBLISHED, ...over }, pricing: { ...PRICING }, todayISO: TODAY,
+});
+
+test("SAVE WITH NOTHING TYPED IS REFUSED, not committed as two changes", () => {
+  assert.throws(() => applyUpdate(asTheScreenSends(), asCtx()),
+    (e) => e instanceof Refused && /nothing on the form asked for a change/.test(e.message));
+});
+
+test("today's hours are reported only when they actually move", () => {
+  /* already open on the usual hours -> silent */
+  assert.throws(() => applyUpdate(asTheScreenSends(), asCtx()), Refused);
+  /* closed yesterday, open today -> a real change, and it says so */
+  const r = applyUpdate(asTheScreenSends(),
+    asCtx({ closed_today: true, today_date: "2026-08-17" }));
+  assert.deepEqual(r.did, ["Open today on the usual hours."]);
+  assert.equal(r.hours.closed_today, false);
+});
+
+test("RE-AFFIRMING A CLOSURE ON A NEW DAY IS A CHANGE, because yesterday's expires", () => {
+  const r = applyUpdate(asTheScreenSends({ "Are you open today?": "Closed today" }),
+    asCtx({ closed_today: true, today_date: "2026-08-17" }));
+  assert.deepEqual(r.did, ["Closed today."]);
+  assert.equal(r.hours.today_date, TODAY, "the closure has to be re-dated or it expires");
+});
+
+test("closed today, said twice on the same day, is not a change", () => {
+  assert.throws(() => applyUpdate(asTheScreenSends({ "Are you open today?": "Closed today" }),
+    asCtx({ closed_today: true, today_date: TODAY })), Refused);
+});
+
+test("the banner is reported only when the words change", () => {
+  const r = applyUpdate(asTheScreenSends({ Message: "Scales are down until noon." }), asCtx());
+  assert.deepEqual(r.did, ["Banner showing: “Scales are down until noon.”"]);
+  /* and hiding one that is already hidden says nothing */
+  assert.throws(() => applyUpdate(asTheScreenSends({ "The notice banner": "Hide it" }),
+    asCtx({ banner: null })), Refused);
+});
+
+test("an hours.json from before today_date existed is not reported as changed", () => {
+  /* `undefined !== null` would have called every legacy file a change, every
+     time, for ever. */
+  const legacy = { ...AS_PUBLISHED };
+  delete legacy.today_date;
+  assert.throws(() => applyUpdate(asTheScreenSends(),
+    { hours: legacy, pricing: { ...PRICING }, todayISO: TODAY }), Refused);
+});
+
+test("A MISTYPED TIME IS STILL REFUSED, even when nothing else would move", () => {
+  /* The comparison must not become a way of skipping the checks: span() runs
+     before anything is compared. */
+  assert.throws(() => applyUpdate(asTheScreenSends({
+    "Are you open today?": "Open, different hours", Opens: "8:00", Closes: "25:00" }), asCtx()),
+    (e) => e instanceof Refused && /not a time on a clock/.test(e.message));
+});
+
+test("a real change beside a silent one still reports the real one only", () => {
+  const r = applyUpdate(asTheScreenSends({ "Under Big River — cash": "0.13" }), asCtx());
+  assert.deepEqual(r.did, ["Spread set to $0.13 under Big River."]);
+});
+
 test("a choice that is not on the form is refused rather than ignored", () => {
   assert.throws(() => applyUpdate(form({ "Are you open today?": "Maybe" }), ctx()),
     (e) => e instanceof Refused && /not one of the choices/.test(e.message));
