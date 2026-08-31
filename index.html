@@ -31,7 +31,18 @@
       <!-- Collapses the two panels that say "changes rarely" on their own
            faces, in BOTH columns at once. Every control inside them stays in
            its form either way, so a Save still carries them. -->
-      <button type="button" class="rare-toggle" id="rareBtn" aria-expanded="false">Weekly hours &amp; small print</button>
+      <!-- THE LABEL SAYS WHAT PRESSING IT DOES, and changes when it has been
+           pressed. It used to read "Weekly hours & small print" in both states
+           — a noun, not an action — and the only feedback was the button's own
+           colour inverting. Sig, 2026-08-31: "wtf is the weekly hours button in
+           the top right, i clicked it and it changes colors, wow." He was
+           right: it had revealed two panels, both of them below the fold of a
+           scrolling column, so the one thing he could see happen was the
+           button changing colour. The verb is in the label now, the caret
+           turns, and the panel it opens is scrolled to. -->
+      <button type="button" class="rare-toggle" id="rareBtn" aria-expanded="false"
+              aria-controls="badger-c-weekly midwest-c-weekly"
+      ><span class="rare-verb">Show</span> weekly hours &amp; small print<span class="rare-caret" aria-hidden="true"></span></button>
       <!-- The explanation is written for somebody's first day. On day two
            hundred it is 317px of text between them and the number they came
            to change. Off by default, one key away, never deleted. -->
@@ -1031,10 +1042,27 @@
   (function wireRare() {
     var btn = document.getElementById("rareBtn");
     if (!btn) return;
+    var verb = btn.querySelector(".rare-verb");
     btn.addEventListener("click", function () {
       var open = document.body.getAttribute("data-rare") === "open";
       document.body.setAttribute("data-rare", open ? "shut" : "open");
       btn.setAttribute("aria-expanded", open ? "false" : "true");
+      if (verb) verb.textContent = open ? "Show" : "Hide";
+      /* AND SHOW THE THING THAT WAS JUST REVEALED. Both panels sit low in a
+         column that scrolls on its own, so opening them changed nothing a
+         person could see from the button. Scroll the first one that is
+         actually on the page into view; if the browser is old enough to lack
+         smooth behaviour it simply jumps, which is still an answer. */
+      if (!open) {
+        var card = document.querySelector('.col:not([hidden]) [data-id="c-weekly"]');
+        /* INSTANT, NOT SMOOTH. The first version animated, and an animation is
+           three hundred milliseconds during which every control in the panel is
+           moving. That is not a test problem — it is a person reaching for a
+           checkbox that slides out from under the pointer — and it showed up as
+           three tests failing with "clicking the checkbox did not change its
+           state". The panel appears where it is wanted, at once. */
+        if (card && card.scrollIntoView) card.scrollIntoView({ block: "start" });
+      }
     });
   })();
   wireRefeed();

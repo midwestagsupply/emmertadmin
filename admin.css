@@ -1711,3 +1711,13 @@ body[data-tab="basis"] [data-id="c-bid"] .rare-row{ max-width:64ch; }
 .counter .left{ font-variant-numeric:tabular-nums; }
 /* Running out is a state change, so it looks like one. */
 .counter .left.is-full{ color:var(--flag); font-weight:700; }
+
+/* ---- the rare key says what it does -------------------------------------
+   A caret that turns, so the button's state is legible without reading the
+   verb, and without depending on the colour inversion that was the only
+   signal before. Drawn in text rather than as an image: it inherits the
+   button's colour in both states for free. */
+.rare-caret::before{ content:"\25B8"; display:inline-block; margin-left:.5em;
+                     transition:transform .12s ease; }
+.rare-toggle[aria-expanded="true"] .rare-caret::before{ transform:rotate(90deg) }
+@media (prefers-reduced-motion:reduce){ .rare-caret::before{ transition:none } }

@@ -29,15 +29,52 @@ const open = (opts) => openScreen(browser, dir, opts);
 /* The refusal note appears after press() lands; under a fully parallel suite
    the fixed 900ms inside save() is occasionally not enough on a loaded
    machine, so the note is POLLED, not assumed. */
-async function refusalOf(p, site, ms = 3000) {
-  const until = Date.now() + ms;
-  while (Date.now() < until) {
-    const r = await p.$eval("#" + site + "-checkNote",
-      (e) => e.hidden ? null : e.textContent).catch(() => null);
-    if (r) return r;
-    await p.waitForTimeout(100);
+/* WAIT ON THE CONDITION, NOT ON A STOPWATCH.
+   This was a hand-rolled poll with a 3-second budget, and it was the only
+   flaky thing in the suite: the $1.50 guard failed roughly one run in five,
+   always with an empty note, and passed 4/4 every time it was run on its own.
+   That is contention, not a defect in the screen — a dozen browser contexts
+   competing for one box, and a note that appears in under 600ms unloaded
+   occasionally not making a fixed 3s window.
+
+   The budget is not simply bigger; the WAIT is different. waitForFunction
+   returns the moment the note is actually shown, so a healthy run is no slower
+   than before, and a run where the note genuinely never comes still fails —
+   with the timeout named, instead of an empty string that reads like the
+   screen said nothing. Every caller asserts on the text, so nothing depended
+   on the old "" return. */
+/* WAIT UNTIL THE COLUMN HAS FINISHED FILLING ITSELF FROM THE SITE.
+   This is the actual cause of the only flake in the suite, and it took three
+   goes to find because the first two symptoms both pointed elsewhere.
+
+   The column loads, then a second pass writes the site's own values into the
+   boxes. A test that types before that pass lands has its value overwritten,
+   and then Save sees a VALID form: no refusal, an issue opens, and — because
+   save() only waits 900ms for the popup — the url comes back null anyway. So
+   the test read "no issue opened, no note", which looks exactly like the
+   screen silently doing nothing, and is really the screen doing the right
+   thing with a value the test no longer had in the box.
+
+   The existing guard checked the typed value at ONE INSTANT, which proves it
+   arrived and not that it stayed. This waits for the fill to have HAPPENED —
+   the spread box carrying the fixture's own 0.10 — before anything is typed.
+   Deterministic, and no slower on a healthy run. */
+async function filled(p, site = "badger", ms = 15000) {
+  await p.waitForFunction(
+    (id) => { const e = document.getElementById(id); return !!e && e.value === "0.10"; },
+    site + "-off", { timeout: ms });
+}
+
+async function refusalOf(p, site, ms = 15000) {
+  const sel = "#" + site + "-checkNote";
+  try {
+    await p.waitForFunction(
+      (s) => { const e = document.querySelector(s); return !!e && !e.hidden && e.textContent.trim(); },
+      sel, { timeout: ms });
+  } catch {
+    return "";     /* genuinely never shown — the caller's assert says so */
   }
-  return "";
+  return p.$eval(sel, (e) => e.textContent);
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -148,6 +185,7 @@ test("THE $1.50 THE SANITY BOX PROMISES IS ENFORCED, not just described", { skip
      screen with no code behind it. The 1.50 is the applier's own limit,
      mirrored — not a number invented here. */
   const p = await open({});
+  await filled(p);
   await p.evaluate(() => {
     document.querySelector('.col[data-elev="badger"] details.byhand').open = true;
   });
@@ -320,6 +358,60 @@ test("their cash is pinned on a phone; our posts is not on top of it", { skip: N
     "our posts should be off to the right, reachable by dragging, not sitting over theirs");
   assert.equal(r.midwest.display, "none",
     "the other elevator's posts column crowds a 390px screen it was not asked onto");
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE RARE KEY SAYS WHAT IT DOES, AND SHOWS YOU WHAT IT DID
+   ══════════════════════════════════════════════════════════════════════════
+   Sig, 2026-08-31: "wtf is the weekly hours button in the top right, i clicked
+   it and it changes colors, wow."
+
+   He was right, and the button was working. It reveals two panels — the weekly
+   hours and the small print — and both of them sit low in a column that
+   scrolls on its own, so from where he was standing the only observable effect
+   of pressing it was the button inverting. A control whose entire feedback is
+   its own colour is a control that has not told you anything.
+
+   Three assertions, because the fix is three things: the label carries a VERB
+   and the verb changes; the caret turns; and the panel that was opened is
+   brought into view. */
+test("the rare key names the action, and the name changes when it is pressed",
+  { skip: NB }, async () => {
+  const p = await open(LAYOUT.CONSOLE, { tab: "hours" });
+  const read = () => p.evaluate(() => {
+    const b = document.getElementById("rareBtn");
+    const card = document.querySelector('.col:not([hidden]) [data-id="c-weekly"]');
+    const pane = card && card.closest(".col-panes");
+    return { label: b.textContent.replace(/\s+/g, " ").trim(),
+             expanded: b.getAttribute("aria-expanded"),
+             caretTurn: getComputedStyle(document.querySelector(".rare-caret"), "::before").transform,
+             cardShown: card ? getComputedStyle(card).display !== "none" : null,
+             /* IS IT ACTUALLY IN THE VISIBLE PART OF THE PANE — not "how many
+                pixels down", which was the first version of this and is a
+                magic number that means different things at different window
+                heights. 215px down a 700px pane is on screen; 215px down a
+                200px pane is not. Ask the question that matters. */
+             inSight: (() => {
+               if (!card || !pane) return null;
+               const c = card.getBoundingClientRect(), q = pane.getBoundingClientRect();
+               return c.top >= q.top - 1 && c.top < q.bottom;
+             })() };
+  });
+  const before = await read();
+  await press(p, "#rareBtn");
+  await p.waitForTimeout(500);
+  const after = await read();
+  await p.done();
+
+  assert.match(before.label, /^Show /, `the key reads "${before.label}" before it is pressed`);
+  assert.equal(before.expanded, "false");
+  assert.match(after.label, /^Hide /, `the key still reads "${after.label}" after it is pressed`);
+  assert.equal(after.expanded, "true");
+  assert.equal(after.cardShown, true, "the weekly panel did not open");
+  assert.notEqual(after.caretTurn, before.caretTurn, "the caret does not turn");
+  assert.equal(after.inSight, true,
+    "the panel it opened is not in the visible part of its own scrolling pane — " +
+    "opened, and out of sight, which is the complaint");
 });
 
 /* The half of the old decision that still has to hold: taking our price off

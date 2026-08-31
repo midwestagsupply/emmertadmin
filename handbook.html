@@ -26,18 +26,14 @@
   --flag:#8a5209; --flag-bg:#fdf3e3;
   --ok:#1c5f52;
   --shadow:0 1px 0 rgba(19,24,28,.05), 0 1px 3px rgba(19,24,28,.06);
+  color-scheme:light;
 }
-@media (prefers-color-scheme: dark){
-  :root:not([data-theme="light"]){
-    --paper:#101417; --card:#171d21; --card-2:#1d242a;
-    --ink:#e7ecee; --ink-2:#9ba7ae; --ink-3:#8a969e;
-    --rule:#2a3238; --rule-2:#222a2f;
-    --badger:#e0685c; --midwest:#5cae9b;
-    --flag:#e0aa5c; --flag-bg:#241d10;
-    --ok:#5cae9b;
-    --shadow:none;
-  }
-}
+/* THE HANDBOOK IS LIGHT, like the console and both sites.
+     Removed 2026-08-31: "i also hate the dark background." The handbook is
+     read on a phone in the scale house, which is exactly where a page that
+     flips colour under the reader is least wanted. color-scheme:light is
+     declared on :root above so the browser paints its own furniture to match
+     rather than guessing from the system setting. */
 :root[data-theme="dark"]{
   --paper:#101417; --card:#171d21; --card-2:#1d242a;
   --ink:#e7ecee; --ink-2:#9ba7ae; --ink-3:#8a969e;
