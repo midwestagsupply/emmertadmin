@@ -15,6 +15,19 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+  # ONE FIRE A WEEK, BECAUSE ONE OF THESE CHECKS IS ABOUT ANOTHER REPOSITORY.
+  # The harvest-window guard below compares this screen against the two SITE
+  # repositories. Everything else here is answered by this repository alone and
+  # is settled on push; that one can start failing without anybody pushing here,
+  # because the thing that changed was over there. A push-only gate would not
+  # notice until the next time somebody happened to touch the console.
+  #
+  # Weekly, and off :00 -- see the note in prices.yml about the hour mark. Not
+  # daily: HARVEST_MONTHS changes about once a year, and rule 27 is do not add
+  # fires. NOTE: GitHub disables scheduled workflows in a repository with no
+  # activity for 60 days, so this is a backstop, not a guarantee.
+  schedule:
+    - cron: "23 13 * * 1"
 
 jobs:
   test:
@@ -32,5 +45,41 @@ jobs:
           npm install --no-save playwright@1
           npx playwright install --with-deps chromium
 
+      # THE ONE CHECK THAT NEEDS THE OTHER TWO REPOSITORIES.
+      #
+      # The console rings October and November on Big River's board as new
+      # crop, and the sites price those two months off a SECOND basis --
+      # `spreadHarvest`. The two lists have to be the same list. The screen
+      # keeps NEW_CROP; each site exports HARVEST_MONTHS from
+      # tools/update-prices.mjs; a comment on the screen says they agree.
+      #
+      # test/screen.test.mjs checks that by IMPORTING the sites' real module
+      # and running it -- and it SKIPS, loudly, when the sites are not beside
+      # it, rather than falling back to a third copy of the list written in the
+      # test. Correct, and it meant the check ran nowhere: this gate never
+      # checked them out, so the guard was skipped on every run since it was
+      # written.
+      #
+      # No token. All three repositories are public, which is also why
+      # staff-update.yml in each site can check this one out with a bare
+      # `repository:` and no `token:` line. The default GITHUB_TOKEN is scoped
+      # to the repository running the workflow and could not read a private
+      # sibling -- but it does not have to.
+      #
+      # The cost, stated plainly: this job can now go red because of a commit
+      # in a DIFFERENT repository. That is the entire point of the check, and
+      # it is the only step here that can do it.
+      - name: Fetch the two sites, so the harvest window can be compared
+        uses: actions/checkout@v4
+        with:
+          repository: midwestagsupply/badgergrain
+          path: .sites/badgergrain
+      - uses: actions/checkout@v4
+        with:
+          repository: midwestagsupply/midwestcommodity
+          path: .sites/midwestcommodity
+
       - name: Both suites
+        env:
+          SITE_REPOS: ${{ github.workspace }}/.sites
         run: node --test test/*.mjs
