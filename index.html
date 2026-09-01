@@ -1557,6 +1557,18 @@
        open to show it. And with no role and no focus move it said nothing at all
        to anyone not watching that part of the screen. It now sits with the Save
        button that produced it, announces itself, and takes focus. */
+    /* Shown the moment Save opens the second page. See the note in the save
+       handler: a 404 there means Issues are switched off on that repository,
+       and this screen cannot ask GitHub whether they are. */
+    var nextNote = document.createElement("div");
+    nextNote.className = "sanity";
+    nextNote.hidden = true;
+    nextNote.textContent =
+      "A second page just opened. If it says 404 or \u201cnot the page you are " +
+      "looking for\u201d, Issues are switched off on that elevator\u2019s repository \u2014 " +
+      "GitHub, Settings, General, Features, tick Issues. Nothing is saved until " +
+      "you press Submit on that page.";
+
     var checkNote = document.createElement("div");
     checkNote.className = "sanity is-bad";
     checkNote.hidden = true;
@@ -1564,8 +1576,13 @@
     checkNote.setAttribute("tabindex", "-1");
     checkNote.id = site + "-checkNote";
     var saveBar = qs(".save");
-    if (saveBar) saveBar.parentNode.insertBefore(checkNote, saveBar);
-    else { var bhBody = qs(".byhand-body"); if (bhBody) bhBody.appendChild(checkNote); }
+    if (saveBar) {
+      saveBar.parentNode.insertBefore(checkNote, saveBar);
+      saveBar.parentNode.insertBefore(nextNote, saveBar);
+    } else {
+      var bhBody = qs(".byhand-body");
+      if (bhBody) { bhBody.appendChild(checkNote); bhBody.appendChild(nextNote); }
+    }
 
     function bad(el) {
       var v = el.value.trim();
@@ -1780,6 +1797,24 @@
            browser at that moment warned about nothing. It is cleared below,
            and only once the second page is actually open. */
         var url = issueUrl(form);
+        /* ── IF THE SECOND PAGE SAYS 404, IT IS A SETTING, NOT A TYPO ────────
+           2026-09-01. Sig went to change Midwest Commodity's October basis and
+           Save landed him on GitHub's "this is not the page you are looking
+           for". Measured the same hour: badgergrain has an Issues tab and
+           midwestcommodity did not — Issues were switched OFF on that
+           repository, so `/issues/new` 404s. And both repositories carry a
+           byte-identical `staff-update.yml` triggered `on: issues`, so that
+           site's applier had never once been able to fire. The console had
+           never been able to change it, and the only thing it ever said about
+           that was somebody else's error page.
+
+           THE SCREEN DOES NOT ASK GITHUB'S API WHETHER ISSUES ARE ON. It was
+           written that way first and `serving.test.mjs` refused it — this page
+           reads from raw.githubusercontent.com and nothing else, which is a
+           standing decision and a good one. So instead the screen says, in
+           advance and in one line, what a 404 on the next page means. It costs
+           no request and it turns a dead end into a two-step fix. */
+        if (nextNote) nextNote.hidden = false;
         /* 8k is the practical ceiling on a URL. Nothing this form can hold gets
            near it, but a silent truncation would file a HALF-FILLED issue, so it
            is checked rather than assumed. */
