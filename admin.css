@@ -1721,3 +1721,64 @@ body[data-tab="basis"] [data-id="c-bid"] .rare-row{ max-width:64ch; }
                      transition:transform .12s ease; }
 .rare-toggle[aria-expanded="true"] .rare-caret::before{ transform:rotate(90deg) }
 @media (prefers-reduced-motion:reduce){ .rare-caret::before{ transition:none } }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE BOARD IS CAPPED BELOW THE DESK WIDTH
+   ══════════════════════════════════════════════════════════════════════════
+
+   JESSIE, EMMERT, 2026-09-01: "This is kind of hard to use. The board prices
+   take up the whole screen, and the editing portion is very very small. Could
+   they be switched?"
+
+   Measured on her width. At 1225x700, before this: the board runs 529px and the
+   editing area starts at y=869 -- 169px BELOW the fold. She scrolls past a
+   screen and a half of somebody else's numbers to reach the first box she can
+   type in. The complaint is exact.
+
+   WHY IT HAPPENS AT ALL. Above 1440 this screen is an app shell: pinned to the
+   window, the board strip capped, the work area taking the rest. That is why
+   the board was never the problem on a big monitor. Below 1440 it is an
+   ordinary document and the board takes whatever height twelve rows want.
+
+   WHAT THIS IS NOT.
+
+   NOT a fold. On 2026-08-31 a five-row board with the other seven behind a
+   "show the rest" toggle was built, measured at 472px, and offered -- and Sig
+   chose the twelve-row version, because the board's own note tells the reader
+   to check their basis against ours LINE FOR LINE and a line behind a toggle is
+   not a line he can check. That decision stands. Every month is still here.
+
+   NOT a reorder either, and that one I had to build to find out. Moving the
+   work above the board reads beautifully and breaks Save: the command bar is
+   position:sticky INSIDE the work area, so once the board is the last thing on
+   the page, scrolling to the bottom scrolls the sticky bar out of its own
+   parent and the button is not on screen to be pressed. console.test.mjs said
+   so in one line -- "SAVE CAN BE PRESSED IN EVERY STATE" -- and it was right.
+
+   SO: the board keeps its place, and is given the same ceiling the desk shell
+   already gives it. Twelve rows, in order, first on the page, scrolling within
+   their own frame instead of the window's. */
+@media (max-width: 1439px) {
+  .board{
+    max-height:46vh;
+    overflow-y:auto;
+    overscroll-behavior:contain;   /* scrolling the board must not scroll the page behind it */
+  }
+  /* The header stays put while the months move under it, or a reader who has
+     scrolled to March is looking at four unlabelled columns of money. */
+  .board .bd thead th{
+    position:sticky; top:0; z-index:1;
+    background:var(--paper);
+    box-shadow:0 1px 0 var(--line);
+  }
+  /* A CAPPED BOX MUST SAY IT IS CAPPED. Without this the twelfth row is cut
+     mid-cell and looks like the end of the board rather than the edge of the
+     frame -- which is the one thing worse than a tall table, because it makes a
+     reader think Big River posts fewer months than they do. */
+  .board::after{
+    content:""; display:block; position:sticky; bottom:0; height:14px;
+    background:linear-gradient(to top, var(--paper), transparent);
+    pointer-events:none;
+  }
+}
