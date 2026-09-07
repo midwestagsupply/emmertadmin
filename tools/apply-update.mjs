@@ -72,7 +72,7 @@ export function clock(s, what) {
 /* One reader for every money box on the form, so "0.10" and "$0.10" and
    " .10 " and "10" cannot be read four different ways in four places. */
 export function money(v, what) {
-  const t = String(v ?? "").trim().replace(/^\$/, "");
+  const t = String(v ?? "").trim().replace(/^\$/, "").replace(/^\+/, "");
   if (!/^-?\d*\.?\d+$/.test(t))
     throw new Refused(`${what} “${v}” is not a number. Type it like 0.10.`);
   return Number(t);
@@ -198,9 +198,69 @@ export function applyUpdate(form, { hours, pricing, todayISO, by, whenISO }) {
      spread, not the basis. Issues already open on GitHub carry the older
      headings, so those keep working; an applier that only knew the new
      name would silently ignore work the office had already filed. */
+  /* ---- OUR OWN BASIS, AGAINST THE CONTRACT MONTH -----------------------
+   *
+   * The new heading, and it is a DIFFERENT NUMBER from every heading below it,
+   * not a rename. "Under Big River — cash: 0.10" means ten cents under their
+   * board. "Our basis — cash: 0.10" means a dime OVER the contract. Reading
+   * one as the other is a twenty-cent error in the wrong direction, so the two
+   * write different fields and neither is ever read as the other.
+   *
+   * Signed, and capped both ways: BASIS_ABS_MAX, the same figure the screen
+   * and update-prices.mjs hold. */
+  if ("Our basis — cash" in form) {
+    const raw = form["Our basis — cash"];
+    if (raw == null)
+      throw new Refused("the cash basis cannot be emptied. Type 0 for even with the contract.");
+    const v = money(raw, "the cash basis");
+    if (Math.abs(v) > BASIS_ABS_MAX)
+      throw new Refused(
+        `the cash basis reads as $${v.toFixed(2)}, further than $${BASIS_ABS_MAX.toFixed(2)} ` +
+        `from zero. Signed: -0.75 is seventy-five under, +0.05 is a nickel over.`);
+    if (v !== p.basis) {
+      p.basis = v;
+      did.push(`Cash basis set to ${v < 0 ? "" : "+"}${v.toFixed(2)} against the contract.`);
+    }
+  }
+
+  if ("Our basis — new crop" in form) {
+    const raw = form["Our basis — new crop"];
+    if (raw === null) {
+      /* Emptied means "same as cash", which is what an absent basisHarvest
+         has always meant. Set-and-never-unset is the fault this shape was
+         written to avoid. */
+      if (p.basisHarvest != null) {
+        p.basisHarvest = null;
+        did.push("New-crop basis cleared; new crop follows the cash basis again.");
+      }
+    } else {
+      const v = money(raw, "the new-crop basis");
+      if (Math.abs(v) > BASIS_ABS_MAX)
+        throw new Refused(
+          `the new-crop basis reads as $${v.toFixed(2)}, further than ` +
+          `$${BASIS_ABS_MAX.toFixed(2)} from zero.`);
+      if (v !== p.basisHarvest) {
+        p.basisHarvest = v;
+        did.push(`New-crop basis set to ${v < 0 ? "" : "+"}${v.toFixed(2)} against the contract.`);
+      }
+    }
+  }
+
+  /* ---- THE OLD SPREAD HEADINGS, WHICH STILL MEAN A SPREAD ----------------
+     Issues filed before the screen changed are still open on GitHub and still
+     carry these. They keep writing p.spread, because that is what they said.
+     But once a basis exists this site prices itself off the contract and the
+     spread is no longer read by anything -- so applying one would report a
+     change that changes no price at all. Refused loudly rather than filed
+     into a field nothing consumes. */
   const spread = form["Under Big River — cash"]
               ?? form["Our basis under Big River — cash"]
               ?? form["Our spread under Big River"];
+  if (spread && p.basis != null)
+    throw new Refused(
+      "this issue was filed from the old screen, which sets a spread under Big " +
+      "River. This site now sets its own basis against the contract month, so " +
+      "that number would change nothing. Reload the staff screen and file it again.");
   if (spread) {
     const v = money(spread, "the basis");
     if (!(v >= 0))
@@ -217,9 +277,23 @@ export function applyUpdate(form, { hours, pricing, todayISO, by, whenISO }) {
      "Spread" and "basis" are the same figure said two ways, and the screen
      says basis. Both labels are accepted: the old one because issues already
      filed carry it, the new one because it is what the form now asks. */
-  const harvestSpread = form["Under Big River — new crop"]
-                     ?? form["Our basis under Big River — new crop"]
-                     ?? form["Our spread under Big River — new crop"];
+  /* FIRST HEADING THAT IS PRESENT, not first that is non-null.
+     parseForm maps a heading that arrived with an empty body to null, and that
+     is precisely the "the office cleared this box" signal. `??` skipped past it
+     and landed on undefined, so the `harvestSpread === null` branch below --
+     whose own comment says "without this the box could be set and never unset"
+     -- was unreachable from the screen, which only ever sends the newest of
+     these three labels. Clearing worked only for somebody filing an issue by
+     hand under the oldest label, which is why no test caught it. */
+  const harvestKey = ["Under Big River — new crop",
+                      "Our basis under Big River — new crop",
+                      "Our spread under Big River — new crop"].find((k) => k in form);
+  if (harvestKey !== undefined && p.basis != null)
+    throw new Refused(
+      "this issue was filed from the old screen, which sets a new-crop spread " +
+      "under Big River. This site now sets its own basis against the contract " +
+      "month. Reload the staff screen and file it again.");
+  const harvestSpread = harvestKey === undefined ? undefined : form[harvestKey];
   /* null is "the office emptied this box", which means "same as cash" -- the
      documented meaning of an absent spreadHarvest. undefined is "the heading
      never came", which means leave it alone. Without this the box could be
@@ -312,8 +386,21 @@ export function applyUpdate(form, { hours, pricing, todayISO, by, whenISO }) {
     ["Small print under the price table", p, "price_note", "the price note"],
     ["Small print under the hours", h, "hoursnote", "the hours note"],
   ]) {
+    /* An ABSENT heading is "did not touch it". A heading that arrived EMPTY is
+       "the office cleared this box" -- the same contract the new-crop basis
+       above keeps, and the one index.html's CLEARABLE list is written to. The
+       loose `==` folded the two together, so emptying either box did nothing
+       at all and the old small print stayed published. Both files already carry
+       null here as a normal state. */
+    if (!(label in form)) continue;
     const t = form[label];
-    if (t == null) continue;
+    if (t === null) {
+      if (obj[key] != null) {
+        obj[key] = null;
+        did.push(`${what.replace(/^the /, "")[0].toUpperCase()}${what.replace(/^the /, "").slice(1)} cleared.`);
+      }
+      continue;
+    }
     if (t.length > NOTE_MAX)
       throw new Refused(`${what} is ${t.length} characters and the limit is ${NOTE_MAX}`);
     if (/[<>]/.test(t)) throw new Refused(`${what} cannot contain < or >`);

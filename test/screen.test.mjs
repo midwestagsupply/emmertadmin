@@ -356,16 +356,16 @@ each("the issue carries this elevator's OWN figures, not the other column's", as
      left-hand elevator's work under the right-hand elevator's name. */
   const other = OTHER(E.site);
   const p = await open();
-  await p.fill(id(E.site, "off"), "0.31");
-  await p.fill(id(other.site, "off"), "0.77");
+  await p.fill(id(E.site, "off"), "-0.31");
+  await p.fill(id(other.site, "off"), "-0.77");
   await p.fill(id(E.site, "msg"), `only ${E.site}`);
   await p.fill(id(other.site, "msg"), `only ${other.site}`);
   const url = await save(p, E.site);
   await p.done();
   assert.ok(url, "Save opened nothing");
   const body = new URL(url).searchParams.get("body");
-  assert.ok(body.includes("\n\n0.31"), "the basis this column holds is not in its own issue");
-  assert.ok(!body.includes("0.77"), "the other elevator's basis travelled in this issue");
+  assert.ok(body.includes("\n\n-0.31"), "the basis this column holds is not in its own issue");
+  assert.ok(!body.includes("-0.77"), "the other elevator's basis travelled in this issue");
   assert.ok(body.includes(`only ${E.site}`));
   assert.ok(!body.includes(`only ${other.site}`), "the other elevator's banner travelled in this issue");
 });
@@ -666,8 +666,8 @@ each("SAVE CARRIES NOTHING FROM THE COLUMN THAT IS NOT ON THE SCREEN", async (E)
      and file the issue from the one that is left. */
   const other = OTHER(E.site);
   const p = await open();
-  await p.fill(id(E.site, "off"), "0.19");
-  await p.fill(id(other.site, "off"), "0.88");
+  await p.fill(id(E.site, "off"), "-0.19");
+  await p.fill(id(other.site, "off"), "-0.88");
   await p.fill(id(other.site, "msg"), "the other elevator's banner");
   await p.setViewportSize(LAYOUT.SHORT);
   await p.waitForTimeout(150);
@@ -679,8 +679,8 @@ each("SAVE CARRIES NOTHING FROM THE COLUMN THAT IS NOT ON THE SCREEN", async (E)
   assert.equal(gone, "none", "the fixture did not actually hide the other column");
   assert.ok(url, "Save opened nothing");
   const body = new URL(url).searchParams.get("body");
-  assert.ok(body.includes("\n\n0.19"), "the visible column's own basis is not in its issue");
-  assert.ok(!body.includes("0.88"), "the hidden column's basis was submitted");
+  assert.ok(body.includes("\n\n-0.19"), "the visible column's own basis is not in its issue");
+  assert.ok(!body.includes("-0.88"), "the hidden column's basis was submitted");
   assert.ok(!body.includes("the other elevator's banner"), "the hidden column's banner was submitted");
   assert.equal(new URL(url).pathname, `/midwestagsupply/${E.repo}/issues/new`);
 });
@@ -799,9 +799,18 @@ test("a board that will not load leaves the screen saying nothing about their ba
   }));
   await p.done();
   assert.equal(r.stillSample, true, "the fixture did not leave the sample board in place");
+  /* AMENDED: the claim is that nothing is quoted off the SAMPLE BOARD, and
+     it used to be enough to say "no figures at all", because every figure in
+     that line came from the board. The blank new-crop state now prints our own
+     basis -- out of pricing.json, nothing to do with their board -- so the
+     check names the board's own figures instead of forbidding arithmetic
+     wholesale. It is the stricter reading of the same rule: a sample basis
+     reaching that line still fails, and now it fails by name. */
+  const BOARD_FIGURES = BOARD_ROWS.flatMap((b) => [Math.abs(b.basisDollars), Math.abs(b.cash)]);
   for (const t of r.reads)
-    assert.deepEqual(figuresIn(t), [],
-      `a figure was printed off the sample board: "${t}"`);
+    for (const n of figuresIn(t))
+      assert.ok(!BOARD_FIGURES.includes(Math.abs(n)),
+        `a figure was printed off the sample board: "${t}"`);
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -820,20 +829,46 @@ test("a board that will not load leaves the screen saying nothing about their ba
    ══════════════════════════════════════════════════════════════════════════ */
 
 const REF = BOARD_ROWS[0].basisDollars;                       // the nearest delivery, August
+const REFMO = BOARD_ROWS[0].futuresMonth;                     // and the contract it sits on
+const NEWMO = BOARD_ROWS.find((b) => b.delivery === "October").futuresMonth;
+const BASIS = (s) => SITE_FILES[s].pricing.basis;             // what this elevator posts
+/* "0.23 under them" -- the gap between our basis and theirs, said the way the
+   readout says it, so the expectation is built from the fixture rather than
+   from a number typed twice. */
+const versus = (mine, theirs) => Math.abs(mine - theirs) < 1e-9
+  ? "even with them"
+  : `${money(Math.abs(mine - theirs))} ${mine < theirs ? "under" : "over"} them`;
 const NEWROW = BOARD_ROWS.find((b) => b.delivery === "October").basisDollars;
 const money = (v) => (v < 0 ? "−" : "") + Math.abs(v).toFixed(2);
 
-each("the cash readout names their basis and ours, from the row it governs", async (E) => {
+each("the cash readout names the contract, their basis, and how far off them we are", async (E) => {
+  /* WAS "Big River X · we post Y", where Y was their basis less our spread.
+     The box holds that basis directly now, so restating it would read her own
+     typing back to her. What she cannot see is which contract the basis is set
+     against and where Big River is sitting, so that is what the line says. */
   const p = await open();
-  const spread = Number(SITE_FILES[E.site].pricing.spread);
+  const mine = BASIS(E.site);
   const r = await basisReads(p, E.site);
-  assert.equal(r.cash, `Big River ${money(REF)} · we post ${money(REF - spread)}`);
+  assert.equal(r.cash, `${REFMO} · Big River ${money(REF)} · ${versus(mine, REF)}`);
   /* And it follows the box, rather than being written once at load. */
-  await p.fill(id(E.site, "off"), "0.30");
+  await p.fill(id(E.site, "off"), "-0.30");
   await p.waitForTimeout(80);
   assert.equal((await basisReads(p, E.site)).cash,
-    `Big River ${money(REF)} · we post ${money(REF - 0.3)}`);
+    `${REFMO} · Big River ${money(REF)} · ${versus(-0.3, REF)}`);
   await p.done();
+});
+
+each("NO PRICE THE SCREEN WORKED OUT APPEARS IN THE BASIS READOUT", async (E) => {
+  /* The first cut printed "Contract $5.3675", their cash less their basis --
+     exact, no rounding rule, and still a figure computed here. The contract is
+     named by its month for that reason. This is the narrow guard; the broad
+     one is NO CASH PRICE IS WORKED OUT ON THIS SCREEN below. */
+  const p = await open();
+  const r = await basisReads(p, E.site);
+  await p.done();
+  for (const line of [r.cash, r.crop])
+    assert.doesNotMatch(line || "", /\$/,
+      `the basis readout is quoting a dollar figure: ${JSON.stringify(line)}`);
 });
 
 each("BLANK AND ZERO ON THE NEW-CROP BOX MEAN OPPOSITE THINGS, and it says which", async (E) => {
@@ -850,20 +885,29 @@ each("BLANK AND ZERO ON THE NEW-CROP BOX MEAN OPPOSITE THINGS, and it says which
   let r = await basisReads(p, E.site);
   assert.match(r.cropClass, /basis-read/);
   assert.ok(!/is-zero/.test(r.cropClass), "blank must not be dressed as the zero state");
-  assert.equal(r.crop, `Blank — same as cash · we post ${money(NEWROW - cash)}`,
-    "blank means it follows the cash box, measured against the NEW CROP row");
+  assert.equal(r.crop, `Blank — same as the cash basis · ${money(cash)}`,
+    "blank means it follows the cash box, and says which figure that is");
 
   await p.fill(id(E.site, "offh"), "0");
   await p.waitForTimeout(80);
   r = await basisReads(p, E.site);
   assert.match(r.cropClass, /is-zero/, "the zero state must be marked, not only worded");
-  assert.equal(r.crop, `Zero spread — we pay Big River’s exact board · we post ${money(NEWROW)}`);
+  /* "Zero spread, we pay their exact board" was true of a spread. Zero in this
+     box now means even with the CONTRACT, which is a different claim about a
+     different number -- and it is why blank and zero still have to look
+     different, which the assertion above still checks. */
+  assert.equal(r.crop, `Zero — even with the contract · ${NEWMO}`);
 
-  await p.fill(id(E.site, "offh"), "0.07");
+  /* The third state: a figure typed. -0.45 rather than the old 0.07, because
+     a basis is signed and a positive one is a price OVER the contract -- a
+     real thing to want and not the ordinary case, so the ordinary case is what
+     the state test uses. The expectation is built from the fixture, not typed
+     twice. */
+  await p.fill(id(E.site, "offh"), "-0.45");
   await p.waitForTimeout(80);
   r = await basisReads(p, E.site);
   assert.ok(!/is-zero/.test(r.cropClass));
-  assert.equal(r.crop, `Big River ${money(NEWROW)} · we post ${money(NEWROW - 0.07)}`);
+  assert.equal(r.crop, `${NEWMO} · Big River ${money(NEWROW)} · ${versus(-0.45, NEWROW)}`);
 
   /* Something that is not a figure at all is not guessed at. */
   await p.fill(id(E.site, "offh"), "zz");
@@ -875,29 +919,31 @@ each("BLANK AND ZERO ON THE NEW-CROP BOX MEAN OPPOSITE THINGS, and it says which
 each("the new-crop readout is measured against the NEW CROP row, not the nearest delivery",
   async (E) => {
   /* The one that would pass by accident if the second box quietly reused the
-     first box's row. The fixture gives October a different basis from August
-     precisely so the two answers cannot coincide. */
+     first box's row. The fixture gives October a different basis from August,
+     and a different contract month, so the two answers cannot coincide on
+     either half of the line. */
   const p = await open();
-  await p.fill(id(E.site, "offh"), "0.10");
+  await p.fill(id(E.site, "offh"), "-0.10");
   await p.waitForTimeout(80);
   const r = await basisReads(p, E.site);
   await p.done();
   assert.ok(REF !== NEWROW, "the fixture cannot tell the two rows apart");
-  assert.equal(r.crop, `Big River ${money(NEWROW)} · we post ${money(NEWROW - 0.1)}`);
+  assert.ok(REFMO !== NEWMO, "the fixture cannot tell the two contracts apart");
+  assert.equal(r.crop, `${NEWMO} · Big River ${money(NEWROW)} · ${versus(-0.1, NEWROW)}`);
   assert.ok(!r.crop.includes(money(REF)), "the new-crop line is quoting the cash row");
+  assert.ok(!r.crop.includes(REFMO), "the new-crop line is quoting the cash row's contract");
 });
 
-test("the two columns read the same board row and their own spread", { skip: NO_BROWSER }, async () => {
+test("the two columns read the same board row and their own basis", { skip: NO_BROWSER }, async () => {
   const p = await open();
   const r = {};
   for (const E of ELEVATORS) r[E.site] = await basisReads(p, E.site);
   await p.done();
-  for (const E of ELEVATORS) {
-    const spread = Number(SITE_FILES[E.site].pricing.spread);
-    assert.equal(r[E.site].cash, `Big River ${money(REF)} · we post ${money(REF - spread)}`);
-  }
+  for (const E of ELEVATORS)
+    assert.equal(r[E.site].cash,
+      `${REFMO} · Big River ${money(REF)} · ${versus(BASIS(E.site), REF)}`);
   assert.notEqual(r.badger.cash, r.midwest.cash,
-    "both columns are printing the same basis — one of them is reading the other's spread");
+    "both columns are printing the same line — one is reading the other's basis");
 });
 
 test("NO CASH PRICE IS WORKED OUT ON THIS SCREEN", { skip: NO_BROWSER }, async () => {
@@ -1035,7 +1081,11 @@ each("the ? key never takes away the basis readout", async (E) => {
   await p.done();
   assert.ok(!withKeyOff.includes("none"), "the basis readouts vanish when the help key is off");
   assert.deepEqual(withKeyOn, withKeyOff, "the help key changed what the basis readout says");
-  assert.match(withKeyOff[2], /we post/);
+  /* Was /we post/, which the readout no longer says because the box now holds
+     the posted basis itself. What has to survive the key is that the line
+     still names Big River's figure -- the comparison is the whole reason the
+     readout is not a .help and not a .counter. */
+  assert.match(withKeyOff[2], /Big River/);
 });
 
 each("PRESSING SAVE ON A FORM THE SCREEN REFUSES MUST NOT LOOK LIKE NOTHING HAPPENED",
@@ -1295,7 +1345,7 @@ each("the column comes up holding what THIS elevator's site is publishing", asyn
              message: v("message") };
   }, E.site);
   await p.done();
-  assert.equal(got.spread, Number(f.pricing.spread).toFixed(2),
+  assert.equal(got.spread, Number(f.pricing.basis).toFixed(2),
     "money is formatted the way the rest of the screen reads it, not pasted raw");
   assert.equal(got.hoursnote, f.hours.hoursnote);
   assert.equal(got.pricenote, f.pricing.price_note);
@@ -1320,8 +1370,8 @@ test("the two columns really are reading two different files", { skip: NO_BROWSE
     midwest: document.getElementById("midwest-off").value,
   }));
   await p.done();
-  assert.equal(r.badger, Number(SITE_FILES.badger.pricing.spread).toFixed(2));
-  assert.equal(r.midwest, Number(SITE_FILES.midwest.pricing.spread).toFixed(2));
+  assert.equal(r.badger, Number(SITE_FILES.badger.pricing.basis).toFixed(2));
+  assert.equal(r.midwest, Number(SITE_FILES.midwest.pricing.basis).toFixed(2));
   assert.notEqual(r.badger, r.midwest, "both columns hold one elevator's basis");
 });
 
@@ -1376,7 +1426,10 @@ each("a column whose files cannot be read says nothing about them", async (E) =>
   }, E.site);
   await p.done();
   assert.equal(r.complaint, null, "it invented a complaint out of a failed read");
-  assert.equal(r.spread, "0.10", "the shipped value must be left where it is, outlined");
+  /* The shipped sample in the markup, which changed with the box: a spread of
+     0.10 became a basis of -0.75, because a box labelled "Our basis" shipping
+     a spread is the confusion this whole change exists to end. */
+  assert.equal(r.spread, "-0.75", "the shipped value must be left where it is, outlined");
 });
 
 test("a screen that agrees with both sites complains about neither", { skip: NO_BROWSER }, async () => {
@@ -1444,12 +1497,36 @@ each("if this elevator's published prices cannot be read, its preview is left al
        what to compare. */
     const pristine = document.getElementById("elevTpl").content
       .querySelector('[data-id="prevBid"]');
-    const norm = (x) => x.innerHTML.replace(/\s+/g, " ").trim();
-    return { same: norm(el) === norm(pristine), raw: el.textContent };
+    /* AMENDED 2026-09-06, and the third version of this comparison.
+       The filler machinery injects a "Sample content, not a reading." span as
+       the first child of anything it marks. Until now the page's own sweep
+       stripped that span from the preview on every load whether or not the
+       preview had been rebuilt, so comparing raw innerHTML against the
+       template happened to work. That stripping was the defect: on a failed
+       read it left five months of invented prices on screen with the outline
+       taken off and the count reduced -- $3.97 for an August delivery against
+       a feed publishing $4.62 for September. The sweep now skips this element,
+       so the announcement correctly survives, and raw innerHTML no longer
+       matches. The claim being tested is "the PRICES were not rebuilt", so the
+       announcement comes out of both sides and the prices are compared. */
+    const norm = (x) => {
+      const c = x.cloneNode(true);
+      c.querySelectorAll(".sr-only").forEach((n) => {
+        if (/^Sample content/.test(n.textContent)) n.remove();
+      });
+      return c.innerHTML.replace(/\s+/g, " ").trim();
+    };
+    return { same: norm(el) === norm(pristine), raw: el.textContent,
+             marked: el.hasAttribute("data-sample") && el.classList.contains("sample") };
   }, E.site);
   await p.done();
   assert.equal(r.same, true, "the preview was rebuilt out of a read that failed");
   assert.match(r.raw, /Cash, corn/, "and what was already there is untouched");
+  /* THE HALF THAT WAS MISSING. "Left alone" was only ever half the
+     requirement: filler left on screen has to still LOOK like filler. This is
+     the assertion whose absence let the sweep strip the marker for weeks. */
+  assert.equal(r.marked, true,
+    "the preview kept its invented prices but lost the marker that says they are invented");
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1563,10 +1640,10 @@ each("WHAT THE SCREEN SENDS IS WHAT THE APPLIER READS", async (E) => {
      means unchanged from THAT, not from a line written here. */
   const published = SITE_FILES[E.site].hours;
   const before = { ...published, today_date: null };
-  const r = applyUpdate(form, { hours: before, pricing: { spread: 0.1, spreadHarvest: 0 },
+  const r = applyUpdate(form, { hours: before, pricing: { basis: -0.75, basisHarvest: 0 },
                                 todayISO: "2026-08-20" });
   assert.equal(r.hours.sunday, "9:00a to 1:00p", "Sunday did not survive the trip");
-  assert.equal(r.pricing.spread, 0.14, "the basis did not survive the trip");
+  assert.equal(r.pricing.basis, 0.14, "the basis did not survive the trip");
   assert.ok(r.did.length, "the applier reported no change at all");
   assert.equal(r.hours.weekday, published.weekday, "something the office did not touch moved");
   assert.equal(r.hours.saturday, published.saturday, "Saturday moved and nobody asked it to");
@@ -1619,8 +1696,8 @@ each("THE LABEL ON THE SCREEN, THE HEADING IN THE ISSUE AND THE APPLIER AGREE", 
     cash: document.querySelector('label[for="' + s + '-off"]').textContent.trim(),
     crop: document.querySelector('label[for="' + s + '-offh"]').textContent.trim(),
   }), E.site);
-  await p.fill(id(E.site, "off"), "0.23");
-  await p.fill(id(E.site, "offh"), "0.09");
+  await p.fill(id(E.site, "off"), "-0.23");
+  await p.fill(id(E.site, "offh"), "-0.09");
   const url = await save(p, E.site);
   const why = await refusal(p, E.site);
   await p.done();
@@ -1632,14 +1709,14 @@ each("THE LABEL ON THE SCREEN, THE HEADING IN THE ISSUE AND THE APPLIER AGREE", 
     assert.ok(headings.includes(label),
       `the ${which} box is labelled “${label}” on screen but the issue calls it something ` +
       `else: ${JSON.stringify(headings.filter((h) => /Big River/i.test(h)))}`);
-  assert.equal(form[labels.cash], "0.23");
-  assert.equal(form[labels.crop], "0.09");
+  assert.equal(form[labels.cash], "-0.23");
+  assert.equal(form[labels.crop], "-0.09");
 
   const r = applyUpdate(form, { hours: { ...SITE_FILES[E.site].hours, today_date: null },
-                                pricing: { spread: 0.1, spreadHarvest: 0 }, todayISO: "2026-08-20" });
-  assert.equal(r.pricing.spread, 0.23,
+                                pricing: { basis: -0.75, basisHarvest: 0 }, todayISO: "2026-08-20" });
+  assert.equal(r.pricing.basis, -0.23,
     `the applier does not read the heading the screen writes for “${labels.cash}”`);
-  assert.equal(r.pricing.spreadHarvest, 0.09,
+  assert.equal(r.pricing.basisHarvest, -0.09,
     `the applier does not read the heading the screen writes for “${labels.crop}”`);
 });
 

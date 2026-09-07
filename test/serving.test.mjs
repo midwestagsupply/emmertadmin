@@ -169,6 +169,28 @@ test("nothing secret leaves in the issue the page builds", { skip: NB }, async (
   const browser = await chromium.launch();
   const context = await browser.newContext({ viewport: { width: 1600, height: 1000 } });
   await context.route("**/*", (r) => /^file:/.test(r.request().url()) ? r.continue() : r.abort());
+  /* AMENDED 2026-09-06. This fixture aborted every request, including the two
+     settings files the screen reads from the site on load, and then pressed
+     Save. The screen now refuses that: with neither file read, every box on it
+     is the sample it ships with, and the issue this test inspects would have
+     set a real spread to 0.10, reopened a Saturday the site has closed and
+     replaced the live banner. Traced end to end through applyUpdate before the
+     refusal was added.
+     So the fixture now lets the two reads land. Nothing about what this test
+     asserts has changed -- it still builds a real issue and still checks that
+     nothing but the form is in it. It just has to be a screen somebody would
+     be allowed to press Save on. */
+  for (const repo of ["badgergrain", "midwestcommodity"]) {
+    await context.route(`**/${repo}/main/hours.json*`, (r) => r.fulfill({
+      status: 200, contentType: "application/json",
+      body: JSON.stringify({ weekday: "8:00a to 5:00p", saturday: null, sunday: null,
+        harvest: "8:00a to 7:00p", harvest_mode: false, closed_today: false,
+        today_override: null, banner: null, hoursnote: null }) }));
+    await context.route(`**/${repo}/main/pricing.json*`, (r) => r.fulfill({
+      status: 200, contentType: "application/json",
+      body: JSON.stringify({ spread: 0.1, spreadHarvest: null, price_note: null,
+        manual: null, company: "x", location: "y" }) }));
+  }
   const page = await context.newPage();
   await page.goto("file://" + pjoin(dir, "live.html"), { waitUntil: "load" });
   await page.waitForTimeout(600);

@@ -14,16 +14,18 @@
   <div class="wrap">
     <div class="marks">
       <span class="logo" data-elev="badger">
-        <img class="ear l" src="assets/corn-left.png" alt="" aria-hidden="true">
+        <!-- THE CORN CAME OFF. Two 122x288 PNGs, 49,873 bytes between them,
+             drawn four times into a box 14px by 33px at 1440 -- about a ninth
+             of their own width. Clip-art cobs flanking a wordmark are the
+             single most toy-like thing on a screen the office types grain
+             prices into, and the wordmark already says which elevator this is.
+             The files are still in assets/ and this is two lines to put back. -->
         <span class="wm"><span class="wm1">Badger</span><span class="wmrule"></span><span class="wm2">Grain Supply</span></span>
-        <img class="ear r" src="assets/corn-right.png" alt="" aria-hidden="true">
         <span class="sr-only">Badger Grain Supply</span>
       </span>
       <span class="marks-sep" aria-hidden="true"></span>
       <span class="logo" data-elev="midwest">
-        <img class="ear l" src="assets/corn-left.png" alt="" aria-hidden="true">
         <span class="wm"><span class="wm1">Midwest</span><span class="wmrule"></span><span class="wm2">Commodity Service</span></span>
-        <img class="ear r" src="assets/corn-right.png" alt="" aria-hidden="true">
         <span class="sr-only">Midwest Commodity Service</span>
       </span>
     </div>
@@ -104,11 +106,7 @@
   </button>
   <button type="button" class="rail-b" data-go="hours">
     <span class="rail-t">Hours &amp; notices</span>
-    <span class="rail-s">Today, the banner, the week</span>
-  </button>
-  <button type="button" class="rail-b" data-go="settings">
-    <span class="rail-t">Settings</span>
-    <span class="rail-s">Small print under the hours</span>
+    <span class="rail-s">Today, the banner, the week, the small print</span>
   </button>
   <div class="rail-foot">
     <!-- TWO LENGTHS, ONE LINK. On the desk the rail is 196px wide and the word
@@ -121,6 +119,17 @@
     <span class="rail-clock" id="railClock" aria-hidden="true"></span>
   </div>
 </nav>
+
+<noscript>
+  <style>
+    #boardStrip, .feed, .feedlive { display:none !important; }
+    .noscript-warn{ margin:0; padding:14px 18px; background:#b8332a; color:#fff;
+                    font-weight:700; line-height:1.4; }
+  </style>
+  <p class="noscript-warn">This screen needs JavaScript, and it is switched off.
+  Every figure below is the sample this page ships with, not a reading, and the
+  price board has been hidden so nobody quotes it. Nothing here can be saved.</p>
+</noscript>
 
 <main id="content">
 
@@ -274,14 +283,24 @@
              when there was only one. The figures are per elevator: this screen
              writes the one you are editing and never touches the other. -->
         <div class="row spread-row">
-          <!-- WAS "Our basis under Big River". It is not our basis: our basis is
-               -0.62 while this box holds 0.10. Calling the spread "our basis"
-               is exactly the confusion Jessie hit -- she thinks in the basis,
-               like everyone in the trade, and the screen was showing her a
-               different quantity under that name. The box is the spread; the
-               basis is now printed beside it, live, and correctly named. -->
-          <label class="fl" data-for="off">Under Big River &mdash; cash</label>
-          <div class="money sm"><span>&minus;$</span><input data-id="off" name="spread" type="text" inputmode="decimal" value="0.10" data-sample-value="0.10"></div>
+          <!-- The name Jessie already thinks in. This box held a SPREAD until
+               2026-09-07 and was labelled for it; the confusion that caused --
+               she thinks in the basis, like everyone in the trade -- is what
+               the change to an absolute basis ended. Box and label now hold
+               the same quantity for the first time. -->
+          <label class="fl" data-for="off">Our basis &mdash; cash</label>
+          <!-- THE MINUS IS NO LONGER PRINTED FOR THEM. It used to be, because
+               the box held a spread and a spread is always a positive number
+               of cents under somebody else's board. This box now holds OUR
+               BASIS against the contract month, and a basis is signed: -0.75
+               is seventy-five under, +0.05 is a nickel over. Printing a minus
+               beside a box that can hold either sign is how somebody types
+               0.75 meaning under and posts a price seventy-five cents over.
+               The `name` is still "spread": it is threaded through this page,
+               the applier, and seven test files, and renaming it in the same
+               change as the arithmetic is how a wrong price reaches a page.
+               The kit's README carries that as a known naming debt. -->
+          <div class="money sm"><span>$</span><input data-id="off" name="spread" type="text" inputmode="decimal" value="-0.75" data-sample-value="-0.75"></div>
           <div class="counter">Corn off the truck today.</div>
           <!-- NOT a .counter and NOT a .help: this is state, not explanation,
                so the ? key must never take it away. -->
@@ -289,8 +308,8 @@
         </div>
 
         <div class="row spread-row">
-          <label class="fl" data-for="offh">Under Big River &mdash; new crop</label>
-          <div class="money sm"><span>&minus;$</span><input data-id="offh" name="spread_harvest" type="text" inputmode="decimal" value="" placeholder="same as cash"></div>
+          <label class="fl" data-for="offh">Our basis &mdash; new crop</label>
+          <div class="money sm"><span>$</span><input data-id="offh" name="spread_harvest" type="text" inputmode="decimal" value="" placeholder="same as cash"></div>
           <div class="counter">October and November delivery.</div>
           <div class="basis-read" data-id="basisNew"></div>
           <div class="basis-out" data-id="basisOut"></div>
@@ -473,7 +492,14 @@
     </div>
 
     <!-- ============ HARVEST NOTE ============ -->
-    <div class="card" data-id="c-print" data-tab="settings">
+    <!-- WAS ITS OWN TAB. One text box and then most of a screen of grey --
+         52% empty rows at 1440, measured. A tab is a promise that there is
+         enough behind it to be worth the trip. Folded in here because the note
+         it holds prints under the hours, which is the thing this tab is
+         already about. Somebody whose browser remembers "settings" as their
+         last tab lands on Overview: go() checks the saved name against the
+         buttons that exist and falls back. -->
+    <div class="card" data-id="c-print" data-tab="hours">
       <h2>Small print under the hours</h2>
       <div class="body">
         <div class="row">
@@ -547,6 +573,9 @@
     var t = String(Math.abs(a)), i = t.indexOf("."), dp = i === -1 ? 0 : t.length - i - 1;
     return a.toFixed(Math.max(2, dp));
   }
+  /* Each column registers its filler recount here so the rail can re-run them
+     when the tab changes. See fillerLine. */
+  var RECOUNTS = [];
   var warnBox = document.getElementById("adminWarn");
   /* THERE ARE TWO FORMS ON THIS PAGE NOW, one per elevator, so nothing at
      this level may reach for "the form" -- every form lookup happens inside
@@ -920,7 +949,10 @@
         setFeed("warn", "<strong>Could not reach the price feed from this browser.</strong> " +
           "That is either the feed or this connection, and from here they look the same \u2014 " +
           "so it is not a reason to post a price by hand on its own. (" + e.message + ")");
-      });
+      })
+      /* BOTH ARMS, AFTER drawBoard HAS HAD ITS TURN. The board either got real
+         rows or it did not, and only now is that settled. */
+      .then(boardVerdict, boardVerdict);
   }
   /* ---- THE BOARD IS DRAWN FROM THE FEED, NOT SHIPPED WITH THE FILE -------
    *
@@ -944,6 +976,23 @@
    * the file cannot be read at all, the column says so in words rather than
    * showing a dash that means something else. */
   var boardHooks = [];
+  /* Hoisted, because the feed fetch above is written before it and calls it.
+     Says one thing, once: is the board on this screen a reading, or is it the
+     five rows of filler the file ships with? Nothing else on the page answers
+     that -- the per-column filler walker cannot reach the strip, and the feed
+     line above the board is about the FEED, not about the table. */
+  function boardVerdict() {
+    var tb = STRIP ? STRIP.querySelector("tbody") : null;
+    if (tb && tb.hasAttribute("data-sample")) {
+      gwarn("The price board below is the sample this screen ships with, not a " +
+            "reading from Big River. Do not quote it.", "strip:filler");
+    } else {
+      gunwarn("strip:filler");
+      var srn = document.querySelector(".board-sr");
+      if (srn) srn.remove();
+    }
+  }
+
   function drawBoard(j) {
     var tb = STRIP && STRIP.querySelector(".bd tbody");
     if (!tb) return;
@@ -1106,13 +1155,20 @@
   (function wireHelp() {
     var btn = document.getElementById("helpBtn");
     if (!btn) return;
-    function set(on) {
+    function set(on, remember) {
       document.body.setAttribute("data-help", on ? "on" : "off");
       btn.setAttribute("aria-pressed", on ? "true" : "false");
+      if (remember) { try { localStorage.setItem("emmert-help", on ? "on" : "off"); } catch (e) { /* private window */ } }
     }
-    set(false);
+    /* Remembered, like the tab. Somebody who turns the explanation on because
+       they are new should not have to turn it on again every morning, and
+       somebody who turned it off should not have it come back. Still off by
+       default. */
+    var wantHelp = "off";
+    try { wantHelp = localStorage.getItem("emmert-help") || "off"; } catch (e) { /* ignore */ }
+    set(wantHelp === "on", false);
     btn.addEventListener("click", function () {
-      set(document.body.getAttribute("data-help") !== "on");
+      set(document.body.getAttribute("data-help") !== "on", true);
     });
     document.addEventListener("keydown", function (e) {
       /* Not while somebody is typing a question mark into the banner. */
@@ -1120,7 +1176,7 @@
       if (/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName || "")) return;
       if (e.key === "?" || (e.key === "/" && e.shiftKey)) {
         e.preventDefault();
-        set(document.body.getAttribute("data-help") !== "on");
+        set(document.body.getAttribute("data-help") !== "on", true);
       }
     });
   })();
@@ -1154,6 +1210,10 @@
        elevators sends somebody to check the wrong one. The tag is namespaced
        for the same reason -- Badger retracting its filler warning must not
        take Midwest's down with it. */
+    /* Set by the fill the moment either file lands. Read by problems() below:
+       until it is true, every box on this column is the sample the file ships
+       with, and Save would publish those samples over a live grain site. */
+    var landed = false, landedHours = false, landedPricing = false;
     function warn(msg, tag)  { gwarn(name + " \u2014 " + msg, tag ? site + ":" + tag : null); }
     function unwarn(tag)     { gunwarn(site + ":" + tag); }
 
@@ -1435,7 +1495,7 @@
          table, this screen has no idea what their basis is and says nothing,
          rather than saying something it made up. */
       if (!cell || !tb || tb.hasAttribute("data-sample")) return null;
-      var n = parseFloat(cell.textContent.replace(/\u2212/, "-"));
+      var n = parseFloat(cell.textContent.replace(/\u2212/, "-").replace(/[$,]/g, ""));
       return isFinite(n) ? n : null;
     }
     function readRefBasis() {
@@ -1466,33 +1526,59 @@
       if (!cashBox) return;
       var c = parseFloat(cashBox.value);
 
-      if (readCash) {
-        readCash.innerHTML = (refBasis != null && isFinite(c))
-          ? "Big River " + fmt(refBasis) + " &middot; <b>we post " + fmt(refBasis - c) + "</b>"
-          : "";
+      /* WHAT THE BOX MEANS NOW, IN TWO FACTS AND NOTHING ELSE.
+         It used to hold a spread, so the line under it did the subtraction out
+         loud and told her the basis she was really posting. The box holds that
+         basis directly now, so restating it would be reading her own typing
+         back to her. What she cannot see is which contract it is set against
+         and where Big River is sitting, so that is what it says.
+
+         NO DOLLAR FIGURE THIS SCREEN WORKED OUT. The first cut printed
+         "Contract $5.3675", derived as their cash less their basis -- exact,
+         no rounding rule, and still a price computed here rather than read
+         from a file. screen.test.mjs holds every $ figure in a .basis-read to
+         one that arrived in a file and caught it. That rule is older and
+         better than this readout, so the contract MONTH is named instead. */
+      function monthOf(row) {
+        var tb = STRIP && STRIP.querySelector(".bd tbody");
+        var tr = STRIP && STRIP.querySelector(row);
+        if (!tr || !tb || tb.hasAttribute("data-sample")) return null;
+        var t = tr.children[1] ? tr.children[1].textContent.trim() : "";
+        return (t && t !== "\u2014") ? t : null;
+      }
+      function versus(mine, theirs) {
+        if (!isFinite(mine) || theirs == null) return "";
+        if (Math.abs(mine - theirs) < 1e-9) return " &middot; <b>even with them</b>";
+        return " &middot; <b>" + fmt(Math.abs(mine - theirs)) +
+               (mine < theirs ? " under them" : " over them") + "</b>";
+      }
+      function line(month, theirBasis, mine) {
+        return (month || "") +
+               (theirBasis != null ? (month ? " &middot; " : "") + "Big River " + fmt(theirBasis) : "") +
+               versus(mine, theirBasis);
       }
 
-      /* THREE STATES, AND TWO OF THEM LOOK THE SAME UNTIL YOU SAY SO.
-         Blank means "same as cash". Zero means "no spread at all -- pay their
-         exact board". spreadFor() in update-prices.mjs treats them as
-         different because 0 != null, and Badger is deliberately running the
-         zero on new crop. A screen where those two look alike is a screen
-         where somebody clears the box to mean 0, or types 0 to mean blank,
-         and moves the price ten cents without knowing. */
+      if (readCash) readCash.innerHTML = line(monthOf("tr.is-ref"), refBasis, c);
+
+      /* BLANK AND ZERO STILL MEAN OPPOSITE THINGS AND STILL HAVE TO LOOK IT.
+         Blank is "same as the cash basis". Zero is "even with the contract".
+         basisFor() in update-prices.mjs reads them apart because 0 != null, so
+         a screen where they look alike is one where somebody clears the box
+         meaning zero and moves the new-crop price without knowing. */
       if (readNew && cropBox) {
         var raw = cropBox.value.trim();
         var h = parseFloat(raw);
-        var ref = newBasis != null ? newBasis : refBasis;
+        var theirNew = newBasis != null ? newBasis : refBasis;
         if (raw === "") {
-          readNew.innerHTML = "Blank &mdash; same as cash" +
-            (ref != null && isFinite(c) ? " &middot; <b>we post " + fmt(ref - c) + "</b>" : "");
+          readNew.innerHTML = "Blank &mdash; same as the cash basis" +
+            (isFinite(c) ? " &middot; <b>" + fmt(c) + "</b>" : "");
           readNew.className = "basis-read";
-        } else if (isFinite(h) && h === 0) {
-          readNew.innerHTML = "Zero spread &mdash; we pay Big River&rsquo;s exact board" +
-            (ref != null ? " &middot; <b>we post " + fmt(ref) + "</b>" : "");
+        } else if (h === 0) {
+          readNew.innerHTML = "Zero &mdash; even with the contract" +
+            (monthOf("tr.is-new") ? " &middot; " + monthOf("tr.is-new") : "");
           readNew.className = "basis-read is-zero";
-        } else if (isFinite(h) && ref != null) {
-          readNew.innerHTML = "Big River " + fmt(ref) + " &middot; <b>we post " + fmt(ref - h) + "</b>";
+        } else if (isFinite(h)) {
+          readNew.innerHTML = line(monthOf("tr.is-new"), theirNew, h);
           readNew.className = "basis-read";
         } else {
           readNew.innerHTML = "";
@@ -1584,8 +1670,14 @@
       if (bhBody) { bhBody.appendChild(checkNote); bhBody.appendChild(nextNote); }
     }
 
+    /* The leading + is allowed for the same reason the applier allows it: a
+       basis over the contract is unusual, not invalid, and the box's own
+       helper text offers "+0.05" as an example. The two patterns are kept
+       identical on purpose -- a screen that accepts what the applier refuses
+       is a refusal that arrives one save too late, which is the fault this
+       page has already been corrected for twice. */
     function bad(el) {
-      var v = el.value.trim();
+      var v = el.value.trim().replace(/^\+/, "");
       return v !== "" && (!/^-?\d*\.?\d+$/.test(v) || !isFinite(parseFloat(v)));
     }
     var flagged = [];
@@ -1606,6 +1698,39 @@
     function problems() {
       clearBad();
       var out = [];
+
+      /* NOTHING HAS BEEN READ FROM THE SITE YET.
+         Every check below this point examines the boxes. Before the fill lands
+         the boxes hold the filler this file ships with, and passing those
+         checks meant Save filed an issue that set Badger's spread to 0.10 over
+         a real 0.00, reopened a Saturday the site has closed, and replaced the
+         live banner. Traced end to end through applyUpdate: all three writes
+         land. The screen was warning about the filler at that moment and
+         issuing the save anyway.
+         This refuses instead. It also refuses when the read genuinely fails,
+         which is the right trade -- a save deferred until reload costs a
+         minute, and publishing filler over a live site costs a day -- so it
+         says reload rather than leaving a dead button. The copy-for-a-desktop
+         path is separate and still explains itself. */
+      /* PUSHED, NOT RETURNED. The first version returned here, and a test
+         caught what that costs: a screen with a slow network AND a 2.00 basis
+         typed into it answered "wait for the settings to load" and never
+         mentioned the basis, because every check below was skipped. The office
+         fixes one fault, presses Save again, and meets the next one. Both
+         refusals are true at once, so both get said. */
+      if (!landed) {
+        out.push("The settings on the site have not loaded into this screen yet, so " +
+                 "everything on it is still the sample it ships with. Wait a moment, " +
+                 "or reload the page. Saving now would publish the sample values.");
+      } else if (!landedHours) {
+        out.push("The hours file could not be read, so the hours, the notice banner " +
+                 "and today's answer on this screen are the samples it ships with, not " +
+                 "the site's. Saving now would publish them. Reload and try again.");
+      } else if (!landedPricing) {
+        out.push("The pricing file could not be read, so the basis boxes are empty " +
+                 "because nothing was read, not because nothing is set. Saving now " +
+                 "would clear the new-crop basis. Reload and try again.");
+      }
 
       /* A DAY THAT IS OPEN HAS TO SAY WHEN.
        *
@@ -1645,14 +1770,29 @@
          somebody told "the cash basis goes in as a positive number" types
          0.65 where the spread 0.13 belongs. The panel's grain-desk reviewer
          caught it. */
-      [[cashBox, "Under Big River — cash", true],
-       [cropBox, "Under Big River — new crop", false]].forEach(function (p) {
+      [[cashBox, "Our basis — cash", true],
+       [cropBox, "Our basis — new crop", false]].forEach(function (p) {
         var el = p[0]; if (!el) return;
         var v = el.value.trim();
-        if (v === "") { if (p[2]) out.push("The Under Big River — cash box is blank. Type 0 if we are paying the board."); return; }
+        /* A BLANK BOX NO LONGER REFUSES THE WHOLE SAVE, and the old version of
+           this locked the office out of the screen. Before the change the box
+           was always filled, from the spread; now it is empty on every site
+           that has not set a basis yet, and this refusal fired on every Save
+           -- so nobody could change the hours, the banner or the small print
+           either. Measured: a fresh screen, Save pressed, no issue filed and
+           "The Our basis — cash box is blank" on a form where nothing about
+           the basis had been touched.
+           `spread` is not in CLEARABLE, so an empty box sends no heading at
+           all and the applier leaves the basis exactly as it was. Blank means
+           "not setting it", which is the truth, and the bar at the top already
+           says no basis is set and what the site is pricing off meanwhile. */
+        if (v === "") return;
         if (bad(el)) { out.push("The " + p[1] + " box, “" + v + "”, is not a number."); markBad(el); }
-        else if (parseFloat(v) < 0) out.push("The spread goes in as a positive number under " +
-          "the board; the minus is already printed beside the box.");
+        /* A NEGATIVE NUMBER USED TO BE THE ERROR. IT IS NOW THE NORMAL CASE.
+           The old refusal read "the spread goes in as a positive number under
+           the board; the minus is already printed beside the box" -- correct
+           for a spread and exactly backwards for a basis. Almost every basis
+           this office will ever type is negative. */
         /* THE FAT FINGER. The applier caps both spread boxes at SPREAD_MAX =
            1.00 and its own comment says why: "10 typed instead of 0.10 pays
            ten dollars under the board... nothing else here can cost money, so
@@ -1668,8 +1808,23 @@
            1.00 is the applier's figure (tools/apply-update.mjs, SPREAD_MAX),
            mirrored, not invented. The box is named as the CARD names it, not
            as the applier does, for the reason in the comment above. */
-        else if (parseFloat(v) > 1) out.push("The " + p[1] + " box, “" + v + "”, is $" +
-          parseFloat(v).toFixed(2) + " under the board — past the $1.00 limit the site will " +
+        /* THE FAT FINGER, RE-AIMED. The cap was 1.00 and one-sided, because a
+           spread could only ever be positive. A basis can be wrong in both
+           directions and 1.50 is the figure the applier and update-prices.mjs
+           both hold, so all three agree. Measured before this existed: a -1.90
+           basis on a 5.3675 contract posts $3.47 -- inside the site's own
+           $2-$12 range guard, and a dollar fifteen under the board. */
+        /* A basis OVER the contract is a real thing and a rare one; a basis
+           over fifteen cents is almost always the old spread habit, typed
+           without its minus. Named as the habit rather than as a range, so the
+           person reads the sentence and sees their own mistake in it. */
+        else if (parseFloat(v) > 0.15) out.push("The " + p[1] + " box, “" + v + "”, is a basis " +
+          parseFloat(v).toFixed(2) + " OVER the contract, which would post well above the board. " +
+          "If you meant " + parseFloat(v).toFixed(2) + " under, type −" + parseFloat(v).toFixed(2) +
+          ". If you really do mean over, it has to be set in pricing.json, so that it takes " +
+          "two people to notice.")
+        else if (Math.abs(parseFloat(v)) > 1.5) out.push("The " + p[1] + " box, “" + v + "”, is $" +
+          Math.abs(parseFloat(v)).toFixed(2) + " from zero — past the $1.50 limit the site will " +
           "accept. If that is really the number it has to be changed in pricing.json, " +
           "so that it takes two people to notice.");
       });
@@ -1737,6 +1892,22 @@
             "Type a message, or choose Hide it.");
           markBad(box);
         }
+        /* Every other applier limit is mirrored on this screen -- maxlength on
+           all three text boxes, the spread cap, the basis cap. The angle-bracket
+           ban was the one that was not, so a banner reading <b>Closed</b> passed
+           every check here, opened a GitHub tab, and was refused by the applier
+           after the office thought they had saved. */
+        var ANGLE = /[<>]/;
+        [["message", box, "banner message"],
+         ["price_note", byName("price_note"), "small print under the price table"],
+         ["hoursnote", byName("hoursnote"), "small print under the hours"]]
+          .forEach(function (t) {
+            if (t[1] && ANGLE.test(t[1].value)) {
+              out.push("The " + t[2] + " has a < or > in it. The site will not take " +
+                       "those, so take them out.");
+              markBad(t[1]);
+            }
+          });
         var max = parseInt(box.getAttribute("maxlength"), 10);
         if (max && box.value.length > max) {
           out.push("The banner message is " + (box.value.length - max) +
@@ -1931,8 +2102,14 @@
          confused Jessie -- and the GitHub issue the office reads afterwards
          carried that same wrong name. A test holds these three together:
          the <label>, this table, and the headings apply-update.mjs reads. */
-      spread: "Under Big River — cash",
-      spread_harvest: "Under Big River — new crop",
+      /* The heading the issue carries, and it MUST change with the meaning.
+         The applier keys off these strings, and "Under Big River — cash: 0.10"
+         means ten cents UNDER their board while "Our basis — cash: 0.10" means
+         a dime OVER the contract. Reusing the old heading for the new number
+         would have turned every in-flight issue into a 20-cent error in the
+         wrong direction. */
+      spread: "Our basis — cash",
+      spread_harvest: "Our basis — new crop",
       manual_cash: "Price by hand — cash",
       manual_basis: "Price by hand — cash basis",
       manual_harvest: "Price by hand — new crop",
@@ -2039,9 +2216,20 @@
      * 1. IT NEVER FILLS A BOX IN. Only reports. The Worker fills this form; a
      *    second thing writing the same fields is the two-writers fault that has
      *    bitten this system three times now.
-     * 2. A BOX THE USER HAS TOUCHED IS NEVER COMPARED. What somebody has just
-     *    typed is meant to differ from what is published -- that is the entire
-     *    purpose of the screen.
+     * 2. ONLY A BOX THE USER TOUCHED BEFORE THE FILL LANDED IS COMPARED, and
+     *    this rule used to say the exact opposite. It read "a box the user has
+     *    touched is never compared", on the reasoning that what somebody has
+     *    just typed is meant to differ from what is published. True -- but the
+     *    fill puts the published value into every UNtouched box out of the same
+     *    two files these comparisons read, so with touched boxes excluded there
+     *    was nothing left to compare but the file against itself. Measured: a
+     *    screen whose boxes disagreed with the site in four places produced
+     *    zero findings and this note never appeared.
+     *    The one honest comparison is the box someone typed into during the
+     *    second or so before the fetch returned. put() skips it, so it still
+     *    holds what they typed while the file still holds what the site says,
+     *    and they are about to save a number without having seen the site
+     *    disagree. Rare, real, and the only case this can speak to.
      * 3. IF THE FETCH FAILS IT SAYS NOTHING. Not a warning, not a dash: silence.
      *    From this browser an unreachable file and a dropped connection look
      *    identical, and guessing wrong would be a false alarm on a working
@@ -2087,8 +2275,10 @@
       liveNote.innerHTML =
         "<strong>" + lines.length + (lines.length === 1 ? " box does" : " boxes do") +
         " not match what is published on the site.</strong> " +
-        "Nothing has been changed here. Check each one before you save — or, if you " +
-        "saved in the last few minutes, this is the published copy catching up and will clear." +
+        "You typed in it before this screen had finished reading the site's own " +
+        "settings, so what the site says was never put in front of you. Check each one " +
+        "before you save — or, if you saved in the last few minutes, this is the " +
+        "published copy catching up and will clear." +
         "<ul>" + lines.map(function (l) { return "<li>" + l + "</li>"; }).join("") + "</ul>";
     }
 
@@ -2108,22 +2298,57 @@
       }, true);
 
       var bust = "?t=" + Date.now();
-      Promise.all([
-        fetch(LIVE_BASE + repo + "/main/hours.json" + bust, { cache: "no-store" }).then(function (r) { return r.json(); }),
-        fetch(LIVE_BASE + repo + "/main/pricing.json" + bust, { cache: "no-store" }).then(function (r) { return r.json(); }),
-      ]).then(function (both) {
-        var h = both[0], pr = both[1], out = [];
+      function readJson(name) {
+        return fetch(LIVE_BASE + repo + "/main/" + name + bust, { cache: "no-store" })
+          .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+          .catch(function () { return null; });
+      }
+      /* ONE FILE FAILING MUST NOT DISCARD THE OTHER'S FILL.
+         Both reads were arms of a single Promise.all with no catch and no r.ok
+         check, so a 404 on pricing.json rejected inside json() and took the
+         hours fill down with it: the weekly hours, today's radio and the banner
+         all sat on shipped samples although hours.json had loaded fine. Read
+         them separately, and let each fill what it has. If NEITHER lands, fill
+         nothing -- the filler warning is already standing and is the honest
+         thing on screen at that moment. */
+      Promise.all([readJson("hours.json"), readJson("pricing.json")]).then(function (both) {
+        if (!both[0] && !both[1]) return;
+        var h = both[0] || {}, pr = both[1] || {}, out = [];
+        landed = true;
+        landedHours = !!both[0];
+        landedPricing = !!both[1];
         /* Each finding remembers which boxes it is about, so it can be withdrawn
            the moment somebody edits one of them. Reported once on load and then
            left standing, it would go on complaining about a box the user had
            just deliberately changed -- which is how a true warning turns into
            one people learn to scroll past. */
         var findings = [];
-        function say(names, html) { findings.push({ names: names, html: html }); }
+        /* WHAT THIS BLOCK CAN AND CANNOT CATCH.
+           It was written to warn that the boxes disagree with what the site
+           publishes. put() above fills every one of those boxes from the same
+           `h` and `pr` these comparisons read, and both sides skipped a touched
+           box, so for an untouched box the comparison was the file against
+           itself and could never fire. Four real mismatches on load produced
+           zero findings.
+           There is exactly one box where the comparison is not tautological:
+           one the office typed into BEFORE the fill landed. put() skips it, so
+           it still holds what they typed, and `pr`/`h` still hold what the site
+           says. That is a real and easy race -- the fetch takes a moment and
+           the spread box is the first thing anyone touches -- and it is the one
+           case where somebody is about to save a number they never saw the site
+           disagree with. So the comparisons below now run for touched boxes
+           only, and are silent otherwise. */
+        function snap(names) {
+          return names.map(function (n) {
+            var e = byName(n);
+            return e ? (e.type === "checkbox" ? String(e.checked) : String(e.value)) : "";
+          }).join("\u0001");
+        }
+        function say(names, html) { findings.push({ names: names, html: html, at: snap(names) }); }
+        /* Withdrawn when the box moves again -- they have seen it and acted. */
         function repaint() {
-          sayLive(findings.filter(function (f) {
-            return !f.names.some(function (n) { return touched[n]; });
-          }).map(function (f) { return f.html; }));
+          sayLive(findings.filter(function (f) { return snap(f.names) === f.at; })
+                          .map(function (f) { return f.html; }));
         }
         /* Local, and defined here rather than borrowed: this file has no shared
            escaper, and the first version of this block assumed one existed. The
@@ -2138,7 +2363,7 @@
         function cmpText(name, live, label) {
           if (live === undefined) return;                 // the file does not carry it
           var el = byName(name);
-          if (!el || touched[name]) return;
+          if (!el || !touched[name]) return;
           var have = String(el.value == null ? "" : el.value).trim();
           var want = live == null ? "" : String(live).trim();
           if (have !== want)
@@ -2148,7 +2373,7 @@
         function cmpNum(name, live, label) {
           if (live == null) return;
           var el = byName(name);
-          if (!el || touched[name]) return;
+          if (!el || !touched[name]) return;
           var have = parseFloat(el.value);
           if (!(Math.abs(have - Number(live)) < 1e-9))
             say([name], "<b>" + label + "</b> \u2014 the site says <b>" + esc2(live) +
@@ -2157,7 +2382,7 @@
         function cmpDay(label, live, openName, closeName, closedName) {
           var o = byName(openName), c = byName(closeName), x = byName(closedName);
           if (!o || !c || !x) return;
-          if (touched[openName] || touched[closeName] || touched[closedName]) return;
+          if (!(touched[openName] || touched[closeName] || touched[closedName])) return;
           var want = t24(live);
           if (!want) {
             if (!x.checked)
@@ -2229,6 +2454,8 @@
             el.innerHTML = "";
             el.removeAttribute("data-sample");
             el.classList.remove("sample");
+            unsay(el);
+            if (typeof recountFiller === "function") recountFiller();
             el.appendChild(row("Cash, corn", spot.delivery + " delivery", spot));
             if (harvest)
               el.appendChild(row("Harvest", inH.map(function (r) { return r.delivery; })
@@ -2281,6 +2508,19 @@
           var el = byName(name);
           if (!el) return;
           el.value = value == null ? "" : String(value);
+          /* MOVE THE DEFAULT, NOT ONLY THE VALUE.
+             Undo is a native <button type="reset">, and reset restores the
+             MARKUP default -- which on this page is the filler it ships with.
+             Filling only the IDL property meant Undo replaced Badger's real
+             spread of 0.00 with the sample 0.10, replaced the live banner
+             "Website under construction" with a sentence about harvest hours
+             nobody wrote, and reopened a Saturday the site has closed. No
+             warning fired, because the mismatch list is built once during the
+             fill, when the boxes still agreed. Save then filed all of it.
+             With the default moved, reset means "undo my typing" and nothing
+             else. */
+          if (el.tagName === "TEXTAREA") el.defaultValue = el.value;
+          else el.setAttribute("value", el.value);
           el.removeAttribute("data-sample-value");
           el.removeAttribute("data-sample");
           el.classList.remove("sample");
@@ -2290,6 +2530,7 @@
           if (!x || touched[openName] || touched[closeName] || touched[closedName]) return;
           var want = t24(live);
           x.checked = !want;
+          x.defaultChecked = x.checked;   /* F1: so Undo does not reopen a closed day */
           if (want) { put(openName, want[0]); put(closeName, want[1]); }
           [openName, closeName, closedName].forEach(function (n) {
             var e = byName(n);
@@ -2308,7 +2549,18 @@
            the mangled figure back. Minimum two decimals for the eye, every
            decimal the file actually carries for the arithmetic. */
         var money2 = function (v) { return v == null ? "" : moneyQ(Number(v)); };
-        put("spread", money2(pr.spread));
+        /* THE TRANSITION, AND IT IS THE DANGEROUS PART OF THIS CHANGE.
+           pricing.json may still carry only the old `spread`. A spread of 0.10
+           means ten cents UNDER Big River; the box above it now says "Our basis
+           — cash", where 0.10 means a dime OVER the contract. Filling one into
+           the other puts a twenty-cent error in the wrong direction on screen,
+           in the field that sets the price, with nothing marking it. Measured:
+           that is exactly what the first version of this did.
+           So a basis fills the box and a spread does not. Until somebody sets
+           one, the box is empty and the column says what the site is actually
+           pricing off and what today's figure works out to. */
+        if (pr.basis != null) put("spread", money2(pr.basis));
+        else put("spread", "");
 
         /* ---- A LIVE OVERRIDE HAS TO BE VISIBLE ---------------------------
            pricing.json's `manual` block was never read back into this screen:
@@ -2332,26 +2584,76 @@
           put("manual_basis", man.basis == null ? "" : String(man.basis));
           put("manual_harvest_basis", man.harvestBasis == null ? "" : String(man.harvestBasis));
         }
-        if (pr.spreadHarvest != null) put("spread_harvest", money2(pr.spreadHarvest));
+        if (pr.basis != null) {
+          if (pr.basisHarvest != null) put("spread_harvest", money2(pr.basisHarvest));
+          else put("spread_harvest", "");
+        } else {
+          put("spread_harvest", "");
+          /* NOT READ IS NOT THE SAME AS NOT SET. With pricing.json missing this
+             said "no basis set yet. Still pricing off the old $NaN spread (a
+             basis of NaN today)" on an elevator that has a basis. */
+          if (!landedPricing) {
+            warn("the pricing file could not be read. These boxes are empty because " +
+                 "nothing was read, not because nothing is set. Do not save.", "noprice");
+            return;
+          }
+          /* Said once per column, on the column it is about. It names the
+             figure the site is publishing from today so nobody has to work it
+             out, and it does not put that figure in the box -- a number the
+             office did not type has no business in the field that sets the
+             price. */
+          /* STRIP, NOT qs. `qs` inside wire() is scoped to this column and the
+             board is a sibling of both columns, so it found nothing and the
+             sentence fell back to prose on the live screen. The same scoping
+             trap the filler walker fell into. Kept short, too: #adminWarn is
+             capped at 58px and two long sentences pushed the second elevator
+             out of sight, which is what the first version did. */
+          warn("no basis set yet. Still pricing off the old $" +
+               Number(pr.spread).toFixed(2) + " spread" +
+               (function () {
+                 var el = STRIP && STRIP.querySelector("tr.is-ref td.basis-cell");
+                 var n = el ? parseFloat(el.textContent.replace(/\u2212/, "-").replace(/[$,]/g, "")) : NaN;
+                 return isFinite(n) ? " (a basis of " + (n - Number(pr.spread)).toFixed(2) + " today)" : "";
+               })() + ". Type the basis above.", "nobasis");
+        }
         put("price_note", pr.price_note);
         put("hoursnote", h.hoursnote);
-        putDay(h.weekday,  "wk_open",  "wk_close",  "wk_closed");
-        putDay(h.saturday, "sat_open", "sat_close", "sat_closed");
-        putDay(h.sunday,   "sun_open", "sun_close", "sun_closed");
+        /* THE HARVEST LINE WAS A CONSTANT. HARVEST_HRS is written into the
+           markup once by stamp() and no code path ever overwrote it, so the
+           screen printed a literal while the applier published h.harvest from
+           the file. Harvest hours have no form field -- the office edits
+           hours.json by hand -- so that is exactly the value most likely to
+           drift, and the one place the screen could not see the drift. It
+           happens to match today; that is luck, not a guard. */
+        if (h.harvest) qsa(".who-harvest").forEach(function (el) { el.textContent = h.harvest; });
+        /* Guarded on presence, not truthiness: with one file missing, `h` is
+           {} and an absent day would otherwise read as "closed" and be filled
+           and published as closed. */
+        if ("weekday"  in h) putDay(h.weekday,  "wk_open",  "wk_close",  "wk_closed");
+        if ("saturday" in h) putDay(h.saturday, "sat_open", "sat_close", "sat_closed");
+        if ("sunday"   in h) putDay(h.sunday,   "sun_open", "sun_close", "sun_closed");
         if ("banner" in h && !touched.message) {
           put("message", h.banner == null ? "" : h.banner);
           var wantB = qs('input[name="banner"][value="' +
                       (h.banner == null ? "off" : "on") + '"]');
-          if (wantB) wantB.checked = true;
+          if (wantB) {
+            qsa('input[name="banner"]').forEach(function (r) { r.defaultChecked = false; });
+            wantB.checked = true;
+            wantB.defaultChecked = true;  /* F1 */
+          }
         }
         /* TODAY'S ANSWER, which is three fields in the file and one radio here.
            Left out of the first version of this fill and caught by the count:
            `open` and `close` were the last two boxes still marked as filler. */
-        if (!touched.today) {
+        if (!touched.today && "closed_today" in h) {
           var pick = h.harvest_mode ? "harvest" : h.closed_today ? "closed"
                    : h.today_override ? "custom" : "usual";
           var rb = qs('input[name="today"][value="' + pick + '"]');
-          if (rb) rb.checked = true;
+          if (rb) {
+            qsa('input[name="today"]').forEach(function (r) { r.defaultChecked = false; });
+            rb.checked = true;
+            rb.defaultChecked = true;     /* F1 */
+          }
           var ov = t24(h.today_override);
           if (ov) { put("open", ov[0]); put("close", ov[1]); }
           else {
@@ -2367,7 +2669,16 @@
         /* The page has now filled itself, so the display markers that stood for
            "nothing rendered this" are no longer true. Removing them is what
            turns the filler count off on a screen that is actually filled. */
-        qsa("[data-sample]:not(input):not(textarea):not(select)")
+        /* THE BID PREVIEW IS EXEMPT, and it is the reason this line has a
+           filter on it. The preview is filled by its own fetch of bids.json,
+           which resolves after this synchronous sweep. On a failed read the
+           builder returns early and leaves the element alone -- correctly, per
+           rule 3 -- but the sweep had already taken the marker off, so five
+           months of invented prices stayed on screen with the outline removed
+           and the count reduced. $3.97 for an August delivery, when the feed
+           was publishing $4.62 for September. The preview clears its own
+           marker below, and only after real rows go in. */
+        qsa("[data-sample]:not(input):not(textarea):not(select):not([data-id='prevBid'])")
           .forEach(function (el) {
             el.removeAttribute("data-sample"); el.classList.remove("sample"); unsay(el);
           });
@@ -2403,14 +2714,14 @@
         if (typeof recountFiller === "function") recountFiller();
         if (typeof checkManual === "function") checkManual();
 
-        cmpNum("spread", pr.spread, "Our basis under Big River — cash");
-        if (pr.spreadHarvest != null) cmpNum("spread_harvest", pr.spreadHarvest, "Our basis — new crop");
+        if (pr.basis != null) cmpNum("spread", pr.basis, "Our basis — cash");
+        if (pr.basisHarvest != null) cmpNum("spread_harvest", pr.basisHarvest, "Our basis — new crop");
         cmpText("price_note", pr.price_note, "Small print under the price table");
-        cmpDay("Mon to Fri", h.weekday, "wk_open", "wk_close", "wk_closed");
-        cmpDay("Saturday", h.saturday, "sat_open", "sat_close", "sat_closed");
-        cmpDay("Sunday", h.sunday, "sun_open", "sun_close", "sun_closed");
+        if ("weekday"  in h) cmpDay("Mon to Fri", h.weekday, "wk_open", "wk_close", "wk_closed");
+        if ("saturday" in h) cmpDay("Saturday", h.saturday, "sat_open", "sat_close", "sat_closed");
+        if ("sunday"   in h) cmpDay("Sunday", h.sunday, "sun_open", "sun_close", "sun_closed");
         cmpText("hoursnote", h.hoursnote, "Small print under the hours");
-        if ("banner" in h && !touched.message) {
+        if ("banner" in h && touched.message) {
           var msgEl = byName("message");
           var pickedB = qs('input[name="banner"]:checked');
           var showing = !pickedB || pickedB.value === "on";
@@ -2511,6 +2822,36 @@
       }
     }
 
+    /* SAY WHERE, OR DO NOT SAY "OUTLINED".
+       The sentence read "N parts of this screen are still showing filler,
+       outlined in red. Nothing outlined is a reading." On the Overview tab
+       with the feed down, N was 16 and the number of outlined elements the
+       reader could actually see was zero: all sixteen were on tabs the
+       stylesheet had hidden. So the one instruction the warning gave --
+       look for red -- returned nothing, and every price on screen was
+       unmarked filler. It has to count what is on the tab in front of them. */
+    function fillerLine(total, here) {
+      var noun = total === 1 ? " part of this screen is" : " parts of this screen are";
+      if (here === total)
+        return total + noun + " still showing filler, outlined in red. Nothing outlined is a reading.";
+      if (here === 0)
+        return total + noun + " still showing filler, none of it on this tab. " +
+               "Look for the red outlines on the other tabs. Nothing outlined is a reading.";
+      return total + noun + " still showing filler, outlined in red \u2014 " + here +
+             " on this tab and the rest on the others. Nothing outlined is a reading.";
+    }
+    /* qsa returns a NodeList, which has forEach and does NOT have filter.
+       The first version of this called list.filter, threw inside wire(), and
+       the second column was never wired at all -- half the screen silently
+       missing, with the page still rendering. */
+    function visibleCount(list) {
+      var n = 0;
+      Array.prototype.forEach.call(list, function (e) {
+        if (e.getClientRects().length > 0) n++;
+      });
+      return n;
+    }
+
     var samples = qsa("[data-sample]");
     /* Outlined whether or not this is the live screen. It used to be live-only,
        which is backwards: a copy opened off the desktop is 100% filler, and was
@@ -2531,25 +2872,59 @@
           el.insertBefore(sr, el.firstChild);
         }
       });
-      warn(samples.length + (samples.length === 1 ? " part of this screen is" : " parts of this screen are") +
-        " still showing filler, outlined in red. Nothing outlined is a reading.", "filler");
+      warn(fillerLine(samples.length, visibleCount(samples)), "filler");
     }
 
     /* Re-counted once the site's own values are in the boxes. Anything still
        marked at that point really is filler: the page filled what it could and
        dropped the marker as it went. */
+    /* Counts every marker left, not only the boxes. It was narrowed to
+       [data-sample-value] because the sweep stripped display elements
+       unconditionally, which made counting them meaningless. The sweep no
+       longer strips the bid preview on a failed read, so the preview -- five
+       months of invented prices -- is now a thing worth counting. */
     recountFiller = function () {
-      var left = qsa("[data-sample-value][data-sample]").length;
-      if (!left) { unwarn("filler"); return; }
-      warn(left + (left === 1 ? " part of this screen is" : " parts of this screen are") +
-        " still showing filler, outlined in red. Nothing outlined is a reading.", "filler");
+      var left = qsa("[data-sample]");
+      if (!left.length) { unwarn("filler"); return; }
+      warn(fillerLine(left.length, visibleCount(left)), "filler");
     };
+    RECOUNTS.push(function () { if (recountFiller) recountFiller(); });
 
     sync();
 
   }
 
   Object.keys(COLS).forEach(function (site) { wire(COLS[site], site); });
+
+  /* ---- THE BOARD IS OUTSIDE BOTH COLUMNS --------------------------------
+     wire() walks one column, and the price board is a sibling of the columns,
+     not a child of either. So the one piece of filler with dollar figures on
+     it was the one piece never outlined and never counted. With the feed
+     unreachable the screen rendered five months of invented prices -- $3.97
+     against a real $4.62 -- in a column headed "Badger posts", under a note
+     stating they were "read from its own site", while the warning at the top
+     of the page said "Nothing outlined is a reading" and nothing on that tab
+     was outlined. Marking it here is the half that was never built: setFeed
+     and drawBoard already take the marker off when a real reading lands. */
+  (function () {
+    var strip = document.getElementById("boardStrip");
+    if (!strip) return;
+    var marked = strip.querySelectorAll("[data-sample]");
+    if (!marked.length) return;
+    marked.forEach(function (el) {
+      el.classList.add("sample");
+      el.setAttribute("title", "Sample content. Not a reading.");
+    });
+    /* An .sr-only span inside <tbody> is invalid and the parser fosters it out
+       of the table, so the spoken half goes above the table instead. */
+    var tbl = strip.querySelector(".board");
+    if (tbl && tbl.parentNode && !strip.querySelector(".board-sr")) {
+      var sr = document.createElement("p");
+      sr.className = "sr-only board-sr";
+      sr.textContent = "The price board below is sample content, not a reading.";
+      tbl.parentNode.insertBefore(sr, tbl);
+    }
+  })();
 
   /* ══════════════ THE RAIL ══════════════
      Four jobs, one showing. The state lives on <body> so the stylesheet does
@@ -2562,6 +2937,10 @@
     if (!rail) return;
     var btns = [].slice.call(rail.querySelectorAll(".rail-b"));
     function go(tab) {
+      /* The small print moved here when the Settings tab was folded in. Sending
+         somebody who was last on Settings to Overview puts them on the one tab
+         that does not hold what they were looking at. */
+      if (tab === "settings") tab = "hours";
       document.body.setAttribute("data-tab", tab);
       btns.forEach(function (b) {
         var on = b.getAttribute("data-go") === tab;
@@ -2571,6 +2950,9 @@
       });
       try { localStorage.setItem("emmert-tab", tab); } catch (e) { /* private window */ }
       syncOver();
+      /* What is outlined depends on which tab is showing, so the sentence that
+         tells the office to look for red has to be rewritten when they move. */
+      RECOUNTS.forEach(function (f) { try { f(); } catch (e) { /* one column must not stop the other */ } });
     }
     btns.forEach(function (b) {
       b.addEventListener("click", function () { go(b.getAttribute("data-go")); });
@@ -2625,7 +3007,10 @@
         if (el) el.textContent = txt || "\u2014";
       };
       var off = root.querySelector('[data-id="off"]');
-      put("overCash", pair(off && off.value ? "\u2212$" + off.value : "", get("basisCash")));
+      /* NO HARDCODED MINUS. The box used to hold a spread, which was always a
+         positive number of cents under, so the sign was printed for it. A basis
+         carries its own. */
+      put("overCash", pair(off && off.value ? "$" + off.value : "", get("basisCash")));
       put("overNew", get("basisNew"));
       /* THE SITE POSTS A CASH PRICE AND A HARVEST PRICE, so the overview names
          both. Flattening the preview into one line ran them together and made

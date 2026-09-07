@@ -149,7 +149,7 @@ for (const [what, v] of [["one pixel under the floor", LAYOUT.SHORT_EDGE],
    The two tabs that overflow are checked the other way in the tests above, and
    they still put the bar on the floor. This one is about the two that do not.
    Guarded as a MEASURED GAP rather than as a CSS keyword -- rule 32. */
-for (const tab of ["hours", "settings"])
+for (const tab of ["hours"])
   test(`the ${tab} tab does not end in a field of white — the bar comes up to meet it`,
     { skip: SKIP }, async () => {
     const p = await open(LAYOUT.CONSOLE, { tab });

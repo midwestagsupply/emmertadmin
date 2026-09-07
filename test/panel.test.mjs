@@ -61,7 +61,10 @@ const open = (opts) => openScreen(browser, dir, opts);
    Deterministic, and no slower on a healthy run. */
 async function filled(p, site = "badger", ms = 15000) {
   await p.waitForFunction(
-    (id) => { const e = document.getElementById(id); return !!e && e.value === "0.10"; },
+    /* The fixture's own basis, not a literal repeated here. It was "0.10",
+       the old spread, so this waited for a value the box no longer holds and
+       every test that used it raced the fill instead of waiting for it. */
+    (id) => { const e = document.getElementById(id); return !!e && e.value === "-0.75"; },
     site + "-off", { timeout: ms });
 }
 
@@ -215,51 +218,63 @@ test("THE $1.50 THE SANITY BOX PROMISES IS ENFORCED, not just described", { skip
    Asserted through SAVE rather than through the check function, because "the
    validator returns a string" and "the office cannot file this" are different
    claims and only the second one is the guard. */
-for (const [box, label] of [["off", "Under Big River — cash"],
-                            ["offh", "Under Big River — new crop"]])
-  test(`a spread of $10 is refused at the screen, not at the applier — ${label}`,
+for (const [box, label] of [["off", "Our basis — cash"],
+                            ["offh", "Our basis — new crop"]])
+  /* WAS $10 AGAINST A $1.00 ONE-SIDED CAP. A spread could only ever be a
+     positive number of cents under somebody else's board, so one bound was
+     enough. A basis is signed and wrong in both directions, and the cap the
+     applier and update-prices.mjs both hold is $1.50 from zero. */
+  test(`a basis of $10 is refused at the screen, not at the applier — ${label}`,
     { skip: NB }, async () => {
     const p = await open({});
     const sel = id("badger", box);
     if (!(await p.$(sel))) { await p.done(); assert.fail(`${sel} is not on the screen`); }
+    /* NEGATIVE, so this tests the CAP. A positive 10 is caught one rule
+       earlier -- by the over-the-contract rail, which is a different guard for
+       a different mistake and gets its own test below. Testing the cap with a
+       value the rail refuses first proves only that something refused. */
     await p.fill(sel, "");
-    await p.fill(sel, "10");
-    await p.waitForFunction((s) => document.querySelector(s).value === "10", sel);
+    await p.fill(sel, "-10");
+    await p.waitForFunction((s) => document.querySelector(s).value === "-10", sel);
     const url = await save(p, "badger");
     const why = await refusalOf(p, "badger");
     await p.done();
-    assert.equal(url, null, "a $10 spread sailed through to a filed issue");
-    assert.match(why, /past the \$1\.00 limit/);
+    assert.equal(url, null, "a -$10 basis sailed through to a filed issue");
+    assert.match(why, /past the \$1\.50 limit/);
     assert.match(why, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
       "the refusal must name the box as the card names it");
   });
 
-test("the spread refusals name the box as the card names it", { skip: NB }, async () => {
-  /* The card was renamed from "our basis" to "Under Big River" because the
-     box holds the SPREAD — and the refusals kept saying "the cash basis",
-     coaching the exact substitution the rename exists to prevent. */
+test("the basis refusals name the box as the card names it", { skip: NB }, async () => {
+  /* The rule has not changed, only the name. A refusal that calls a box
+     something other than what the card above it says is how somebody types the
+     wrong figure into the right box. The box now says "Our basis — cash", and
+     it is the basis, so this is the first time the two have agreed. */
   const p = await open({});
   await p.fill(id("badger", "off"), "abc");
   await press(p, `${col("badger")} .btn-go`);
   const why = await refusalOf(p, "badger");
   await p.done();
-  assert.match(why, /Under Big River — cash/);
-  assert.doesNotMatch(why, /The cash basis[,:]/,
-    "the refusal still calls the spread box 'the cash basis'");
+  assert.match(why, /Our basis — cash/);
+  assert.doesNotMatch(why, /Under Big River/,
+    "the refusal still names the box by the spread model's wording");
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
    3. MONEY IS PRINTED AS STORED — quarter cents survive the screen
    ══════════════════════════════════════════════════════════════════════════ */
-test("a stored quarter-cent spread is not rewritten by the box that displays it", { skip: NB }, async () => {
+test("a stored quarter-cent basis is not rewritten by the box that displays it", { skip: NB }, async () => {
+  /* Same claim, on the field that now decides the price. Negative because a
+     basis is signed and almost always under; the rounding hazard is identical
+     either way and the sign is the half the old spread box could not carry. */
   const sites = files();
-  sites.badger.pricing = { ...sites.badger.pricing, spread: 0.1225 };
+  sites.badger.pricing = { ...sites.badger.pricing, basis: -0.1225 };
   const p = await open({ sites });
   await p.waitForTimeout(400);
   const v = await p.$eval(id("badger", "off"), (e) => e.value);
   await p.done();
-  assert.equal(v, "0.1225",
-    "pricing.json holds 0.1225 and the box shows " + v + " — saving would post the mangled figure back");
+  assert.equal(v, "-0.1225",
+    "pricing.json holds -0.1225 and the box shows " + v + " — saving would post the mangled figure back");
 });
 
 test("the posts columns print a published quarter-cent as published", { skip: NB }, async () => {
@@ -430,4 +445,45 @@ test("our own posted price is still on the phone, in our own panel", { skip: NB 
   assert.ok(r.found, "the panel that carries our own posted price is gone");
   assert.ok(r.shown, "our own posted price is not visible on a phone, so the pin should not have moved");
   assert.match(r.text, /\$\d/, `our own posted price reads "${r.text}"`);
+});
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   THE OLD SPREAD HABIT, TYPED INTO THE NEW BOX
+   ══════════════════════════════════════════════════════════════════════════
+   This box took a positive spread for years and the minus is deliberately no
+   longer printed beside it. Typing 0.75 where -0.75 belongs is inside the
+   symmetric $1.50 cap and posts $6.12 against a board paying $4.62 -- a
+   symmetric cap cannot catch a one-sided habit.
+   ══════════════════════════════════════════════════════════════════════════ */
+for (const [box, label] of [["off", "Our basis — cash"],
+                            ["offh", "Our basis — new crop"]])
+  test(`a basis typed positive out of spread habit is refused — ${label}`,
+    { skip: NB }, async () => {
+    const p = await open({});
+    const sel = id("badger", box);
+    await p.fill(sel, "");
+    await p.fill(sel, "0.75");
+    await p.waitForFunction((s) => document.querySelector(s).value === "0.75", sel);
+    const url = await save(p, "badger");
+    const why = await refusalOf(p, "badger");
+    await p.done();
+    assert.equal(url, null, "0.75 typed where -0.75 belongs sailed through to a filed issue");
+    assert.match(why, /OVER the contract/);
+    assert.match(why, /type −0\.75/,
+      "the refusal has to show the number they meant, not only say they are wrong");
+  });
+
+test("a small premium over the contract is allowed, because it is a real thing to want",
+  { skip: NB }, async () => {
+  /* The rail is one-sided and it is a rail, not a wall: an elevator that wants
+     a nickel over the board is doing something ordinary. Fifteen cents is the
+     line, and it is drawn where the habit stops being plausible. */
+  const p = await open({});
+  await p.fill(id("badger", "off"), "0.15");
+  await p.waitForFunction((s) => document.querySelector(s).value === "0.15", id("badger", "off"));
+  const url = await save(p, "badger");
+  const why = await refusalOf(p, "badger");
+  await p.done();
+  assert.ok(url, "a 15-cent premium was refused; the screen said: " + why);
 });

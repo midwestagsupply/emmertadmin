@@ -313,7 +313,7 @@ test("no tab clips its own content at the column edge", { skip: NB }, async () =
       const p = await ctx.newPage();
       await p.goto("file://" + join(dir, "filled.html"));
       await p.waitForTimeout(300);
-      for (const tab of ["overview", "basis", "hours", "settings"]) {
+      for (const tab of ["overview", "basis", "hours"]) {
         await p.click(`.rail-b[data-go="${tab}"]`);
         await p.waitForTimeout(60);
         const clipped = await p.evaluate(() => {

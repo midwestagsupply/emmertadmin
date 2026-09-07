@@ -483,7 +483,7 @@ TXT    _dmarc    v=DMARC1; p=reject;</pre>
       <h3>Change the basis</h3>
       <ol>
         <li>The board on the screen shows Big River's posted numbers, line for line, exactly as they post them.</li>
-        <li>Our basis is <strong>their basis minus our spread</strong>. Change the spread and ours moves with theirs from then on.</li>
+        <li>Our basis is <strong>whatever you type</strong>. It is set against the futures contract month, not against Big River: what we pay is that month's contract price plus your basis. Their board is on the screen beside it so you can see where they are sitting, and it no longer decides our number.</li>
         <li>The readout under the box says in words what the number you typed will do.</li>
         <li>Save and submit. The price on the site is rebuilt within a minute.</li>
       </ol>
@@ -500,9 +500,10 @@ TXT    _dmarc    v=DMARC1; p=reject;</pre>
 
   <div class="flag">
     <h3>The one that catches people: blank is not zero</h3>
-    <p>On the new-crop spread box, <strong>blank</strong> and <strong>0</strong> mean opposite things.</p>
-    <p><strong>Blank</strong> — there is no separate new-crop spread, so new crop uses the same spread as everything else.<br>
-       <strong>0</strong> — there <em>is</em> a new-crop spread and it is zero: we pay Big River's exact posted board, no cents off.</p>
+    <p>On the new-crop basis box, <strong>blank</strong> and <strong>0</strong> mean opposite things.</p>
+    <p><strong>Blank</strong> — there is no separate new-crop basis, so new crop uses the same basis as everything else.<br>
+       <strong>0</strong> — there <em>is</em> a new-crop basis and it is zero: we pay the contract price itself, with nothing off it. That is a long way above what anybody normally posts, so if you meant "the same as cash", leave it blank.</p>
+    <p>The basis is signed, the way it is said out loud: <strong>&minus;0.75</strong> is seventy-five under, <strong>+0.05</strong> is a nickel over. Almost every basis you will ever type starts with a minus. A number typed without one is a price <em>over</em> the contract.</p>
     <p>Read the sentence under the box before you save. It spells out what will happen in plain words.</p>
   </div>
 </section>
@@ -640,7 +641,7 @@ TXT    _dmarc    v=DMARC1; p=reject;</pre>
 &lt;meta name="google-site-verification" content="PASTE_WHAT_GOOGLE_GIVES_YOU"&gt;</pre>
 </section>
 
-<p class="foot">Prices shown on either site are Big River's posted board less that elevator's spread, rebuilt automatically. Nothing on these sites is a quote. When the automatic reading is unavailable both sites say so and ask for a call rather than showing an old number.</p>
+<p class="foot">Prices shown on either site are that month's futures contract plus that elevator's own basis, rebuilt automatically. Nothing on these sites is a quote. When the automatic reading is unavailable both sites say so and ask for a call rather than showing an old number.</p>
 
 </div>
 </body>

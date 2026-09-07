@@ -1782,3 +1782,116 @@ body[data-tab="basis"] [data-id="c-bid"] .rare-row{ max-width:64ch; }
     pointer-events:none;
   }
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   DENERF, 2026-09-06
+   Three measured things, appended rather than edited into the layers above so
+   each one is a single block to read and a single block to take back out.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+/* ---- 1. THE ? KEY WORKS AT EVERY WIDTH ----------------------------------
+   Every rule that hides explanation sat inside @media (min-width:1440px), and
+   so did the key that fires them. The reasoning written beside it was that the
+   roomy layout never hides its explanation, so a key there would flip
+   aria-pressed and change nothing -- true of the key, and it left the other
+   half standing: at 1280 the screen renders 13 explanation strings, 382 words,
+   with no control anywhere on it to put them away. A desk at 1280 is a desk.
+
+   NOT ON THE PHONE, AND THE FIRST ATTEMPT AT THIS GOT THAT WRONG. The reason
+   the phone never hides its explanation is written beside the original rule
+   and it is right: a phone is where somebody unfamiliar is most likely to be
+   standing, and screen.test.mjs asserts it. Unhiding the key everywhere broke
+   that test, correctly. So this starts at 701px -- the width this stylesheet
+   already uses to mean "not a phone" -- and the phone layer is untouched.
+
+   Each exception the 1440 layer makes is restated here. An exception that is
+   not carried over is a refusal that stops being shown, which is how the ? key
+   hid a Save refusal once already. */
+@media (min-width:701px) and (max-width:1439px){ .helpkey{ display:inline-block; } }
+
+@media (min-width:701px){
+  body[data-help="off"] .help,
+  body[data-help="off"] .counter,
+  body[data-help="off"] .board-note,
+  body[data-help="off"] .prev-n,
+  body[data-help="off"] .sanity:not(.is-bad){ display:none; }
+
+  /* State is never explanation. Each of these is copied from the 1440 layer. */
+  body[data-help="off"] .byhand[open] .help,
+  body[data-help="off"] .byhand[open] .sanity{ display:block !important; }
+  body[data-tab="basis"] [data-id="c-bid"] .prev-n{ display:block !important; }
+  body[data-help="off"] .counter:has(.left){ display:block; font-size:0; }
+  body[data-help="off"] .counter .left{ font-size:.72rem; }
+}
+
+/* ---- 2. THE CLOSES BOX WAS BEING CUT IN HALF ----------------------------
+   .col-panes .times is a two-item flex row, and the time input carries
+   min-width:8.5em so it cannot shrink to "08:00 /" -- correct, and it means
+   the row cannot fit its own contents in the console's column. Measured at
+   1440x1050: the row runs 65.63px past the card on BOTH columns, the card is
+   overflow:hidden, and 44% of the Closes input is simply not painted -- the
+   picker gone, the label colliding with the Opens box. No interaction needed;
+   it is like that on load.
+
+   THREE THINGS WERE TRIED AND TWO WERE WRONG.
+   flex-wrap alone did nothing: the two cells are flex:1 1 0 with min-width:0,
+   so they shrink to 139px and the ROW fits its 288px card exactly while the
+   149px input inside the second cell hangs 65px past the card's edge. The row
+   was never the thing overflowing.
+   Wrapping the cells did fix the clip, and cost 43px of white at the bottom of
+   the hours tab -- 19px between the last card and the save bar became 62px,
+   past the 40px console.test.mjs allows. That test is right: a tab ending in a
+   field of white is what this screen is being cleaned up for.
+   Dropping the input's min-width instead put both boxes back on one row and
+   reproduced, exactly, the bug the original comment was written about: the
+   screenshot reads "08:00 /" and "05:00" with the AM and PM cut off. An
+   assertion on scrollWidth said it was fine. Looking at it said otherwise.
+
+   So the label goes above the box rather than beside it. Each cell then needs
+   only the box's own width, both fit on one row at 159px each -- wider than
+   the 148px they were asking for -- nothing is clipped, and the bottom gap
+   lands at 34px, inside the limit. */
+.col-panes .times{ flex-wrap:nowrap; }
+.col-panes .times > div{ flex:1 1 0; min-width:0; flex-direction:column;
+                         align-items:stretch; gap:0; }
+.col-panes .times .fl{ font-size:.7rem; line-height:1.15; }
+.col-panes .times input[type="time"]{ min-width:0; width:100%; }
+
+/* ---- 3. THE 18px THE COLUMNS ARE OUT OF STEP IS LEFT ALONE, ON PURPOSE ---
+   Every card in the right-hand column sits 18px below its neighbour on all
+   four tabs, because that header measures 53px against 35px.
+
+   The cause on record was "Midwest Commodity Service wraps to two lines".
+   It does not. Measured with .col-name forced to nowrap: both names render on
+   one line at 18px and the headers were still 35 against 53. It is .col-live
+   -- "Save files to midwestagsupply/midwestcommodity" -- taking two lines
+   where badgergrain takes one, 40px against 20px.
+
+   Three fixes were built and measured, and each cost more than the defect:
+     - Nowrap the path on one row: headers match at 35px, and at exactly 1440
+       the path is ellipsised mid-repo-name, so the line that answers "am I
+       about to change the right elevator" stops answering it. Shortening the
+       label to "Saves to" still clips; only dropping the words entirely fits.
+     - Nowrap plus letting .col-town yield: same clip, and "Baldwin" is
+       squeezed out of existence, because .col-live takes the row's spare width
+       with margin-left:auto.
+     - Give the path its own row in both columns: everything fits and nothing
+       is lost, and every header grows to 64px -- 29px of new chrome on a
+       screen being cleaned up for wasting vertical space, on all four tabs,
+       which pushed the basis tab's overlap from 59px to 85px.
+
+   Spending 18px of height to correct an 18px offset is circular. It stays,
+   and this note is here so the next person does not re-diagnose the company
+   name. */
+
+
+/* ---- swept up after the basis change, 2026-09-07 ------------------------
+   The corn <img class="ear"> elements came off the header and the Settings tab
+   was folded into Hours & notices, and both left rules behind that no selector
+   can now reach. Two of the settings rules carried real behaviour, so the one
+   that mattered -- the small-print box's own size -- is re-stated for the tab
+   the box now lives on rather than quietly lost. */
+.ear{ display:none; }
+body[data-tab="hours"] [data-id="c-print"] textarea{ min-height:112px; }
+body[data-tab="hours"] [data-id="c-print"] .row{ max-width:64ch; }

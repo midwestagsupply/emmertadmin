@@ -119,7 +119,15 @@ export const SITE_FILES = {
     hours: { weekday: "8:00a to 5:00p", saturday: "8:00a to 12:00p", sunday: null,
              harvest: "8:00a to 7:00p", harvest_mode: false, closed_today: false,
              today_override: null, banner: null, hoursnote: HOURS_NOTE },
-    pricing: { spread: 0.10, spreadHarvest: 0, price_note: PRICE_NOTE },
+    /* basis, not spread. The screen sets its own basis against the contract
+       month now, and a fixture carrying only a spread put every test that
+       touches these boxes in the transition state -- boxes empty, no heading
+       sent, Save filing nothing. The zero stays on new crop for the reason
+       above it: it keeps the zero state under test on every load, and under
+       the new model zero means "even with the contract" rather than "no
+       spread", which is a different sentence for the same box. */
+    pricing: { basis: -0.75, basisHarvest: 0, spread: 0.10, spreadHarvest: 0,
+               price_note: PRICE_NOTE },
     bids: { bids: [{ delivery: "August", cashPrice: 4.03 }, { delivery: "September", cashPrice: 4.09 },
                    { delivery: "October", cashPrice: 4.18 }, { delivery: "November", cashPrice: 4.16 }] },
   },
@@ -127,7 +135,9 @@ export const SITE_FILES = {
     hours: { weekday: "7:00a to 6:00p", saturday: null, sunday: null,
              harvest: "7:00a to 7:00p", harvest_mode: false, closed_today: false,
              today_override: null, banner: null, hoursnote: HOURS_NOTE },
-    pricing: { spread: 0.12, price_note: PRICE_NOTE },
+    /* No basisHarvest: absent means "same as the cash basis", which is the
+       other half of the pair badger's zero covers. */
+    pricing: { basis: -0.87, spread: 0.12, price_note: PRICE_NOTE },
     bids: { bids: [{ delivery: "August", cashPrice: 4.01 }, { delivery: "October", cashPrice: 4.15 }] },
   },
 };
@@ -280,7 +290,30 @@ export async function press(page, selector) {
   });
   if (!box.w || !box.h) throw new Error(selector + " has no box on the page");
   if (!box.inView) throw new Error(selector + " is not on the screen to be pressed");
-  await page.mouse.click(box.x, box.y);
+  /* MEASURE, THEN LET IT SETTLE, THEN CLICK.
+     This used to click at the coordinates measured on the line above, and that
+     is a race it lost. An input event on this screen reflows for about thirty
+     milliseconds -- a warning bar is inserted, the sticky save bar recomputes
+     -- and during that window the button reports a box 40px above where it
+     settles. Measured on origin/main and on this build: the same transient on
+     both, and `press` clicking inside it sent the pointer 40px under the
+     button, which the suite reported as "Save opened nothing".
+     A person cannot hit that window; they take a quarter of a second to move a
+     mouse. The helper could, because it measured and clicked in the same tick.
+     The two assertions above are the point of this helper and they stay: the
+     button has a real box, and it is on screen where somebody could reach it.
+     What changes is that the box is measured a second time, after the reflow
+     has settled, and the pointer goes to where the button actually is. Still a
+     real mouse click at real coordinates -- the same mechanism, aimed after
+     the page has stopped moving, which is what a person does. Playwright's own
+     click() was tried first and failed six other tests, so this stays as close
+     to the original as the race allows. */
+  await page.waitForTimeout(80);
+  const at = await page.$eval(selector, (e) => {
+    const b = e.getBoundingClientRect();
+    return { x: b.x + b.width / 2, y: b.y + b.height / 2 };
+  });
+  await page.mouse.click(at.x, at.y);
   await page.waitForTimeout(60);
 }
 
