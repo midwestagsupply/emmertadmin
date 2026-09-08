@@ -1,20 +1,9 @@
 {
  "schema": "emmert-admin-status/1",
- "generated": "2026-09-08T17:29:48.593Z",
- "ok": false,
- "blocking": 2,
- "findings": [
-  {
-   "site": "badger",
-   "severity": "high",
-   "what": "it is market hours and this site's newest reading is 55 minutes old (expected under 35). The scheduled run has probably stopped."
-  },
-  {
-   "site": "midwest",
-   "severity": "high",
-   "what": "it is market hours and this site's newest reading is 55 minutes old (expected under 35). The scheduled run has probably stopped."
-  }
- ],
+ "generated": "2026-09-08T19:28:42.052Z",
+ "ok": true,
+ "blocking": 0,
+ "findings": [],
  "sites": [
   {
    "host": "badgergrain.com",
@@ -22,11 +11,11 @@
    "reached": true,
    "httpStatus": 200,
    "stampField": "observed",
-   "observedAt": "2026-09-08T16:34:39.455Z",
+   "observedAt": "2026-09-08T18:58:21.759Z",
    "rows": 11,
    "showsPrice": true,
    "callForPrice": true,
-   "ageMinutes": 55,
+   "ageMinutes": 30,
    "maxAgeH": 14,
    "hasWeekdayHours": true,
    "spread": 0,
@@ -38,17 +27,17 @@
    "reached": true,
    "httpStatus": 200,
    "stampField": "observed",
-   "observedAt": "2026-09-08T16:34:39.455Z",
+   "observedAt": "2026-09-08T18:58:21.759Z",
    "rows": 11,
    "showsPrice": true,
    "callForPrice": true,
-   "ageMinutes": 55,
+   "ageMinutes": 30,
    "maxAgeH": 14,
    "hasWeekdayHours": true,
    "spread": 0.1,
    "manualPrice": null
   }
  ],
- "run": "https://github.com/midwestagsupply/emmertadmin/actions/runs/34257425096",
+ "run": "https://github.com/midwestagsupply/emmertadmin/actions/runs/34269162977",
  "note": "Written by tools/watch-live.mjs on every run of watch-live.yml, whether it passed or failed. `generated` moves every run on purpose: a stamp that only advances when something is wrong cannot tell a quiet week from a watchdog that has stopped."
 }
