@@ -201,7 +201,12 @@
      that was display:none at =<560px is back, because the note underneath
      tells the reader to compare it line for line. */
   .board{margin-top:16px;border:2px solid var(--ink);border-radius:var(--radius);
-         overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch}
+         /* overflow-y WAS hidden, which is fine while the board always gets
+            its full height and is a silent truncation the moment it does not.
+            `auto` keeps every row reachable instead of cutting the last ones
+            off with nothing to say so. It shows a scrollbar only when the
+            window has left the board no choice. */
+         overflow-x:auto;overflow-y:auto;-webkit-overflow-scrolling:touch}
   .board-hd{background:var(--ink);color:#fff;padding:10px 14px;font-weight:700;font-size:.98rem;
             display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
   .board-as{font-weight:400;color:#bbb;font-size:.85rem}
@@ -697,6 +702,13 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
     grid-template-columns:minmax(0,1fr) minmax(260px,.42fr);
     align-items:start; align-content:start;
   }
+  /* THE CEILING, 2026-09-08. See the long note in build/patch_basis.py --
+     or rather, see the two paragraphs above this rule in the kit's README.
+     Short version: the board may not take so much of a short window that the
+     editor below it collapses. Every row stays rendered and reachable; on a
+     window tall enough this rule never fires. */
+  .strip .board{ max-height:calc(100vh - 500px); min-height:120px; }
+
   .strip .board{
     grid-column:1; grid-row:1/span 2; margin:0;
     border:0; border-radius:0; background:none; box-shadow:none; overflow:visible;
@@ -857,7 +869,12 @@ tr.is-off > td:not(:last-child){opacity:1;color:#767676}
     /* 0 1 auto, not 1 1 auto -- see the note on .col above. It still SHRINKS
        and still scrolls when the tab is taller than the window; it just no
        longer GROWS to fill a window the tab does not need. */
-    flex:0 1 auto; min-height:0; overflow-y:auto; overscroll-behavior:contain;
+    /* AND IT HAS A FLOOR, 2026-09-08. `min-height:0` let it shrink to nothing,
+       and with an unshrinkable board above it that is exactly what happened:
+       18px. 200px is measured, not chosen -- the cash basis row is 66px and
+       the pair of rows with their readouts is 196px, so 200 is the smallest
+       height at which both boxes and both readouts are on screen at once. */
+    flex:0 1 auto; min-height:200px; overflow-y:auto; overscroll-behavior:contain;
     padding:8px 14px 10px;
     display:grid; grid-template-columns:1fr 1fr; gap:8px 18px;
     align-content:start;

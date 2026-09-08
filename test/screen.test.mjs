@@ -37,6 +37,7 @@ import {
   REPO, getChromium, makeFixture, dropFixture, openScreen, save, refusal, warnings,
   weekRows, todayPreview, basisReads, figuresIn, files, feedNow, pick, press,
   ELEVATORS, OTHER, LAYOUT, col, id, named, SITE_FILES, BOARD_ROWS, HOURS_NOTE, PRICE_NOTE,
+  feedFull, BOARD_ROWS_FULL,
 } from "./lib/screen.mjs";
 
 const chromium = await getChromium();
@@ -1768,3 +1769,100 @@ for (const e of ELEVATORS) {
     await p.close();
   });
 }
+
+
+/* ══════════════════════════════════════════════════════════════════════════
+   A WIDE DESK THAT IS NOT A TALL ONE, WITH THE BOARD AT ITS REAL LENGTH
+   ══════════════════════════════════════════════════════════════════════════
+   From Jesse Cebulla, 2026-09-08: "When I go to the page to adjust it there is
+   only about a centimetre that it is scrolling in ... Could we have less of
+   the Big River board and more scrolling space?"
+
+   Measured at 1440x700 with the eleven-row board: the pane he types into was
+   18px tall against 344px of content. .strip was flex:0 0 auto, so the board
+   took its full height and the editor absorbed the entire shortfall.
+
+   NOTHING IN THE HARNESS COULD SEE IT. Every layout preset was 800px tall or
+   more, and every board fixture was six months rather than eleven. Both halves
+   are in ./lib/screen.mjs now.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+test("A SHORT DESK WITH A FULL BOARD STILL HAS A BASIS BOX YOU CAN TYPE IN",
+  { skip: NO_BROWSER }, async () => {
+  const p = await open({ viewport: LAYOUT.SHORT_DESK, feed: feedFull(), tab: "basis" });
+  const m = await p.evaluate(() => {
+    const box = document.querySelector('[data-id="off"]');
+    let el = box, pane = null;
+    while (el && el !== document.body) {
+      if (/auto|scroll/.test(getComputedStyle(el).overflowY)) { pane = el; break; }
+      el = el.parentElement;
+    }
+    const r = box.getBoundingClientRect();
+    const strip = document.querySelector(".strip").getBoundingClientRect();
+    const bd = document.querySelector(".board").getBoundingClientRect();
+    const sv = document.querySelector(".col-save").getBoundingClientRect();
+    return { pane: pane ? pane.clientHeight : 0,
+             spill: Math.round(bd.bottom - strip.bottom),
+             saveCutOff: Math.max(0, Math.round(sv.bottom - innerHeight)),
+             boxOnScreen: r.top >= 0 && r.bottom <= innerHeight && r.height > 0 };
+  });
+  await p.done();
+  /* 200 is the floor admin.css sets, and the floor is what this is testing. */
+  assert.ok(m.pane >= 200,
+    `the pane he types into is ${m.pane}px tall. It was 18px when Jesse reported it; ` +
+    `the floor in admin.css is 200px.`);
+  assert.ok(m.boxOnScreen, "the basis box is not on screen at all on a short desk");
+  /* AND THE BOARD STAYS INSIDE ITS OWN STRIP. The first fix gave the editor
+     its room and left the board painting 149px past the bottom of the strip,
+     over the elevator tabs: overflow-y clips a box's children, not the box. */
+  assert.ok(m.spill <= 0,
+    `the board paints ${m.spill}px past the bottom of its own strip, over the tabs below it`);
+  /* AND THE SAVE BUTTON IS ON SCREEN. Added after a mutation run: with only
+     the pane's floor and no ceiling on the board, this test passed while the
+     save bar sat 198px below the bottom of the window. The shell is
+     overflow:hidden, so it was not painted at all -- Jesse could have typed
+     the basis and had nothing to press. A pane he can type in and a button he
+     cannot reach is the same bug one step further down the page. */
+  assert.equal(m.saveCutOff, 0,
+    `the save bar is ${m.saveCutOff}px below the bottom of the window and is not painted`);
+});
+
+test("AND THE BOARD KEEPS EVERY ROW, on a desk with room for them",
+  { skip: NO_BROWSER }, async () => {
+  /* The standing rule is that all twelve months stay visible, because the
+     board is a line-for-line check. The fix must not have bought the editor
+     its room out of that. Checked on the console layout, where there IS room:
+     nothing may scroll and every row must be on screen. */
+  const p = await open({ viewport: LAYOUT.CONSOLE, feed: feedFull(), tab: "basis" });
+  const m = await p.evaluate(() => {
+    const bd = document.querySelector(".board");
+    const c = bd.getBoundingClientRect();
+    const rows = [...document.querySelectorAll(".bd tbody tr")];
+    return { rows: rows.length, scrolls: bd.scrollHeight > bd.clientHeight + 1,
+             visible: rows.filter((tr) => { const r = tr.getBoundingClientRect();
+               return r.top >= c.top - 1 && r.bottom <= c.bottom + 1; }).length };
+  });
+  await p.done();
+  assert.equal(m.visible, m.rows,
+    `${m.visible} of ${m.rows} months on screen at 1600x1000. All of them have to be: ` +
+    `the board is the check, and a line you cannot see is not a line you can check.`);
+  assert.equal(m.scrolls, false, "the board is scrolling on a desk with room for it");
+});
+
+test("THE BASIS READOUT NAMES THE CONTRACT IT IS SET AGAINST",
+  { skip: NO_BROWSER }, async () => {
+  /* Jesse: "We need it to point at Big River's Futures price instead of their
+     Bid." It always did, once a basis was saved; the screen never said so. */
+  const p = await open({ viewport: LAYOUT.CONSOLE, feed: feedFull(), tab: "basis" });
+  await p.fill(id("badger", "off"), "-0.65");
+  await p.waitForFunction((s) => document.querySelector(s).value === "-0.65", id("badger", "off"));
+  const read = await p.evaluate((s) => document.querySelector(s).textContent.trim(),
+                                col("badger") + ' [data-id="basisCash"]');
+  await p.done();
+  /* 5.3325 = 4.5825 - (-0.75), and it arrives in the feed as futuresPriceCents.
+     No figure in this readout is worked out by the screen. */
+  assert.match(read, /Dec 26/, "the contract month is not named: " + read);
+  assert.match(read, /5\.3325/, "the contract quote is not named: " + read);
+  assert.match(read, /0\.10 over them/,
+    "the readout does not say where the typed basis sits against Big River: " + read);
+});

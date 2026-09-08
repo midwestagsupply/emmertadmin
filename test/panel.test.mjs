@@ -451,14 +451,27 @@ test("our own posted price is still on the phone, in our own panel", { skip: NB 
 /* ══════════════════════════════════════════════════════════════════════════
    THE OLD SPREAD HABIT, TYPED INTO THE NEW BOX
    ══════════════════════════════════════════════════════════════════════════
-   This box took a positive spread for years and the minus is deliberately no
-   longer printed beside it. Typing 0.75 where -0.75 belongs is inside the
-   symmetric $1.50 cap and posts $6.12 against a board paying $4.62 -- a
-   symmetric cap cannot catch a one-sided habit.
+   CORRECTED 2026-09-08, and the correction is a policy change rather than a
+   bug fix, so it is written down rather than quietly made.
+
+   These two tests asserted that a basis over +0.15 is REFUSED, because typing
+   0.75 where -0.75 belongs is the old spread habit and a symmetric cap cannot
+   catch a one-sided one. That was true and the risk has not gone away.
+
+   Sig removed the refusal on 2026-09-08 after Jesse asked to be able to "enter
+   negative or positive numbers for the basis". Over and under are now one
+   signed number with one limit, $1.50, which is the figure the screen, the
+   applier and both sites' update-prices.mjs have always held.
+
+   So the guard moves rather than disappearing. What now stands between the
+   habit and a wrong price is the sentence under the box, which names the
+   contract, its quote, Big River's basis and how far the typed figure sits
+   from it -- every keystroke. A refusal told somebody they were wrong; this
+   shows them, in their own numbers, and it is the thing to keep working.
    ══════════════════════════════════════════════════════════════════════════ */
 for (const [box, label] of [["off", "Our basis — cash"],
                             ["offh", "Our basis — new crop"]])
-  test(`a basis typed positive out of spread habit is refused — ${label}`,
+  test(`a basis over the contract is accepted now, and says what it is — ${label}`,
     { skip: NB }, async () => {
     const p = await open({});
     const sel = id("badger", box);
@@ -468,10 +481,26 @@ for (const [box, label] of [["off", "Our basis — cash"],
     const url = await save(p, "badger");
     const why = await refusalOf(p, "badger");
     await p.done();
-    assert.equal(url, null, "0.75 typed where -0.75 belongs sailed through to a filed issue");
-    assert.match(why, /OVER the contract/);
-    assert.match(why, /type −0\.75/,
-      "the refusal has to show the number they meant, not only say they are wrong");
+    assert.ok(url, "a positive basis inside the cap was refused: " + (why || "(no reason given)"));
+  });
+
+for (const [box, label] of [["off", "Our basis — cash"],
+                            ["offh", "Our basis — new crop"]])
+  test(`a basis past the $1.50 cap is still refused, either sign — ${label}`,
+    { skip: NB }, async () => {
+    /* The cap is what is left, so it has to hold in the direction the removed
+       rule used to cover. */
+    const p = await open({});
+    const sel = id("badger", box);
+    await p.fill(sel, "");
+    await p.fill(sel, "1.75");
+    await p.waitForFunction((s) => document.querySelector(s).value === "1.75", sel);
+    const url = await save(p, "badger");
+    const why = await refusalOf(p, "badger");
+    await p.done();
+    assert.equal(url, null, "1.75 over the contract sailed through");
+    assert.match(why, /1\.50|from zero/,
+      "the refusal has to name the cap it broke");
   });
 
 test("a small premium over the contract is allowed, because it is a real thing to want",

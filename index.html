@@ -1027,6 +1027,12 @@
       if (i === 0) cls.push("is-ref");
       if (NEW_CROP.indexOf(r.delivery) !== -1) cls.push("is-new");
       if (cls.length) tr.className = cls.join(" ");
+      /* The contract quote, carried on the row so the basis readout can name
+         it. It is not a column: the board is a line-for-line check against
+         what Big River publishes, and they do not publish this. It came from
+         their feed all the same, so it is a figure from a file. */
+      if (typeof r.futuresPriceCents === "number")
+        tr.setAttribute("data-quote", (r.futuresPriceCents / 100).toFixed(4));
       [[r.delivery, ""], [r.futuresMonth, ""], [signed(r.basisDollars), "r basis-cell"],
        [money(r.cash), "r cash-cell"]].forEach(function (pair) {
         var td = document.createElement("td");
@@ -1552,13 +1558,29 @@
         return " &middot; <b>" + fmt(Math.abs(mine - theirs)) +
                (mine < theirs ? " under them" : " over them") + "</b>";
       }
-      function line(month, theirBasis, mine) {
+      /* The contract quote for a row, read back off the row that carries it.
+         Same rule as cellNum: a sample board is not a source. */
+      function quoteOf(row) {
+        var tb = STRIP && STRIP.querySelector(".bd tbody");
+        var tr = STRIP && STRIP.querySelector(row);
+        if (!tr || !tb || tb.hasAttribute("data-sample")) return null;
+        var q = parseFloat(tr.getAttribute("data-quote"));
+        return isFinite(q) ? q : null;
+      }
+      function line(month, theirBasis, mine, quote) {
+        /* THE ANCHOR, NAMED. "Dec 26 at $5.3325" is the number the basis is
+           set against, and until 2026-09-08 the screen never said it -- which
+           is why the office believed the basis was working off Big River's
+           bid. It is read from their feed, not worked out here. */
         return (month || "") +
-               (theirBasis != null ? (month ? " &middot; " : "") + "Big River " + fmt(theirBasis) : "") +
+               (quote != null ? (month ? " at " : "") + "$" + quote.toFixed(4) : "") +
+               (theirBasis != null ? ((month || quote != null) ? " &middot; " : "") +
+                                     "Big River " + fmt(theirBasis) : "") +
                versus(mine, theirBasis);
       }
 
-      if (readCash) readCash.innerHTML = line(monthOf("tr.is-ref"), refBasis, c);
+      if (readCash) readCash.innerHTML =
+        line(monthOf("tr.is-ref"), refBasis, c, quoteOf("tr.is-ref"));
 
       /* BLANK AND ZERO STILL MEAN OPPOSITE THINGS AND STILL HAVE TO LOOK IT.
          Blank is "same as the cash basis". Zero is "even with the contract".
@@ -1578,7 +1600,7 @@
             (monthOf("tr.is-new") ? " &middot; " + monthOf("tr.is-new") : "");
           readNew.className = "basis-read is-zero";
         } else if (isFinite(h)) {
-          readNew.innerHTML = line(monthOf("tr.is-new"), theirNew, h);
+          readNew.innerHTML = line(monthOf("tr.is-new"), theirNew, h, quoteOf("tr.is-new"));
           readNew.className = "basis-read";
         } else {
           readNew.innerHTML = "";
@@ -1814,15 +1836,19 @@
            both hold, so all three agree. Measured before this existed: a -1.90
            basis on a 5.3675 contract posts $3.47 -- inside the site's own
            $2-$12 range guard, and a dollar fifteen under the board. */
-        /* A basis OVER the contract is a real thing and a rare one; a basis
-           over fifteen cents is almost always the old spread habit, typed
-           without its minus. Named as the habit rather than as a range, so the
-           person reads the sentence and sees their own mistake in it. */
-        else if (parseFloat(v) > 0.15) out.push("The " + p[1] + " box, “" + v + "”, is a basis " +
-          parseFloat(v).toFixed(2) + " OVER the contract, which would post well above the board. " +
-          "If you meant " + parseFloat(v).toFixed(2) + " under, type −" + parseFloat(v).toFixed(2) +
-          ". If you really do mean over, it has to be set in pricing.json, so that it takes " +
-          "two people to notice.")
+        /* THE +0.15 REFUSAL IS GONE -- 2026-09-08, Sig's call after Jesse
+           asked to "enter negative or positive numbers for the basis".
+           It read: a basis over fifteen cents is almost always the old spread
+           habit typed without its minus, so refuse it and make it a
+           two-person change in pricing.json. The habit is real, but the rule
+           made the screen the only one of the three that would not take a
+           signed number: tools/apply-update.mjs and both sites' update-prices
+           .mjs have capped it symmetrically at BASIS_ABS_MAX = 1.50 since the
+           basis path was built. Checked before removing, not assumed.
+           Over and under are now one signed number with one limit. The
+           sentence under the box says what the number will post, every
+           keystroke, which is a better guard against a missing minus than a
+           refusal that sent the office to a file it cannot edit. */
         else if (Math.abs(parseFloat(v)) > 1.5) out.push("The " + p[1] + " box, “" + v + "”, is $" +
           Math.abs(parseFloat(v)).toFixed(2) + " from zero — past the $1.50 limit the site will " +
           "accept. If that is really the number it has to be changed in pricing.json, " +

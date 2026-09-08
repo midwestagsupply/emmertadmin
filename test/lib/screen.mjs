@@ -78,6 +78,10 @@ export const LAYOUT = {
   SHORT_EDGE:   { width: 1440, height: 939 },
   ROOMY:        { width: 1100, height: 900 },
   ROOMY_EDGE:   { width: 1439, height: 940 },
+  /* JESSE'S WINDOW, 2026-09-08. A wide desk that is not a tall one -- the
+     shape every preset above skipped, and the one where the editor collapsed
+     to 18px. SHORT above is 1600x800, which still left 102px and looked fine. */
+  SHORT_DESK:   { width: 1440, height: 700 },
   PHONE:        { width: 390,  height: 844 },
 };
 
@@ -105,6 +109,26 @@ export const BOARD_ROWS = [
   { commodity: "Corn", delivery: "December",  futuresMonth: "Dec 26", basisDollars: -0.50, cash: 4.3325 },
   { commodity: "Corn", delivery: "January",   futuresMonth: "Mar 27", basisDollars: -0.60, cash: 4.39 },
 ];
+/* THE BOARD AT ITS REAL LENGTH. Big River posts eleven deliveries; the fixture
+   above is six, and a layout that holds for six is not a layout that holds.
+   Same shape, same numbers as the live file on 2026-09-08, with the contract
+   quote each row carries so the basis readout can name it. */
+export const BOARD_ROWS_FULL = [
+  ["September", "Dec 26", -0.75, 4.5825], ["October",  "Dec 26", -0.62, 4.7125],
+  ["November",  "Dec 26", -0.55, 4.7825], ["December", "Dec 26", -0.50, 4.8325],
+  ["January",   "Mar 27", -0.60, 4.885],  ["February", "Mar 27", -0.58, 4.905],
+  ["March",     "Mar 27", -0.50, 4.9825], ["April",    "May 27", -0.54, 5.0175],
+  ["May",       "May 27", -0.52, 5.0375], ["June",     "Jul 27", -0.52, 5.0675],
+  ["July",      "Jul 27", -0.52, 5.0675],
+].map(([delivery, futuresMonth, basisDollars, cash]) => ({
+  commodity: "Corn", delivery, futuresMonth, basisDollars, cash,
+  futuresPriceCents: Math.round((cash - basisDollars) * 10000) / 100,
+}));
+
+export const feedFull = (over = {}) => ({
+  checkedAt: new Date().toISOString(), status: "ok", bids: BOARD_ROWS_FULL, ...over,
+});
+
 export const feedNow = (over = {}) => ({
   checkedAt: new Date().toISOString(), status: "ok", bids: BOARD_ROWS, ...over,
 });

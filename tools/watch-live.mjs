@@ -24,6 +24,8 @@
  * and it is deliberately the only line they cannot cover.
  */
 
+import { writeFileSync } from "node:fs";
+
 export const SITES = [
   { key: "badger",  host: "badgergrain.com",      name: "Badger Grain Supply" },
   { key: "midwest", host: "midwestcommodity.com", name: "Midwest Commodity Service" },
@@ -49,17 +51,26 @@ export function inMarketHours(now) {
   return d >= 1 && d <= 5 && h >= 12 && h < 21;
 }
 
-export async function checkSite(site, { now, get }) {
+export async function checkSite(site, { now, get, seen = {} }) {
   const bad = [];
   const say = (severity, what) => bad.push({ site: site.key, severity, what });
+
+  /* WHAT THIS SITE LOOKED LIKE, for status.json. Nothing is added here that was
+     not already measured below; the file must never carry a number this
+     function did not actually read. `reached` starts false so a site that never
+     answered says so rather than being absent and looking like an oversight. */
+  const note = seen[site.key] = { host: site.host, name: site.name, reached: false };
 
   let page, bids, pricing, hours;
   try { page = await get(`https://${site.host}/`); }
   catch (e) { say("critical", `the site did not answer: ${e.message}`); return bad; }
   if (page.status !== 200) {
     say("critical", `the site answered HTTP ${page.status}`);
+    note.httpStatus = page.status;
     return bad;
   }
+  note.reached = true;
+  note.httpStatus = 200;
 
   for (const [name, target] of [["bids", "bids.json"], ["pricing", "pricing.json"], ["hours", "hours.json"]]) {
     let r;
@@ -107,6 +118,11 @@ export async function checkSite(site, { now, get }) {
   const showsPrice = Array.isArray(bids.bids) && bids.bids.length > 0
                      && bids.bids.some((b) => typeof b.cashPrice === "number");
   const callForPrice = /call for/i.test(page.body);
+  note.stampField = stampField ?? null;
+  note.observedAt = stampField ? bids[stampField] : null;
+  note.rows = Array.isArray(bids.bids) ? bids.bids.length : 0;
+  note.showsPrice = showsPrice;
+  note.callForPrice = callForPrice;
 
   if (!Number.isFinite(checked)) {
     say("critical", "bids.json carries no readable observed, checkedAt or generated time, " +
@@ -114,6 +130,10 @@ export async function checkSite(site, { now, get }) {
   } else {
     const age = hoursBetween(now, checked);
     const maxAge = typeof bids.maxAgeH === "number" ? bids.maxAgeH : FEED_MAX_AGE_H;
+    /* Rounded to the minute. A status file is read by a person, and the extra
+       decimals of an hours figure are noise they have to divide. */
+    note.ageMinutes = Math.round(age * 60);
+    note.maxAgeH = maxAge;
 
     if (age > maxAge && showsPrice)
       say("critical", `the reading is ${age.toFixed(1)}h old, past the ${maxAge}h the site itself will accept, ` +
@@ -139,7 +159,10 @@ export async function checkSite(site, { now, get }) {
     if (!("weekday" in hours))
       say("high", "hours.json has no weekday, so the site cannot say when it is open");
   }
+  if (hours && typeof hours === "object") note.hasWeekdayHours = "weekday" in hours;
   if (pricing && typeof pricing === "object") {
+    note.spread = typeof pricing.spread === "number" ? pricing.spread : null;
+    note.manualPrice = pricing.manual ?? null;
     if (typeof pricing.spread !== "number")
       say("critical", "pricing.json has no numeric spread, so what the site pays is undefined");
     if (pricing.manual != null)
@@ -149,11 +172,11 @@ export async function checkSite(site, { now, get }) {
   return bad;
 }
 
-export async function watch({ now = new Date(), get }) {
+export async function watch({ now = new Date(), get, observed = {} }) {
   const found = [];
   const seen = {};
   for (const site of SITES) {
-    found.push(...await checkSite(site, { now, get }));
+    found.push(...await checkSite(site, { now, get, seen: observed }));
     try {
       const r = await get(`https://${site.host}/pricing.json`);
       if (r.status === 200) seen[site.key] = JSON.parse(r.body);
@@ -173,6 +196,42 @@ export async function watch({ now = new Date(), get }) {
   return found;
 }
 
+/* ── the file the daily read looks at ───────────────────────────────────────
+ *
+ * WHAT IT MAY SAY. Only what watch() actually observed this run, plus the
+ * verdict report() already computes. There is no history in it, no trend and no
+ * derived figure: this repository publishes no prices and must not start
+ * looking as though it does.
+ *
+ * WHY `generated` MOVES EVERY RUN, even when nothing changed. Every other
+ * committed file in this project is written only when its content moves, to
+ * keep the diffs readable. This one is the opposite on purpose: a status file
+ * whose timestamp only advances when something is wrong cannot answer the
+ * question it exists for, which is "is the watcher still running at all". A
+ * stopped watcher and a quiet week look identical unless the stamp moves.
+ * Five commits a weekday, on a repository that otherwise commits nothing.
+ */
+export const STATUS_PATH = "status.json";
+export const STATUS_SCHEMA = "emmert-admin-status/1";
+
+export function buildStatus({ found, observed, now = new Date(), run = null }) {
+  const r = report(found);
+  return {
+    schema: STATUS_SCHEMA,
+    generated: new Date(now).toISOString(),
+    /* ok means: the watchdog looked and found nothing above `low`. It is not a
+       claim about anything this repository has not looked at. */
+    ok: r.ok,
+    blocking: r.blocking,
+    findings: [...found].map((f) => ({ site: f.site, severity: f.severity, what: f.what })),
+    sites: SITES.map((s) => observed[s.key] ?? { host: s.host, name: s.name, reached: false }),
+    run,
+    note: "Written by tools/watch-live.mjs on every run of watch-live.yml, whether it passed or "
+        + "failed. `generated` moves every run on purpose: a stamp that only advances when "
+        + "something is wrong cannot tell a quiet week from a watchdog that has stopped.",
+  };
+}
+
 export function report(found) {
   const rank = { critical: 0, high: 1, low: 2 };
   const sorted = [...found].sort((x, y) => rank[x.severity] - rank[y.severity]);
@@ -190,9 +249,23 @@ export async function main() {
     const r = await fetch(url, { cache: "no-store", headers: { "user-agent": "emmert-watchdog" } });
     return { status: r.status, body: await r.text() };
   };
-  const found = await watch({ now: new Date(), get });
+  const now = new Date();
+  const observed = {};
+  const found = await watch({ now, get, observed });
   const r = report(found);
   console.log(r.text || "  nothing to report; both sites are current.");
+
+  /* THE FILE IS WRITTEN BEFORE THE EXIT CODE IS SET, and the workflow commits
+     it with if: always(). The one run whose status matters most is the one that
+     fails, and a status file that is only published on the good days is a
+     status file that lies by omission. */
+  const runUrl = process.env.GITHUB_SERVER_URL && process.env.GITHUB_REPOSITORY
+                 && process.env.GITHUB_RUN_ID
+    ? `${process.env.GITHUB_SERVER_URL}/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`
+    : null;
+  writeFileSync(STATUS_PATH, JSON.stringify(buildStatus({ found, observed, now, run: runUrl }), null, 1) + "\n");
+  console.log(`  wrote ${STATUS_PATH}`);
+
   if (!r.ok) {
     console.log(`\n${r.blocking} thing(s) need attention. This run is failing so it is not ignorable.`);
     process.exitCode = 1;
