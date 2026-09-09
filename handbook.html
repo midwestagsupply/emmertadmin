@@ -183,14 +183,100 @@ pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; p
 
 <header class="mast">
   <h1>Emmert Sites Handbook</h1>
-  <p>How the two elevator websites get their numbers, what the staff screen actually does when you press Save, who owns which piece, and what to check when something looks wrong.</p>
+  <p>Where the price on each website comes from, what the staff screen does when you press Save, and what to check when something looks wrong.</p>
   <div class="stamp">
-    <span>For Jessie &amp; Kristi</span><span>Rev. 24 August 2026</span><span>Keep at the desk</span>
+    <span>For Jessie &amp; Kristi</span><span>Rev. 9 September 2026</span><span>Keep at the desk</span>
   </div>
 </header>
 
 <section>
-  <div class="sechd"><h2>The three things</h2><span class="tag">two public · one private</span></div>
+  <div class="sechd"><h2>How it works</h2><span class="tag">nobody runs any of this</span></div>
+  <figure>
+    <div class="scroll">
+      <svg viewBox="0 0 880 372" role="img" aria-label="Big River Resources post a cash bid board on their own website. Every ten minutes a job reads it and keeps one copy. Each elevator has its own price job that takes the futures price for each delivery month from that copy, adds that elevator's own basis, and writes the result into that elevator's web page. The staff screen feeds the basis, which months to publish, the hours and the notices into both price jobs. The price itself is never typed anywhere.">
+        <defs>
+          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="currentColor"/>
+          </marker>
+          <marker id="ard" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+            <path d="M0,0 L10,5 L0,10 z" fill="#8a5209"/>
+          </marker>
+        </defs>
+
+        <!-- lane labels -->
+        <text x="8" y="16" font-size="10" font-weight="700" letter-spacing="1.6" fill="currentColor" opacity=".55">THE MARKET &#183; AUTOMATIC</text>
+        <text x="8" y="268" font-size="10" font-weight="700" letter-spacing="1.6" fill="#8a5209">THE OFFICE &#183; BY HAND</text>
+
+        <!-- 1. Big River -->
+        <rect x="8" y="30" width="176" height="86" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <text x="96" y="54" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">Big River</text>
+        <text x="96" y="70" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".72">Boyceville</text>
+        <text x="96" y="90" text-anchor="middle" font-size="10" fill="currentColor" opacity=".72">their posted board</text>
+        <text x="96" y="104" text-anchor="middle" font-size="10" fill="currentColor" opacity=".72">futures &#183; basis &#183; bid</text>
+
+        <line x1="188" y1="73" x2="228" y2="73" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+        <text x="208" y="62" text-anchor="middle" font-size="9" fill="currentColor" opacity=".6">read</text>
+
+        <!-- 2. one copy kept -->
+        <rect x="232" y="30" width="164" height="86" rx="3" fill="none" stroke="currentColor" stroke-width="1.2"/>
+        <text x="314" y="58" text-anchor="middle" font-size="12" font-weight="700" fill="currentColor">One copy kept</text>
+        <text x="314" y="78" text-anchor="middle" font-size="10" fill="currentColor" opacity=".72">every 10 minutes,</text>
+        <text x="314" y="92" text-anchor="middle" font-size="10" fill="currentColor" opacity=".72">7am&#8211;5pm weekdays</text>
+        <text x="314" y="106" text-anchor="middle" font-size="10" fill="currentColor" opacity=".72">both elevators read it</text>
+
+        <path d="M400,73 L424,73 L424,44 L448,44" fill="none" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+        <path d="M400,73 L424,73 L424,132 L448,132" fill="none" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+
+        <!-- 3. the two price jobs -->
+        <rect x="452" y="18" width="208" height="54" rx="3" fill="none" stroke="#b8332a" stroke-width="1.4"/>
+        <text x="466" y="38" font-size="11.5" font-weight="700" fill="#b8332a">Badger price job</text>
+        <text x="466" y="56" font-size="10.5" fill="currentColor" opacity=".8">futures + our basis</text>
+
+        <rect x="452" y="106" width="208" height="54" rx="3" fill="none" stroke="#1c5f52" stroke-width="1.4"/>
+        <text x="466" y="126" font-size="11.5" font-weight="700" fill="#1c5f52">Midwest price job</text>
+        <text x="466" y="144" font-size="10.5" fill="currentColor" opacity=".8">futures + our basis</text>
+
+        <line x1="664" y1="45" x2="700" y2="45" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+        <line x1="664" y1="133" x2="700" y2="133" stroke="currentColor" stroke-width="1.2" marker-end="url(#ar)"/>
+
+        <!-- 4. the pages -->
+        <rect x="704" y="18" width="168" height="54" rx="3" fill="#f6f7f8" stroke="#b8332a" stroke-width="1.4"/>
+        <text x="788" y="40" text-anchor="middle" font-size="11" font-weight="700" fill="#b8332a">badgergrain.com</text>
+        <text x="788" y="57" text-anchor="middle" font-size="10" fill="currentColor" opacity=".75">the price a grower reads</text>
+
+        <rect x="704" y="106" width="168" height="54" rx="3" fill="#f6f7f8" stroke="#1c5f52" stroke-width="1.4"/>
+        <text x="788" y="126" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1c5f52">midwestcommodity.com</text>
+        <text x="788" y="145" text-anchor="middle" font-size="10" fill="currentColor" opacity=".75">the price a grower reads</text>
+
+        <!-- divider -->
+        <line x1="8" y1="196" x2="872" y2="196" stroke="currentColor" stroke-width="1" opacity=".18"/>
+
+        <!-- 5. the staff screen -->
+        <rect x="8" y="282" width="388" height="76" rx="3" fill="#fdf3e3" stroke="#8a5209" stroke-width="1.4"/>
+        <text x="24" y="306" font-size="12.5" font-weight="700" fill="#8a5209">This staff screen</text>
+        <text x="24" y="324" font-size="10.5" fill="currentColor" opacity=".85">basis for each month &#183; which months show</text>
+        <text x="24" y="340" font-size="10.5" fill="currentColor" opacity=".85">hours &#183; notices</text>
+
+        <!-- Up the corridor at x=436, which is clear of the solid elbow at 424
+             and of the price-job boxes that start at 452, then into each box's
+             own left edge. The first cut ran one line straight up through the
+             Midwest box and across its text. -->
+        <path d="M400,320 L436,320 L436,148 L448,148" fill="none" stroke="#8a5209" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#ard)"/>
+        <path d="M436,148 L436,60 L448,60" fill="none" stroke="#8a5209" stroke-width="1.3" stroke-dasharray="5 4" marker-end="url(#ard)"/>
+        <text x="452" y="250" font-size="9.5" fill="#8a5209">Save &#8594; ticket &#8594; checker &#8594; files</text>
+        <text x="452" y="265" font-size="9.5" fill="currentColor" opacity=".6">about a minute</text>
+
+        <!-- the point -->
+        <text x="440" y="326" font-size="10.5" font-weight="700" fill="currentColor">The price itself is never typed.</text>
+        <text x="440" y="342" font-size="10" fill="currentColor" opacity=".75">You set the basis. Each site works out its own price from it.</text>
+      </svg>
+    </div>
+    <figcaption>Read it left to right. Big River post a board; a job reads it every ten minutes and keeps one copy; each elevator&rsquo;s own job takes the futures price for a delivery month out of that copy, adds that elevator&rsquo;s basis for that month, and writes the answer into its page. The dashed line is the only part the office touches. Nothing in the office ever types a price.</figcaption>
+  </figure>
+</section>
+
+<section>
+  <div class="sechd"><h2>The three things</h2><span class="tag">two public &#183; one private</span></div>
   <div class="trio">
     <div class="thing">
       <h3><span class="dot" style="background:var(--badger)"></span>Badger Grain Supply</h3>
@@ -198,7 +284,7 @@ pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; p
       <dl>
         <dt>Where</dt><dd>E5210 1040th Ave, Wheeler, WI 54772</dd>
         <dt>Phone</dt><dd class="mono">(715) 704-0548</dd>
-        <dt>Licence</dt><dd class="mono">302165 GL · 302162 GW</dd>
+        <dt>Licence</dt><dd class="mono">302165 GL &#183; 302162 GW</dd>
       </dl>
     </div>
     <div class="thing">
@@ -214,368 +300,165 @@ pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; p
       <span class="url">midwestagsupply.github.io/emmertadmin/</span>
       <dl>
         <dt>Who</dt><dd>Office only. Needs a GitHub account with write access.</dd>
-        <dt>Does</dt><dd>Sets hours, notices, and the basis. Both elevators, one page.</dd>
+        <dt>Does</dt><dd>Sets the basis, which months show, the hours and the notices. Both elevators, one page.</dd>
       </dl>
     </div>
   </div>
 </section>
 
 <section>
-  <div class="sechd"><h2>Where the number on the page comes from</h2><span class="tag">nobody types the price</span></div>
-  <figure>
-    <div class="scroll">
-      <svg viewBox="0 0 880 348" role="img" aria-label="Big River's posted board is read every ten minutes through the trading day and kept in the bids repository. From there each elevator's own Prices job takes it, subtracts that elevator's spread, and writes the result into that elevator's web page. The staff screen sits between the two jobs and supplies the spread to each of them; it never supplies a price.">
-        <defs>
-          <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-            <path d="M 0 0 L 10 5 L 0 10 z" fill="currentColor"/>
-          </marker>
-        </defs>
-
-        <rect x="350" y="8" width="180" height="46" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
-        <text x="440" y="27" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">Big River</text>
-        <text x="440" y="43" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">their posted board</text>
-
-        <line x1="440" y1="54" x2="440" y2="84" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
-        <text x="450" y="73" font-size="10" fill="currentColor" opacity=".7">read every 10 minutes, trading day</text>
-
-        <rect x="340" y="86" width="200" height="58" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
-        <text x="440" y="107" text-anchor="middle" font-size="12.5" font-weight="600" fill="currentColor">bids repository</text>
-        <text x="440" y="123" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">one copy of the board</text>
-        <text x="440" y="137" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">re-stamped when the price moves</text>
-
-        <path d="M 440 144 L 440 162 L 225 162 L 225 194" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
-        <path d="M 440 144 L 440 162 L 655 162 L 655 194" fill="none" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
-        <text x="440" y="180" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">every 10 minutes, each on its own</text>
-
-        <rect x="120" y="196" width="210" height="52" rx="3" fill="none" stroke="#b8332a" stroke-width="1.6"/>
-        <text x="225" y="217" text-anchor="middle" font-size="12" font-weight="600" fill="#b8332a">Badger &#183; Prices job</text>
-        <text x="225" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".78">board &#8722; our spread</text>
-
-        <rect x="550" y="196" width="210" height="52" rx="3" fill="none" stroke="#1c5f52" stroke-width="1.6"/>
-        <text x="655" y="217" text-anchor="middle" font-size="12" font-weight="600" fill="#1c5f52">Midwest &#183; Prices job</text>
-        <text x="655" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".78">board &#8722; our spread</text>
-
-        <rect x="356" y="198" width="168" height="48" rx="3" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 3"/>
-        <text x="440" y="218" text-anchor="middle" font-size="12" font-weight="600" fill="currentColor">staff screen</text>
-        <text x="440" y="234" text-anchor="middle" font-size="10.5" fill="currentColor" opacity=".7">spread &#183; hours &#183; notices</text>
-
-        <line x1="354" y1="222" x2="334" y2="222" stroke="currentColor" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#ar)"/>
-        <line x1="526" y1="222" x2="546" y2="222" stroke="currentColor" stroke-width="1.3" stroke-dasharray="4 3" marker-end="url(#ar)"/>
-
-        <line x1="225" y1="248" x2="225" y2="276" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
-        <line x1="655" y1="248" x2="655" y2="276" stroke="currentColor" stroke-width="1.4" marker-end="url(#ar)"/>
-
-        <rect x="120" y="278" width="210" height="50" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
-        <text x="225" y="299" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">badgergrain.com</text>
-        <text x="225" y="315" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">plain HTML &#183; fetches nothing</text>
-
-        <rect x="550" y="278" width="210" height="50" rx="3" fill="none" stroke="currentColor" stroke-width="1.4"/>
-        <text x="655" y="299" text-anchor="middle" font-size="11.5" font-weight="600" fill="currentColor">midwestcommodity.com</text>
-        <text x="655" y="315" text-anchor="middle" font-size="10" fill="currentColor" opacity=".7">plain HTML &#183; fetches nothing</text>
-      </svg>
-    </div>
-    <figcaption>The elevator&rsquo;s own price is never typed anywhere. It is Big River&rsquo;s posted board minus that elevator&rsquo;s spread, worked out fresh by each site&rsquo;s own job and written into the page as plain text. The dashed arrows are the only thing the office puts in: the spread, and the hours, which travel the same road to the same page. The staff screen also shows you Big River&rsquo;s board as they posted it, so you can check it line for line.</figcaption>
-  </figure>
-</section>
-
-<section>
-  <div class="sechd"><h2>What happens without anybody</h2><span class="tag">the clock</span></div>
-  <div class="tw">
-    <table>
-      <thead><tr><th>Job</th><th>When it runs</th><th>What it does</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><strong>Prices</strong></td>
-          <td class="mono">every 10 min, 7am–5pm weekdays<br>every 30 min otherwise</td>
-          <td>Reads the board, applies the spread, rewrites the price panel. If one run fails the next is ten minutes behind it.</td>
-        </tr>
-        <tr>
-          <td><strong>Hours</strong></td>
-          <td class="mono">~8am, ~5pm, ~midnight<br>four tries over 20 min</td>
-          <td>Rewrites the hours box and the week table. Also runs the moment <code>hours.json</code> changes.</td>
-        </tr>
-        <tr>
-          <td><strong>The page's own clock</strong></td>
-          <td class="mono">in the reader's browser</td>
-          <td>Flips <em>Open now</em> to <em>Closed</em> at the right minute even if no job ran that day. It works from the hours the last job baked in.</td>
-        </tr>
-        <tr>
-          <td><strong>Watchdog</strong></td>
-          <td class="mono">5× weekdays, 1× weekends</td>
-          <td>Opens both live sites, checks the numbers agree and nothing is stale, and emails if not.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="flag">
-    <h3>If the feed goes quiet, the price comes off — on purpose</h3>
-    <p>The reader that watches Big River's board checks in every six hours. If nothing has arrived in <strong>14 hours</strong> — two missed check-ins — both sites stop showing a number and say <em>“Call for today's price”</em> instead.</p>
-    <p>That is the system working. A wrong price on the page is worse than no price on the page.</p>
-  </div>
-</section>
-
-<section>
-  <div class="sechd"><h2>Who owns which piece</h2><span class="tag">four things, three companies</span></div>
-  <p class="lede">Nothing here is a mystery service somebody set up and left. There are four moving parts and each one has a name, a company behind it, and somebody to ring. This page is where they are written down.</p>
-  <div class="tw">
-    <table>
-      <thead><tr><th>The piece</th><th>What it is</th><th>Where it lives</th><th>If it breaks</th></tr></thead>
-      <tbody>
-        <tr>
-          <td><strong>The two domain names</strong></td>
-          <td class="mono">badgergrain.com<br>midwestcommodity.com</td>
-          <td>Registered and pointed at the website by <strong>GoDaddy</strong>. They renew on a date; a domain that lapses takes the website with it.</td>
-          <td>Sig. Nobody in the office needs to touch this, ever.</td>
-        </tr>
-        <tr>
-          <td><strong>The websites themselves</strong></td>
-          <td>Plain pages — no database, no login, nothing running behind them</td>
-          <td>Held and served by <strong>GitHub</strong>, free, at the two names above.</td>
-          <td>Sig. There is no hosting bill and no server to restart.</td>
-        </tr>
-        <tr>
-          <td><strong>The price reader</strong></td>
-          <td>The thing that looks at Big River's board every ten minutes</td>
-          <td>Also GitHub, in a separate place of its own.</td>
-          <td>Sig. It takes the price off the sites rather than guess — see below.</td>
-        </tr>
-        <tr>
-          <td><strong>This staff screen</strong></td>
-          <td>Where you set hours, notices and the basis</td>
-          <td>GitHub again, same family as the sites.</td>
-          <td>Sig — but read the triage table first, most of it is not broken.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="flag">
-    <h3>Today, the two domain names carry the website and nothing else</h3>
-    <p>No email is routed on either name. Checked on 24 August 2026 against three separate directory services — there is no mail record on <span class="mono">badgergrain.com</span> or <span class="mono">midwestcommodity.com</span>, so a note sent to anything@ either of them goes nowhere at all.</p>
-    <p>That is being changed. See below.</p>
-  </div>
-</section>
-
-<section>
-  <div class="sechd"><h2>Mail to the two elevator names</h2><span class="tag">Kristi &middot; to be set up</span></div>
-  <p class="lede">A farmer who has the website will sooner or later write to <span class="mono">info@badgergrain.com</span>, because that is the address people assume exists. Right now that note bounces &mdash; or worse, quietly does not. The fix is forwarding: mail addressed to either elevator lands in Kristi's inbox at <span class="mono">midwestagsupply.com</span>, which is where the office already reads its mail.</p>
-
+  <div class="sechd"><h2>The screen is two screens</h2><span class="tag">both elevators on both</span></div>
   <div class="how">
     <div class="card">
-      <h3>Set up the forwarding</h3>
+      <h3>Basis</h3>
       <ol>
-        <li>Sign in at <span class="mono">godaddy.com</span> &mdash; both elevator names are registered there.</li>
-        <li>Open <strong>badgergrain.com</strong> and find the email forwarding section for that domain.</li>
-        <li>Forward <span class="mono">info@badgergrain.com</span> to <span class="mono">kristi@midwestagsupply.com</span>.</li>
-        <li>Add a second forward for <span class="mono">office@</span> if you want it. Keep the list short &mdash; every address you invent is one more thing to check.</li>
-        <li>Do the same for <strong>midwestcommodity.com</strong>.</li>
-        <li>Send yourself a test to each new address. It can take an hour or two to start working; if nothing has arrived by the next morning, something is wrong.</li>
+        <li>One row for each of the eleven delivery months, in Big River&rsquo;s own order.</li>
+        <li>Left of the divider is the market: the futures contract that month prices off, what it is at, and Big River&rsquo;s own basis and bid.</li>
+        <li>Right of it, twice: <strong>Show</strong>, <strong>Our basis</strong>, <strong>On the site</strong> &mdash; once for Badger, once for Midwest.</li>
       </ol>
     </div>
     <div class="card">
-      <h3>Then put the address on the sites</h3>
+      <h3>Hours &amp; notices</h3>
       <ol>
-        <li>Tell Sig once the forwarding is tested and working.</li>
-        <li>An address on a website that bounces is worse than no address at all, so the sites do not get one until a real note has arrived.</li>
-        <li>The phone number stays the main way to reach either elevator. This is for the people who write instead of ring.</li>
+        <li>Today, the yellow bar, Monday to Friday, Saturday, Sunday.</li>
+        <li>The small print under the hours, and the note under the prices.</li>
+        <li>Same shape: one row per setting, one column pair per elevator.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>What is true of both</h3>
+      <ol>
+        <li>Both elevators are always on screen. Nothing hides one.</li>
+        <li>Each has its own <strong>Save</strong> and files its own ticket. Nothing you type in one column can travel in the other one&rsquo;s.</li>
+        <li>A red or green outline down a column tells you which elevator you are in.</li>
       </ol>
     </div>
   </div>
-
-  <div class="flag">
-    <h3>Two records that stop somebody pretending to be us</h3>
-    <p>While the domain is open in GoDaddy, add these. They are the reason a fraudster cannot send a convincing &ldquo;our bank details have changed&rdquo; note that appears to come from the elevator &mdash; which is a known and specific way grain businesses get hit.</p>
-    <p><strong>Add, never replace.</strong> Adding a record is safe; replacing one that is already there is how mail goes down.</p>
-    <p>On <strong>each</strong> of the two elevator domains, add two <span class="mono">TXT</span> records:</p>
-  </div>
-
-  <pre>Type   Name      Value
-────   ──────    ─────────────────────────────
-TXT    @         v=spf1 -all
-TXT    _dmarc    v=DMARC1; p=reject;</pre>
-
-  <div class="flag">
-    <h3>What those two lines mean, and the one way they could bite</h3>
-    <p>The first says <em>nothing on the internet is allowed to send mail claiming to be this name</em>. The second says <em>and if anything tries, throw it away</em>. Forwarding is unaffected: forwarding is mail coming <strong>in</strong>, and these two records only govern mail going <strong>out</strong>.</p>
-    <p><strong>The one way they could bite:</strong> if the office ever starts <em>sending</em> mail as <span class="mono">kristi@badgergrain.com</span> rather than just receiving it, these records will block your own mail. That is fixable in a minute &mdash; but it has to be done at the same time, not discovered afterwards. Tell Sig before that changes.</p>
-  </div>
 </section>
 
 <section>
-  <div class="sechd"><h2>GitHub, in plain words</h2><span class="tag">five words, once</span></div>
-  <p class="lede">Every part of this runs on GitHub, and the words it uses are not words anybody uses about a website. Here they are once, in the order you will meet them. You will only ever need the last two.</p>
-  <div class="tw">
-    <table>
-      <thead><tr><th>Their word</th><th>What it actually is</th><th>Yours?</th></tr></thead>
-      <tbody>
-        <tr><td class="mono">account</td><td>Your login. Yours is yours — your name shows on every change you make, which is how the screen can say <em>“last change today 10:09 AM by jessie”</em>.</td><td>Yes — you need one</td></tr>
-        <tr><td class="mono">organisation</td><td>The company folder everything sits in. Ours is <span class="mono">midwestagsupply</span>.</td><td>You are a member</td></tr>
-        <tr><td class="mono">repository</td><td>A folder of files. One per elevator, plus one for this staff screen. That's it — “repo” is a folder.</td><td>Rarely</td></tr>
-        <tr><td class="mono">issue</td><td>A numbered note filed against a folder. <strong>This is what Save makes.</strong> The screen writes the whole form into one and you press Submit.</td><td><strong>Yes — every save</strong></td></tr>
-        <tr><td class="mono">action</td><td>A job that runs on its own when something happens. One reads your issue and writes the files; others rebuild the pages.</td><td>No — they run themselves</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <div class="flag">
-    <h3>Why a ticket and not a password</h3>
-    <p>There used to be a password on this screen, kept in a box on another company's service, guarding a button that changed two small files. That was removed in August 2026.</p>
-    <p>A ticket is better for a plain reason: <strong>a password says what you know, an account says who you are.</strong> Every change now carries your name and the time, nothing has to be remembered or shared, and there is no password to leak, expire or be written on a note by the till.</p>
-  </div>
-</section>
-
-<section>
-  <div class="sechd"><h2>The price reader, in detail</h2><span class="tag">the part nobody has to run</span></div>
-  <p class="lede">This is the piece people ask about most, so here it is properly. Nobody in the office runs it, starts it, or can break it — but knowing what it does answers most of the questions a farmer will put to you.</p>
+  <div class="sechd"><h2>How to</h2><span class="tag">the four things you will do</span></div>
   <div class="how">
     <div class="card">
-      <h3>What it reads</h3>
+      <h3>Set a basis, choose the months</h3>
       <ol>
-        <li>Big River Resources posts a cash-bid board on their own website, publicly, the same board any farmer can look at.</li>
-        <li>Every ten minutes through the trading day, a job opens that page and reads the whole table.</li>
-        <li>It keeps one copy. Both elevators price off the same copy, which is why the two columns on the staff screen can be checked against each other.</li>
+        <li>Find the month&rsquo;s row. Type our basis in that elevator&rsquo;s <strong>Our basis</strong> box &mdash; almost always a minus.</li>
+        <li>Read across: <strong>futures plus your basis</strong> is what the site will post.</li>
+        <li>Tick <strong>Show</strong> on the months you want on the site; untick one to take it off.</li>
+        <li>Press Save, then the green <em>Submit new issue</em>. Live in about a minute.</li>
       </ol>
     </div>
     <div class="card">
-      <h3>What it refuses</h3>
+      <h3>Change today&rsquo;s hours</h3>
       <ol>
-        <li>A reading where their cash and their basis do not agree with the futures quote on their own page — that is a half-loaded page, not a price.</li>
-        <li>A corn price outside two to twelve dollars. That is a decimal point in the wrong place, not a market.</li>
-        <li>Anything older than 14 hours. Both sites then say <em>“Call for today's price”</em> rather than show it.</li>
+        <li>Hours &amp; notices, the <strong>Today</strong> row.</li>
+        <li><strong>Usual</strong> uses the weekly hours below. <strong>Different</strong> uses the two boxes beside it. <strong>Closed</strong> shuts the day. <strong>Harvest</strong> uses the harvest window.</li>
+        <li>Today only. It clears itself overnight, so you do not have to remember to undo it.</li>
+        <li>Save and submit.</li>
       </ol>
     </div>
     <div class="card">
-      <h3>What it never does</h3>
+      <h3>Put a notice up</h3>
       <ol>
-        <li>It never invents a number. If it cannot read one, the price comes off the page.</li>
-        <li>It never rounds Big River's figures. <span class="mono">$4.2825</span> stays <span class="mono">$4.2825</span> so you can check it line for line.</li>
-        <li>It never sets our price. Our price is their board minus the spread <em>you</em> set, worked out by each site itself.</li>
-      </ol>
-    </div>
-  </div>
-  <div class="flag">
-    <h3>So if a farmer asks “where does this price come from?”</h3>
-    <p>The honest answer, and the one on the page: <strong>it is Big River's posted board less our basis, read automatically and rebuilt through the day.</strong> It is not a quote, and it is not final until he rings.</p>
-  </div>
-</section>
-
-<section>
-  <div class="sechd"><h2>How to</h2><span class="tag">the four things you will actually do</span></div>
-  <div class="how">
-    <div class="card">
-      <h3>Change the hours</h3>
-      <ol>
-        <li>Open the staff screen.</li>
-        <li>Find the elevator's column — Badger on the left, Midwest on the right.</li>
-        <li>Type the new times. The fields you changed light up before you save.</li>
-        <li>Press <kbd>Save</kbd>. A GitHub page opens with the form already filled in.</li>
-        <li>Press <kbd>Submit new issue</kbd>. That is the actual save.</li>
-      </ol>
-    </div>
-    <div class="card">
-      <h3>Close for the day</h3>
-      <ol>
-        <li>Tick <strong>Closed today</strong> in that elevator's column.</li>
-        <li>Add a line in the notice box if there is a reason worth giving.</li>
-        <li>Save and submit as above.</li>
-        <li>It clears itself overnight — you do not have to remember to untick it tomorrow.</li>
-      </ol>
-    </div>
-    <div class="card">
-      <h3>Change the basis</h3>
-      <ol>
-        <li>The board on the screen shows Big River's posted numbers, line for line, exactly as they post them.</li>
-        <li>Our basis is <strong>whatever you type</strong>. It is set against the futures contract month, not against Big River: what we pay is that month's contract price plus your basis. Their board is on the screen beside it so you can see where they are sitting, and it no longer decides our number.</li>
-        <li>The readout under the box says in words what the number you typed will do.</li>
-        <li>Save and submit. The price on the site is rebuilt within a minute.</li>
+        <li>The <strong>Notice banner</strong> row. Write the message, set it to <strong>Show</strong>.</li>
+        <li>160 characters. It is the yellow bar under the logo on both sites.</li>
+        <li>Set it back to <strong>Hide</strong> when it is no longer true. Nothing takes it down for you.</li>
+        <li>Save and submit.</li>
       </ol>
     </div>
     <div class="card">
       <h3>Break glass: type a price</h3>
       <ol>
-        <li>Only when the automatic reading is down and you have a number from the office.</li>
-        <li>Enter it as a manual price. It <strong>overrides the feed</strong> until it is cleared.</li>
-        <li>Clear it the moment the feed is back, or the site keeps showing your number instead of the market's.</li>
+        <li>While the board is up this panel is not on the screen at all &mdash; with eleven live prices in front of you there is nothing to type by hand.</li>
+        <li>If the feed has failed the board disappears and the panel appears in its place.</li>
+        <li>Enter the number from the office. It <strong>overrides the feed</strong> until it is cleared.</li>
+        <li>Clear it the moment the feed is back, or the site keeps showing your number instead of the market&rsquo;s.</li>
       </ol>
     </div>
   </div>
 
   <div class="flag">
-    <h3>The one that catches people: blank is not zero</h3>
-    <p>On the new-crop basis box, <strong>blank</strong> and <strong>0</strong> mean opposite things.</p>
-    <p><strong>Blank</strong> — there is no separate new-crop basis, so new crop uses the same basis as everything else.<br>
-       <strong>0</strong> — there <em>is</em> a new-crop basis and it is zero: we pay the contract price itself, with nothing off it. That is a long way above what anybody normally posts, so if you meant "the same as cash", leave it blank.</p>
-    <p>The basis is signed, the way it is said out loud: <strong>&minus;0.75</strong> is seventy-five under, <strong>+0.05</strong> is a nickel over. Almost every basis you will ever type starts with a minus. A number typed without one is a price <em>over</em> the contract.</p>
-    <p>Read the sentence under the box before you save. It spells out what will happen in plain words.</p>
+    <h3>Blank is not zero</h3>
+    <p><strong>Blank</strong> &mdash; leave that month exactly as the site has it. It is the only thing that means that.<br>
+       <strong>0</strong> &mdash; the basis for that month <em>is</em> zero: we pay the contract price itself, with nothing off it. A long way above what anybody posts. If you meant &ldquo;leave it alone&rdquo;, clear the box.</p>
+    <p>The basis is signed, the way it is said out loud: <strong>&minus;0.75</strong> is seventy-five under, <strong>+0.05</strong> is a nickel over. Almost every basis you will ever type starts with a minus.</p>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>The rules the screen enforces</h2><span class="tag">it will stop you</span></div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Rule</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>A basis further than <span class="mono">$1.50</span> from zero is refused</td><td>That is a typo, not a market. Changing it for real takes two people and a file.</td></tr>
+        <tr><td>At least one month has to be ticked</td><td>A site with nothing ticked shows a grower no price at all.</td></tr>
+        <tr><td>A box that is not a number is refused, and the refusal names the month</td><td>There are eleven boxes. &ldquo;Not a number&rdquo; without a month sends you counting rows.</td></tr>
+        <tr><td>A day left open with no hours typed is refused</td><td>Open until blank o&rsquo;clock is worse than closed.</td></tr>
+        <tr><td>A banner set to Show with nothing written is refused</td><td>An empty yellow bar reads as a fault.</td></tr>
+        <tr><td>Nothing saves at all until the screen has read both sites</td><td>Otherwise the first Save publishes the sample values the page ships with. Boxes still holding a sample are outlined in red.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Tips</h2><span class="tag">things worth knowing</span></div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Tip</th><th>Detail</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Read the row, not the column</strong></td><td>Futures, their basis, their bid, your basis and what is live all sit on one line for that month. Every question you have about a month is answered across that line.</td></tr>
+        <tr><td><strong>&ldquo;On the site&rdquo; will not match your box, and should not</strong></td><td>It is what a grower is being shown right now, worked out when the site last rebuilt. Yours is what it will be after you save. The gap between them is the point of that column.</td></tr>
+        <tr><td><strong>A month nobody has set starts at Big River&rsquo;s basis</strong></td><td>A starting point to work from, not our price. The months already publishing keep our own figures &mdash; the board never moves a live price.</td></tr>
+        <tr><td><strong>Everything prints to the cent</strong></td><td>Big River quote quarter cents; the screen and both sites round to the cent, so the number you see is the number a grower sees. The full figure is still what gets stored.</td></tr>
+        <tr><td><strong>Undo only undoes your typing</strong></td><td>Per column. It puts the boxes back to what the site is publishing. It cannot undo a ticket you have already submitted.</td></tr>
+        <tr><td><strong>Save twice rather than fix a wrong save</strong></td><td>Every save is a full statement of what the settings should be. The last one wins, and the site rebuilds within a minute.</td></tr>
+        <tr><td><strong>Hard-refresh after an update to the screen itself</strong></td><td>Ctrl-Shift-R. The browser keeps the old stylesheet otherwise.</td></tr>
+        <tr><td><strong>It works on a phone</strong></td><td>Each month becomes a small block, both elevators inside it, and the Save buttons stay under your thumb.</td></tr>
+      </tbody>
+    </table>
   </div>
 </section>
 
 <section>
   <div class="sechd"><h2>What Save actually does</h2><span class="tag">why there are two buttons</span></div>
-  <p class="lede">There is no password on the staff screen and no server behind it. That is deliberate — the password and the server were removed in August 2026 because a password kept in a box somewhere is the thing that eventually leaks. Instead the screen writes the change as a GitHub ticket, and GitHub decides whether you are allowed.</p>
+  <p class="lede">There is no password on the staff screen and no server behind it. That is deliberate &mdash; a password kept in a box somewhere is the thing that eventually leaks. The screen writes your change as a GitHub ticket instead, and GitHub decides whether you are allowed.</p>
   <div class="tw">
     <table>
       <thead><tr><th>Step</th><th>What happens</th><th>What you see</th></tr></thead>
       <tbody>
-        <tr><td class="mono">1</td><td>You press Save on the screen.</td><td>A GitHub page opens with the whole form already written out.</td></tr>
-        <tr><td class="mono">2</td><td>You press Submit new issue.</td><td>The ticket is filed against that elevator's site.</td></tr>
-        <tr><td class="mono">3</td><td>A checker runs. It reads who filed it and refuses anyone without write access; it runs its own tests before it touches a file.</td><td>Nothing yet — about a minute.</td></tr>
-        <tr><td class="mono">4a</td><td><strong>Accepted.</strong> The hours and spread are written, the site is rebuilt straight away.</td><td>A comment saying <em>Done</em>, and the ticket <strong>closes</strong>.</td></tr>
-        <tr><td class="mono">4b</td><td><strong>Refused</strong> — a time that could not be read, a basis that is not a number. Nothing is changed.</td><td>A comment saying what was wrong, and the ticket <strong>stays open</strong>.</td></tr>
+        <tr><td class="mono">1</td><td>You press <strong>Save</strong>.</td><td>A GitHub page opens with the whole form already written out.</td></tr>
+        <tr><td class="mono">2</td><td>You press <strong>Submit new issue</strong>.</td><td>The ticket is filed against that elevator&rsquo;s site.</td></tr>
+        <tr><td class="mono">3</td><td>A checker runs. It refuses anyone without write access and runs its own tests before touching a file.</td><td>Nothing yet &mdash; about a minute.</td></tr>
+        <tr><td class="mono">4a</td><td><strong>Accepted.</strong> The basis, the months, the hours are written and the site rebuilds.</td><td>A comment saying <em>Done</em>, and the ticket <strong>closes</strong>.</td></tr>
+        <tr><td class="mono">4b</td><td><strong>Refused.</strong> Nothing is changed.</td><td>A comment naming the line that was wrong. The ticket <strong>stays open</strong>.</td></tr>
       </tbody>
     </table>
   </div>
   <div class="flag">
     <h3>A closed ticket is the receipt</h3>
-    <p>The ticket closing is how you know the change is live. If it is still open, read the comment — it names the line that could not be read.</p>
-    <p><strong>You do not start over.</strong> Edit the ticket, fix that one line, and it runs again on its own.</p>
+    <p>The ticket closing is how you know the change is live. If it is still open, read the comment &mdash; it names the line that could not be read. You do not start over: edit the ticket, fix that one line, and it runs again on its own.</p>
   </div>
 </section>
 
 <section>
-  <div class="sechd"><h2>Questions</h2><span class="tag">open one</span></div>
-  <div class="faq">
-    <details><summary>I pressed Save and no second page opened.</summary>
-      <div class="a"><p>Your browser blocked it. Some browsers stop a page from opening another one unless you have said it may.</p>
-      <p><strong>Nothing was lost.</strong> The screen says so, and gives you a link to open the form by hand — use that, then press the green <em>Submit new issue</em> button as usual. If you would rather it stopped happening, allow pop-ups for this screen.</p></div></details>
-
-    <details><summary>Why does Save open a second page at all?</summary>
-      <div class="a"><p>Because there is no password on this screen, and that is on purpose.</p>
-      <p>The screen is a plain file. A plain file cannot change the website on its own — something has to be allowed to, and being allowed means holding a password. There used to be one, kept on another company's service, guarding a button that changed two small files.</p>
-      <p>Instead, <strong>your own GitHub sign-in is the permission.</strong> That is what the second page is: it is where the change is filed under your name. It is also why the screen can tell you “last change today 10:09 AM by jessie”, and why nobody without access can change either site even if they find the page.</p>
-      <p>It is two steps rather than one. It is also nothing to leak, nothing to remember, and nothing written on a note by the till.</p></div></details>
-
-    <details><summary>I saved it. How long until it is on the site?</summary>
-      <div class="a"><p>About a minute. Saving now kicks off the rebuild rather than waiting for the next scheduled run.</p>
-      <p>If it has been more than five minutes, check whether the ticket closed. An open ticket means it was refused and <strong>nothing changed</strong>.</p></div></details>
-
-    <details><summary>The site says “Call for today's price”. Is it broken?</summary>
-      <div class="a"><p>Not necessarily. It means no fresh reading of Big River's board has arrived in 14 hours, so the site took the number down rather than show a stale one.</p>
-      <p>It clears itself as soon as a reading arrives. If it is still saying that after a few hours of a normal trading day, tell Sig.</p></div></details>
-
-    <details><summary>The hours box says Closed and we are open.</summary>
-      <div class="a"><p>The open/closed sentence is worked out in the visitor's own browser, from their own clock, so it flips at the right minute without anything having to run. If it is wrong, the <strong>hours themselves</strong> are wrong, not the clock — check what is set on the staff screen for that elevator.</p>
-      <p>Worth ruling out first: a phone showing a page it loaded hours ago. Pull to refresh.</p></div></details>
-
-    <details><summary>I typed the wrong thing and saved it.</summary>
-      <div class="a"><p>Save the right thing over it. Every save is a full statement of what the hours and spread should be — the last one wins, and the site rebuilds within a minute.</p>
-      <p>Nothing is lost either way: every change is recorded with who made it and when.</p></div></details>
-
-    <details><summary>Why does the board on the staff screen show <span class="mono">$4.2825</span> and not <span class="mono">$4.28</span>?</summary>
-      <div class="a"><p>Because that is what Big River posted. The board is there so you can check it line for line against theirs, and a rounded number would not match.</p>
-      <p>The rounding that produces <em>our</em> posted price happens later, in one place, on purpose.</p></div></details>
-
-    <details><summary>Can I edit the website itself from the staff screen?</summary>
-      <div class="a"><p>No, and that is the point. The screen sets hours, notices and the spread. Everything else on the page — the price, the week table, the drying schedule — is worked out from those.</p></div></details>
-
-    <details><summary>Does the website slow down or cost money when a lot of people visit?</summary>
-      <div class="a"><p>No. Both sites are plain HTML files served by GitHub. The page does no work when somebody opens it — it fetches nothing, calculates nothing, asks no other service for anything. A busy morning costs exactly the same as a quiet one.</p></div></details>
-
-    <details><summary>A farmer says our price is “as of” hours ago. Is it stale?</summary>
-      <div class="a"><p>Almost always no. Two different times are involved and only one of them is on the page.</p>
-      <p><strong>The board is read every ten minutes through the trading day</strong> — hourly outside it, every three hours at weekends. The copy of it is only re-stamped when a number actually <em>moves</em>, or once every six hours if nothing has. So on a flat afternoon the stamp can read six hours old while the board has in fact been read dozens of times since.</p>
-      <p>What it means is <em>“this is still the price”</em>, not <em>“nobody has looked”</em>. If it goes past 14 hours the site takes the price down on its own.</p></div></details>
-
-    <details><summary>Somebody shared the site and the preview looked wrong.</summary>
-      <div class="a"><p>Each site has its own preview card, in its own colour — Badger red, Midwest green. Facebook and Messages cache these for days, so an old share can keep showing an old card for a while. A fresh share will be right.</p></div></details>
+  <div class="sechd"><h2>What runs on its own</h2><span class="tag">the clock</span></div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Job</th><th>When</th><th>What it does</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Prices</strong></td><td>every 10 min, 7am&ndash;5pm weekdays<br>every 30 min otherwise</td><td>Reads the board, adds our basis to each month&rsquo;s futures price, rewrites the price panel. If one run fails the next is ten minutes behind it.</td></tr>
+        <tr><td><strong>Hours</strong></td><td>~8am, ~5pm, ~midnight</td><td>Rewrites the hours box and the week table. Also runs the moment the hours change.</td></tr>
+        <tr><td><strong>The page&rsquo;s own clock</strong></td><td>in the reader&rsquo;s browser</td><td>Flips <em>Open now</em> to <em>Closed</em> at the right minute even if no job ran that day.</td></tr>
+        <tr><td><strong>Watchdog</strong></td><td>5&times; weekdays, 1&times; weekends</td><td>Opens both live sites, checks the numbers agree and nothing is stale, emails if not.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="flag">
+    <h3>If the feed goes quiet, the price comes off &mdash; on purpose</h3>
+    <p>If nothing has arrived from Big River in 14 hours, both sites stop showing a number and say <em>&ldquo;Call for today&rsquo;s price&rdquo;</em> instead. That is the system working. A wrong price on the page is worse than no price on the page.</p>
+    <p>It also refuses a reading where their own figures disagree with each other &mdash; a half-loaded page &mdash; and any corn price outside two to twelve dollars, which is a decimal point in the wrong place.</p>
   </div>
 </section>
 
@@ -585,63 +468,69 @@ TXT    _dmarc    v=DMARC1; p=reject;</pre>
     <table>
       <thead><tr><th>What you see</th><th>Most likely</th><th>What to do</th></tr></thead>
       <tbody>
-        <tr><td>Price is missing</td><td>Feed older than 14 hours</td><td>Wait for the next reading. Still gone after a few hours of a trading day → tell Sig.</td></tr>
-        <tr><td>Price looks stale</td><td>A manual price was left on</td><td>Check the staff screen for a manual override and clear it.</td></tr>
-        <tr><td>Hours are wrong</td><td>The hours are wrong, not the clock</td><td>Check what is set on the staff screen for that elevator.</td></tr>
-        <tr><td>Saved but nothing changed</td><td>The ticket was refused</td><td>Open the ticket, read the comment, fix that one line, it re-runs.</td></tr>
+        <tr><td>Price is missing</td><td>Feed older than 14 hours</td><td>Wait for the next reading. Still gone after a few hours of a trading day &rarr; tell Sig.</td></tr>
+        <tr><td>Price looks stale</td><td>A manual price was left on</td><td>Check the staff screen for an override and clear it.</td></tr>
+        <tr><td>A month is missing from the site</td><td>Its <strong>Show</strong> tick is off</td><td>Tick it on the Basis screen and save.</td></tr>
+        <tr><td>Hours are wrong</td><td>The hours are wrong, not the clock</td><td>Check what is set for that elevator.</td></tr>
+        <tr><td>Saved but nothing changed</td><td>The ticket was refused</td><td>Open the ticket, read the comment, fix that one line. It re-runs.</td></tr>
         <tr><td>Save button did nothing</td><td>Not signed in to GitHub</td><td>Sign in, then press Save again.</td></tr>
-        <tr><td>Two elevators disagree</td><td>One site's job did not run</td><td>Tell Sig. The watchdog should have caught it and emailed.</td></tr>
+        <tr><td>Boxes outlined in red</td><td>The screen has not read the sites yet</td><td>Wait a moment or reload. Do not save while they are outlined.</td></tr>
+        <tr><td>Two elevators disagree</td><td>One site&rsquo;s job did not run</td><td>Tell Sig. The watchdog should have caught it and emailed.</td></tr>
       </tbody>
     </table>
   </div>
 </section>
 
 <section>
-  <div class="sechd"><h2>Later: analytics and search</h2><span class="tag">not set up · here is how</span></div>
-  <p class="lede">None of this is on the sites today. When you want it, it is a short job — and it is safe to add, because the jobs that rebuild the pages only rewrite five clearly marked blocks and never touch the top of the file. That was tested, not assumed: tags were added to a real page, both rebuilders were run against it, and the top of the file came back byte for byte identical.</p>
+  <div class="sechd"><h2>Questions</h2><span class="tag">the ones that get asked</span></div>
+  <div class="faq">
+    <details><summary>A farmer asks where the price comes from. What do I say?</summary>
+      <div class="a"><p>It is that delivery month&rsquo;s futures contract plus our own basis, read from Big River&rsquo;s posted board automatically and rebuilt through the day. <strong>It is not a quote and it is not final until he rings.</strong></p></div></details>
 
-  <div class="how">
-    <div class="card">
-      <h3>Google Search Console</h3>
-      <ol>
-        <li>Add a <strong>URL-prefix property</strong> for <code>https://badgergrain.com/</code>. Do the same again for Midwest.</li>
-        <li>Choose the <strong>HTML tag</strong> method and copy the tag it gives you.</li>
-        <li>Paste it into <code>index.html</code> just above <code>&lt;/head&gt;</code> and commit.</li>
-        <li>Press Verify.</li>
-        <li>Submit <code>https://badgergrain.com/sitemap.xml</code> — it already exists and keeps itself current.</li>
-      </ol>
-    </div>
-    <div class="card">
-      <h3>Bing Webmaster Tools</h3>
-      <ol>
-        <li>Do Google first.</li>
-        <li>Sign in and choose <strong>Import from Google Search Console</strong>.</li>
-        <li>Both sites come across already verified — nothing to paste into the pages at all.</li>
-        <li>If that Google connection is ever revoked, Bing falls back to needing its own <code>msvalidate.01</code> tag, added the same way.</li>
-      </ol>
-    </div>
-    <div class="card">
-      <h3>Google Analytics</h3>
-      <ol>
-        <li>Create a GA4 property per site — one each, not one shared, or the two elevators' traffic is mixed together.</li>
-        <li>Paste the gtag snippet above <code>&lt;/head&gt;</code>, same place as the verification tag.</li>
-        <li>Once Analytics is live it can verify Search Console on its own, so the separate tag becomes optional.</li>
-        <li>Expect the page to get a touch slower — it is the first thing on either site that would call out to another company.</li>
-      </ol>
-    </div>
+    <details><summary>Why does Save open a second page?</summary>
+      <div class="a"><p>Because there is no password and no server. The second page is GitHub asking who you are. Your name and the time go on every change, nothing has to be remembered or shared, and there is no password to leak.</p></div></details>
+
+    <details><summary>I pressed Save and no second page opened.</summary>
+      <div class="a"><p><strong>Nothing was lost.</strong> The screen says so and gives you a link to open the form by hand &mdash; use that, then press the green <em>Submit new issue</em> as usual. If you would rather it stopped happening, allow pop-ups for this screen.</p></div></details>
+
+    <details><summary>How long until it is on the site?</summary>
+      <div class="a"><p>About a minute after you press <em>Submit new issue</em>. If it is longer than five, open the ticket &mdash; it will be sitting open with a comment saying what was wrong.</p></div></details>
+
+    <details><summary>The site says &ldquo;Call for today&rsquo;s price&rdquo;. Is it broken?</summary>
+      <div class="a"><p>No &mdash; that is the safety working. Nothing has been read from Big River in 14 hours, so rather than show a number that might be a day old, both sites ask for a call.</p></div></details>
+
+    <details><summary>I typed the wrong thing and saved it.</summary>
+      <div class="a"><p>Save the right thing over it. Every save is a full statement of what the settings should be &mdash; the last one wins, and the site rebuilds within a minute.</p></div></details>
+
+    <details><summary>Can I edit the website itself from the staff screen?</summary>
+      <div class="a"><p>No, and that is the point. The screen sets the basis, which months are published, the hours and the notices. Everything else on the page &mdash; the price, the week table, the drying schedule &mdash; is worked out from those.</p></div></details>
+
+    <details><summary>A farmer says our price is &ldquo;as of&rdquo; hours ago. Is it stale?</summary>
+      <div class="a"><p>Almost always no. The board is read every ten minutes through the trading day, but the stamp is only re-set when a number actually <em>moves</em>. On a flat afternoon it can read six hours old while the board has been read dozens of times since.</p>
+      <p>It means <em>&ldquo;this is still the price&rdquo;</em>, not <em>&ldquo;nobody has looked&rdquo;</em>. Past 14 hours the site takes the price down on its own.</p></div></details>
+
+    <details><summary>Does the website cost money or slow down when a lot of people visit?</summary>
+      <div class="a"><p>No. Both sites are plain HTML files. The page does no work when somebody opens it &mdash; it fetches nothing and calculates nothing. A busy morning costs exactly the same as a quiet one.</p></div></details>
   </div>
-
-  <div class="flag">
-    <h3>Two rules if you do this</h3>
-    <p><strong>Leave the tags in forever.</strong> Both Google and Bing re-check them. Remove the tag and you quietly lose the property.</p>
-    <p><strong>If anyone offers you the DNS method, add a record — never replace one.</strong> The mail for both domains runs on records that live in the same place, and replacing them takes the email down.</p>
-  </div>
-
-  <pre>&lt;!-- goes immediately above &lt;/head&gt; in index.html --&gt;
-&lt;meta name="google-site-verification" content="PASTE_WHAT_GOOGLE_GIVES_YOU"&gt;</pre>
 </section>
 
-<p class="foot">Prices shown on either site are that month's futures contract plus that elevator's own basis, rebuilt automatically. Nothing on these sites is a quote. When the automatic reading is unavailable both sites say so and ask for a call rather than showing an old number.</p>
+<section>
+  <div class="sechd"><h2>GitHub, in five words</h2><span class="tag">you need the last two</span></div>
+  <div class="tw">
+    <table>
+      <thead><tr><th>Their word</th><th>What it actually is</th><th>Yours?</th></tr></thead>
+      <tbody>
+        <tr><td class="mono">account</td><td>Your login. Your name shows on every change you make.</td><td>Yes &mdash; you need one</td></tr>
+        <tr><td class="mono">organisation</td><td>The company folder everything sits in. Ours is <span class="mono">midwestagsupply</span>.</td><td>You are a member</td></tr>
+        <tr><td class="mono">repository</td><td>A folder of files. One per elevator, plus one for the staff screen.</td><td>Rarely</td></tr>
+        <tr><td class="mono">issue</td><td>A numbered note filed against a folder. This is what Save makes.</td><td>Yes &mdash; every save</td></tr>
+        <tr><td class="mono">action</td><td>A job that runs on its own when something happens.</td><td>No &mdash; they run themselves</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<p class="foot">Prices shown on either site are that delivery month&rsquo;s futures contract plus that elevator&rsquo;s own basis, rebuilt automatically. Nothing on these sites is a quote. When the automatic reading is unavailable both sites say so and ask for a call rather than showing an old number.</p>
 
 </div>
 </body>

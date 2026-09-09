@@ -139,6 +139,15 @@ test("EVERY CONTROL ON THE SCREEN HAS SOMEWHERE TO GO", () => {
      point of it. */
   const ROUTED = {
     today: "Are you open today?", open: "Opens", close: "Closes",
+    /* ONE FIELD FOR ELEVEN MONTHS, PER ELEVATOR. Twenty-two named controls would
+       be twenty-two headings in every issue -- past the 7,500-character cap the
+       screen enforces on the URL -- and twenty-two more lines in this map for
+       somebody to keep true. The ticks and boxes on the basis screen are
+       deliberately unnamed and write into this one hidden field, which is what
+       travels. screen.test.mjs asserts the other half: that the unnamed controls
+       are only ever the month ones, and that pressing Save really carries the
+       table they wrote. */
+    months: "Months — what we publish",
     banner: "The notice banner", message: "Message",
     spread: "Our basis under Big River — cash",
     spread_harvest: "Our basis under Big River — new crop",
@@ -179,6 +188,11 @@ test("EVERY CONTROL ON THE SCREEN HAS SOMEWHERE TO GO", () => {
   };
   const SAMPLE = {
     "Are you open today?": "Closed today", "The notice banner": "Hide it",
+    /* The probe value has to be a table the applier can read AND a change from
+       the fixture, or "read and unchanged" cannot be told from "not read at
+       all" -- the fault the note below this block was written about. PRICING
+       carries no months, so any table at all is a change. */
+    "Months — what we publish": "September -0.85 show\nOctober same hide",
     "Mon to Fri — closed": "- [X] Closed", "Saturday — closed": "- [X] Closed",
     "Sunday — closed": "- [X] Closed",
   };

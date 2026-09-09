@@ -53,7 +53,7 @@ test("site state comes from the site repos on GitHub", () => {
   assert.equal(m[1], "https://raw.githubusercontent.com/midwestagsupply/");
 });
 
-test("EVERY FETCH IS BUILT FROM ONE OF THE TWO NAMED CONSTANTS", () => {
+test("EVERY FETCH IS BUILT FROM ONE OF THE THREE NAMED CONSTANTS", () => {
   /* Catches the one that matters: a fetch() pointed somewhere new. Each call
      has to be built from one of the two constants above, never from a literal —
      not because a literal is insecure today, but because there is then no
@@ -68,8 +68,14 @@ test("EVERY FETCH IS BUILT FROM ONE OF THE TWO NAMED CONSTANTS", () => {
   const calls = [...html.matchAll(/fetch\s*\(\s*([^,)]+)/g)].map((m) => m[1].trim());
   assert.ok(calls.length >= 2, "expected at least the feed and the live-state reads");
   for (const c of calls) {
-    assert.ok(/^(FEED_URL|LIVE_BASE)\b/.test(c),
-      "fetch() target is a literal rather than one of the two constants — there are now two " +
+    /* SETTLES_URL joined the two on 2026-09-08. The Futures column shows the
+       CBOT settle beside Big River's own quote so the gap between them is
+       printed rather than implied, and that settle comes from agsist -- the one
+       address on this screen that is neither the reader nor a site. It is named
+       for the same reason as the other two, and it is checked here for the same
+       reason: a literal has no single place to change. */
+    assert.ok(/^(FEED_URL|LIVE_BASE|SETTLES_URL)\b/.test(c),
+      "fetch() target is a literal rather than one of the three constants — there are now two " +
       "copies of this address and only one of them will be changed: " + c.replace(/\s+/g, " "));
   }
 });
@@ -151,8 +157,12 @@ test("THE RUNNING PAGE TALKS TO GITHUB AND NOTHING ELSE", { skip: NB }, async ()
   for (const u of asked) {
     const { host, pathname } = new URL(u);
     assert.equal(host, "raw.githubusercontent.com", `the page fetched ${host}`);
-    assert.ok(/^\/(dnilgis\/bids|midwestagsupply\/[a-z]+)\//.test(pathname),
-      `the page fetched a raw path outside the bids repo and the two site repos: ${pathname}`);
+    /* dnilgis/agsist joined the list on 2026-09-08 and is deliberately named
+       rather than covered by a looser pattern: it holds the CBOT settle the
+       Futures column shows beside Big River's own quote, and it is read-only.
+       A wildcard here would let the next address in without anybody deciding. */
+    assert.ok(/^\/(dnilgis\/(bids|agsist)|midwestagsupply\/[a-z]+)\//.test(pathname),
+      `the page fetched a raw path outside the bids repo, agsist and the two site repos: ${pathname}`);
   }
   /* And it really did ask each elevator's own repository, rather than one of
      them twice — which is a fault this file can see and no other test would. */

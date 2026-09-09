@@ -1,0 +1,197 @@
+    <!-- THE TWO SUMMARY LINES AT THE TOP OF THE PAGE ARE GONE.
+         Sig, 2026-09-09, striking both of them out: "i dont hink those two
+         lines are necessary either".
+
+         The strip said, per elevator: the cash price and its delivery month,
+         whether the site is open today, and whether the yellow bar is showing.
+         Every one of those is on one of the two screens under it -- the price
+         in the ON THE SITE column, the hours and the banner in their own rows
+         on Hours & notices -- so the bar was the same restatement as the "on
+         the site" column he cut off the hours screen an hour earlier, said
+         twice at the top of every page.
+
+         WHAT WENT WITH IT: syncOver(), which existed only to fill these chips
+         and ran on every input and change event in the document, capturing;
+         the second bids.json fetch in liveCheck, which built the cash chip
+         from a file fillPosts() already reads a month at a time; and the three
+         filler-walker patches that existed only because this strip had to be
+         moved out of the sheet and into the bar. -->
+
+
+    <form class="col-form" novalidate>
+
+      <!-- WHICH MONTHS THIS ELEVATOR PUBLISHES, AND WHAT EACH ONE PAYS.
+           One hidden field, not twenty-two visible ones. The ticks and boxes
+           on the basis rows are drawn by drawBoard() and write into this on
+           every change; it is what travels in the issue, and it is the only
+           thing on this screen the applier reads about months. Its value is
+           lines of "September -0.85 show", which is a table a person can read
+           on the issue page before pressing Submit. -->
+      <input type="hidden" data-id="months" name="months" value="">
+
+      <!-- ============ BASIS ============ -->
+      <!-- THE FALLBACK BASIS IS GONE FROM THE SCREEN.
+           Two boxes, cash and new crop, were the whole basis screen before every
+           month had a box of its own. Sig, 2026-09-08: "why do we need fallback
+           basis at all, just the month selector is sufficient with the enter the
+           basis." He is right, and the reason is the one this project keeps
+           coming back to: with a box on every month, a global figure is a SECOND
+           place the posted price can come from, and it is the one nobody can see.
+
+           `spread` and `spread_harvest` still exist in pricing.json and the sites
+           still read them for any month the table does not name -- the applier's
+           branches for them are untouched, so an issue filed before today still
+           applies. What has changed is that this screen no longer writes them,
+           and every month box opens carrying the number the site is using right
+           now, so nothing on the board resolves to a figure that is not on it. -->
+
+      <div class="cell ctl wide" data-row="91" data-tab="basis" data-col="abc">
+        <details class="byhand">
+          <summary>Post a price by hand instead</summary>
+          <div class="byhand-body">
+            <p class="help">Only when the automatic reading is down. Anything typed here
+            overrides the feed until you clear it.</p>
+            <div class="bidgrid">
+              <div>
+                <label class="fl" data-for="mcash">Cash price to post</label>
+                <div class="money"><span>$</span><input data-id="mcash" name="manual_cash" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
+              </div>
+              <div>
+                <label class="fl" data-for="mharv">Harvest price, if posting one</label>
+                <div class="money"><span>$</span><input data-id="mharv" name="manual_harvest" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
+              </div>
+              <div>
+                <label class="fl" data-for="mbasis">Cash basis, if you know it</label>
+                <div class="money"><span>$</span><input data-id="mbasis" name="manual_basis" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
+              </div>
+              <div>
+                <label class="fl" data-for="mhbasis">Harvest basis, if you know it</label>
+                <div class="money"><span>$</span><input data-id="mhbasis" name="manual_harvest_basis" type="text" inputmode="decimal" value="" placeholder="leave blank"></div>
+              </div>
+            </div>
+            <p class="help">Basis is optional. Type it the way you say it, so
+            <span class="num">-0.42</span> for forty two under. Leave it blank rather than
+            typing a zero: blank means we are not saying, zero means even with the board.</p>
+            <div class="sanity">
+              <strong>Sanity check.</strong> A price outside <span class="num">$2.00</span> to
+              <span class="num">$12.00</span> is refused <em>by the site when it publishes</em>,
+              not on this screen &mdash; so the range has one implementation rather than two that
+              drift apart. A refused price shows as &ldquo;Call for today&rsquo;s price&rdquo; on the
+              site rather than as an error here. This screen refuses a basis further than
+              <span class="num">$1.50</span> from zero, or a basis typed with no price beside
+              it. Nothing checks whether the number is <em>right</em>, only whether it could
+              be. Read it back before you save.
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="cell ctl wide" data-row="9" data-tab="hours" data-col="abc">
+        <textarea data-id="pnote" name="price_note" maxlength="240">Prices change with the market and are not final until you call. Grain is bought subject to the drying and discount schedule below.</textarea>
+        <div class="counter">Shows under the prices on both sites.</div>
+      </div>
+
+      <!-- ============ HOURS ============ -->
+      <div class="cell ctl" data-row="3" data-tab="hours" data-col="a">
+        <fieldset>
+          <legend class="sr-only">Are you open today?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="today" value="usual" checked>
+              <span>Usual<small data-id="usualSummary">8:00a to 5:00p weekdays, 8:00a to 12:00p Saturday</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="custom">
+              <span>Different<small>Set the times beside this</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="closed">
+              <span>Closed<small>Shows CLOSED at the top</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="harvest">
+              <span>Harvest<small><span class="who-harvest" data-badger="8:00a to 7:00p" data-midwest="7:00a to 7:00p">8:00a to 7:00p</span>, seven days</small></span></label>
+          </div>
+        </fieldset>
+        <span class="hint" data-id="todayDate"></span>
+        <!-- The only thing the Today preview said that the controls do not:
+             what the SITE does on its own after closing time. It is a fact
+             about the site, not a readback of this form, so it outlived the
+             column it used to sit in. -->
+        <p class="hint self" data-id="prevTodayNote"></p>
+      </div>
+      <div class="cell ctl" data-row="3" data-tab="hours" data-col="b">
+        <div class="times" data-id="todayTimes">
+          <label class="fl sr-only" data-for="o">Opens</label><input data-id="o" type="time" name="open" value="08:00" data-sample-value="08:00">
+          <label class="fl sr-only" data-for="c">Closes</label><input data-id="c" type="time" name="close" value="17:00" data-sample-value="17:00">
+        </div>
+      </div>
+
+      <div class="cell ctl" data-row="4" data-tab="hours" data-col="a">
+        <fieldset>
+          <legend class="sr-only">Show the banner?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="banner" value="on" checked>
+              <span>Show<small>Appears under the logo</small></span></label>
+            <label class="choice"><input type="radio" name="banner" value="off">
+              <span>Hide<small>Site looks normal</small></span></label>
+          </div>
+        </fieldset>
+      </div>
+      <div class="cell ctl" data-row="4" data-tab="hours" data-col="bc">
+        <textarea data-id="msg" name="message" maxlength="160">Harvest hours start Monday. We will run until 8:00p and open Sundays as the crop demands.</textarea>
+        <div class="counter">Two lines on a phone.</div>
+      </div>
+
+      <div class="cell ctl" data-row="5" data-tab="hours" data-col="a">
+        <label class="cl"><input type="checkbox" name="wk_closed" value="1" aria-label="Monday to Friday, closed all day"> Closed</label>
+      </div>
+      <div class="cell ctl" data-row="5" data-tab="hours" data-col="b">
+        <input type="time" name="wk_open" value="08:00" aria-label="Monday to Friday, opening time" data-sample-value="08:00">
+        <input type="time" name="wk_close" value="17:00" aria-label="Monday to Friday, closing time" data-sample-value="17:00">
+      </div>
+
+      <div class="cell ctl" data-row="6" data-tab="hours" data-col="a">
+        <label class="cl"><input type="checkbox" name="sat_closed" value="1" aria-label="Saturday, closed all day"> Closed</label>
+      </div>
+      <div class="cell ctl" data-row="6" data-tab="hours" data-col="b">
+        <input type="time" name="sat_open" value="08:00" aria-label="Saturday, opening time" data-sample-value="08:00">
+        <input type="time" name="sat_close" value="12:00" aria-label="Saturday, closing time" data-sample-value="12:00">
+      </div>
+
+      <div class="cell ctl" data-row="7" data-tab="hours" data-col="a">
+        <label class="cl"><input type="checkbox" name="sun_closed" value="1" aria-label="Sunday, closed all day" checked> Closed</label>
+      </div>
+      <div class="cell ctl" data-row="7" data-tab="hours" data-col="b">
+        <input type="time" name="sun_open" value="" disabled aria-label="Sunday, opening time">
+        <input type="time" name="sun_close" value="" disabled aria-label="Sunday, closing time">
+      </div>
+
+      <div class="cell ctl wide" data-row="8" data-tab="hours" data-col="abc">
+        <textarea data-id="hn" name="hoursnote" maxlength="200">During harvest we run longer, seven days a week. Outside harvest the hours above hold. Updated hours are posted here first. When in doubt, call.</textarea>
+      </div>
+
+      <!-- THE "ON THE SITE" COLUMN IS GONE FROM THIS SCREEN.
+           Sig, 2026-09-09, over a screenshot with both of them crossed out: "i
+           dont think the on the site column is necessary at all, it is just
+           clutter for what is already being set or displayed on page".
+
+           He is right, and only about this screen. Every line it printed --
+           "Mon to Fri 8:00a to 5:00p", "Saturday 8:00a to 12:00p", "Nothing.
+           The yellow bar is hidden." -- was the screen reading back the two
+           boxes and the checkbox sitting six inches to its left. The basis
+           screen's column of the same name is NOT this: it carries the price
+           the site is publishing right now, which differs from what is in the
+           box until Save is pressed, and it stays.
+
+           What did not survive the cut and had to be put somewhere: the top
+           bar's TODAY chip was built out of the Today preview's own text, so
+           the line is still computed -- see syncTodayPreview, which now stamps
+           it on the column instead of drawing it. -->
+
+      <!-- ============ SAVE ============ -->
+      <!-- Keeps the `save` class as well as `col-save`: the script inserts the
+           refusal note immediately before .save. -->
+      <div class="cell col-save save" data-row="99">
+        <button class="btn btn-go" type="submit">Save <span class="save-who"></span>
+          <small class="btn-sub">opens a second page to finish</small></button>
+        <button class="btn" type="reset">Undo</button>
+        <span class="saved" data-id="savedNote"></span>
+        <p class="save-how" data-id="saveHow">Save opens a GitHub page with this form
+          already filled in. <b>It is not saved until you press the green
+          &ldquo;Submit new issue&rdquo; button there.</b></p>
+      </div>
+    </form>

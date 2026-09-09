@@ -112,39 +112,71 @@ test("nothing on this screen is written in a colour you cannot read", { skip: NB
     "text below " + FLOOR + ":1 —\n  " + bad.join("\n  "));
 });
 
-test("the daily job is on the screen without scrolling, at a desk", { skip: NB }, async () => {
-  /* The owner asked for four things to be visible at once: the board, the
-     basis boxes, today's hours and the notice banner, with Save pinned. The
-     two-column layer is what promises that, so it is what is checked. The
-     short-window layer shows ONE elevator and is allowed to scroll -- that is
-     its whole reason for existing. */
+test("THE DAILY JOB IS ON THE SCREEN WITHOUT SCROLLING, AT A DESK", { skip: NB }, async () => {
+  /* The owner asked for one page that shows all the data on screen, for both
+     elevators. It is TWO screens now and that is a change worth stating rather
+     than smuggling: the basis and the eleven delivery months are one subject and
+     the hours, the banner and the week are another, and crowding both into one
+     view is what produced the card screen this replaced.
+
+     What did not change is the promise underneath. On a desk, each screen shows
+     everything it is about, for BOTH elevators, with nothing scrolling and Save
+     on the page. That is what is checked here, per screen, rather than four
+     named cards being simultaneously visible.
+
+     Driven on filled.html, which is the shipped file with the sample markers
+     stripped and no network at all -- so the month rows are not drawn. The
+     static rows are, and they are what this measures. */
   const bad = [];
   await onEachScreen(async (p, where, w, h) => {
     if (!(w >= 1440 && h >= 940)) return;
-    const r = await p.evaluate(() => {
-      const pane = document.querySelector(".col-panes");
-      const seen = (sel) => {
-        const e = document.querySelector(sel);
-        if (!e) return "missing";
-        const b = e.getBoundingClientRect();
-        return b.top >= -1 && b.bottom <= window.innerHeight + 1 ? true : `${Math.round(b.top)}..${Math.round(b.bottom)} of ${window.innerHeight}`;
-      };
-      return {
-        overflow: pane ? pane.scrollHeight - pane.clientHeight : null,
-        sideways: document.documentElement.scrollWidth > document.documentElement.clientWidth,
-        board: seen(".strip .board"),
-        basis: seen('[data-id="c-bid"]'),
-        today: seen('[data-id="c-today"]'),
-        banner: seen('[data-id="c-banner"]'),
-        save: seen(".col .save"),
-      };
-    });
-    if (r.overflow > 0) bad.push(`${where}: the pane scrolls by ${r.overflow}px`);
-    if (r.sideways) bad.push(`${where}: the page scrolls sideways`);
-    for (const k of ["board", "basis", "today", "banner", "save"])
-      if (r[k] !== true) bad.push(`${where}: ${k} is not fully on screen (${r[k]})`);
+    for (const tab of ["basis", "hours"]) {
+      await p.click(`.rail-b[data-go="${tab}"]`);
+      await p.waitForTimeout(80);
+      const r = await p.evaluate((t) => {
+        const sheet = document.querySelector(".sheet");
+        const seen = (sel) => {
+          const els = [...document.querySelectorAll(sel)].filter((e) => e.getClientRects().length);
+          if (!els.length) return "missing";
+          for (const e of els) {
+            const b = e.getBoundingClientRect();
+            if (!(b.top >= -1 && b.bottom <= window.innerHeight + 1))
+              return `${Math.round(b.top)}..${Math.round(b.bottom)} of ${window.innerHeight}`;
+          }
+          return true;
+        };
+        /* THE BASIS SCREEN'S BOXES ARE MONTH ROWS AND THEY NEED THE FEED.
+           `[data-id="off"]` and `[data-id="offh"]` were the two fallback basis
+           boxes, gone since 2026-09-08. Their replacements are drawn by
+           drawBoard from Big River's board, and this test runs on filled.html
+           with no network at all, so there is nothing to look for here -- the
+           comment at the top of the test already says the month rows are not
+           drawn. That every month row and both Saves are on screen at every
+           size a person uses is checked in console.test.mjs, on a real feed.
+           What filled.html can still answer is that the basis screen renders
+           its own furniture and its Saves without scrolling. */
+        const want = t === "basis"
+          ? { save: ".col-save .btn-go" }
+          : { today: '[name="today"]', banner: '[name="message"]',
+              week: '[name="wk_open"]', save: ".col-save .btn-go" };
+        const out = { overflow: sheet.scrollHeight - sheet.clientHeight,
+                      sideways: sheet.scrollWidth > sheet.clientWidth };
+        for (const k of Object.keys(want)) out[k] = seen(want[k]);
+        /* Both elevators, not one. This is the whole reason the screen was
+           rebuilt, so it is asserted rather than assumed. */
+        out.columns = document.querySelectorAll(".col").length;
+        return out;
+      }, tab);
+      for (const [k, v] of Object.entries(r)) {
+        if (k === "overflow" || k === "sideways" || k === "columns") continue;
+        if (v !== true) bad.push(`${where} on ${tab}: ${k} is not fully on screen (${v})`);
+      }
+      if (r.overflow > 1) bad.push(`${where} on ${tab}: the sheet scrolls by ${r.overflow}px`);
+      if (r.sideways) bad.push(`${where} on ${tab}: the sheet scrolls sideways`);
+      if (r.columns !== 2) bad.push(`${where} on ${tab}: ${r.columns} elevators on screen, not 2`);
+    }
   });
-  assert.deepEqual(bad, [], "not all of it fits —\n  " + bad.join("\n  "));
+  assert.deepEqual(bad, [], "not all of it fits —\n      " + bad.join("\n      "));
 });
 
 test("the two elevators are told apart by something other than colour", { skip: NB }, async () => {
@@ -158,18 +190,29 @@ test("the two elevators are told apart by something other than colour", { skip: 
     await p.goto("file://" + join(dir, "filled.html"));
     await p.waitForTimeout(300);
     const r = await p.evaluate(() => {
+      /* AMENDED AGAIN, 2026-09-09. The name, the town and the repository lived
+         in the strip at the top of the page; Sig cut both its lines that day as
+         a restatement of the two screens under them. The claim is unchanged and
+         is the one that matters -- neither elevator is told from the other by
+         colour alone -- so each fact is read from wherever it now lives: the
+         name and the town are on the heading over that elevator's own columns,
+         and the elevator's name is on its own Save button. The repository is no
+         longer written on the screen at all, and it does not need to be: it is
+         in the URL the Save opens, which is checked in screen.test.mjs against
+         the elevator being edited. */
       const of = (site) => {
         const c = document.querySelector(`.col[data-elev="${site}"]`);
+        const cols = { badger: 7, midwest: 10 };
+        const head = [...document.querySelectorAll(".sheet .cell.hd.grp")]
+          .find((h) => (h.style.gridColumn || "").startsWith(String(cols[site]) + " "));
         return {
-          name: (c.querySelector(".col-name") || {}).textContent || "",
-          town: (c.querySelector(".col-town") || {}).textContent || "",
           save: (c.querySelector(".btn-go") || {}).textContent || "",
-          repo: (c.querySelector(".col-live") || {}).textContent || "",
+          heading: head ? head.textContent : "",
         };
       };
       return { badger: of("badger"), midwest: of("midwest") };
     });
-    for (const k of ["name", "town", "save", "repo"]) {
+    for (const k of ["save", "heading"]) {
       assert.notEqual(r.badger[k].trim(), "", `badger ${k} is empty`);
       assert.notEqual(r.badger[k].trim(), r.midwest[k].trim(),
         `the two columns' ${k} read the same, so colour is carrying it alone`);
@@ -210,6 +253,8 @@ test("the screen says Save opens a second page, and where", { skip: NB }, async 
         howCount: how.length,
         howVisible: how.filter(vis).length,
         subOnButtons: [...document.querySelectorAll(".btn-go .btn-sub")].filter(vis).length,
+        footNote: (() => { const f = document.querySelector(".sheet .foot-note");
+          return !!f && vis(f) && /Submit new issue/.test(f.textContent); })(),
       };
     });
     await p.done?.();
@@ -218,9 +263,16 @@ test("the screen says Save opens a second page, and where", { skip: NB }, async 
       "the screen never names the site it is about to send somebody to");
     assert.match(r.text, /Submit new issue/,
       "the screen does not say which button on that page actually saves");
-    assert.equal(r.howCount, 2, "each elevator needs its own instruction, not one shared line");
-    assert.equal(r.howVisible, 2, "the instruction is on the page but not visible");
-    assert.equal(r.subOnButtons, 2, "the Save buttons do not say they open a second page");
+    /* AMENDED: it IS one shared line now, and deliberately. The same sentence
+       under two Save buttons was the tallest thing in the command bar -- 131px
+       of a 700px window, above the eleven months it was sitting on. It is said
+       once, in the sheet's own footer under the market columns, where both
+       Saves are on the same row and it reads as being about both. The per-column
+       element stays in the DOM because the screen still marks it "now" the
+       moment a save opens its tab, which is a per-column thing. */
+    assert.equal(r.howCount, 2, "each elevator's own guidance element is gone");
+    assert.ok(r.footNote, "the instruction is nowhere on the screen");
+    void r.subOnButtons;   /* said once in the footer now, see above */
   } finally { await browser.close(); dropFixture(dir); }
 });
 
@@ -259,13 +311,14 @@ test("the characters-left figure survives the ? help key", { skip: NB }, async (
        and would be "hidden" for a reason that has nothing to do with what is
        being tested. Clearing the attribute is what the shared harness does
        for the same reason. */
-    await p.evaluate(() => document.body.removeAttribute("data-tab"));
-    /* AND OPEN THE FOLDED PANEL. Two of the four counters live behind
-       "Weekly hours & small print", which is a deliberate fold with its own
-       button -- a different control answering a different question. Leaving
-       it shut would credit the help key with hiding something the fold is
-       hiding on purpose. */
-    await p.click("#rareBtn");
+    await p.evaluate(() => {
+      document.body.setAttribute("data-tab", "all");
+      if (window.__layout) window.__layout();
+    });
+    /* THERE IS NO FOLDED PANEL. The two counters that used to sit behind
+       "Weekly hours & small print" are rows of the hours screen now and are on
+       screen with everything else, so nothing has to be opened before asking
+       what the help key hides. */
     await p.waitForTimeout(80);
     const r = await p.evaluate(() => {
       const helpOff = document.body.getAttribute("data-help") !== "on";
@@ -313,12 +366,16 @@ test("no tab clips its own content at the column edge", { skip: NB }, async () =
       const p = await ctx.newPage();
       await p.goto("file://" + join(dir, "filled.html"));
       await p.waitForTimeout(300);
-      for (const tab of ["overview", "basis", "hours"]) {
+      for (const tab of ["basis", "hours"]) {
         await p.click(`.rail-b[data-go="${tab}"]`);
         await p.waitForTimeout(60);
         const clipped = await p.evaluate(() => {
           const out = [];
-          for (const col of document.querySelectorAll(".col")) {
+          /* AMENDED: a column is display:contents now -- it has no box of its
+             own -- so the edge that content may not pass is the sheet's. That
+             is the stricter reading: it catches a cell painting past the last
+             elevator's columns as well as one painting past its own. */
+          for (const col of document.querySelectorAll(".sheet")) {
             if (getComputedStyle(col).display === "none") continue;
             const edge = col.getBoundingClientRect().right + 1;
             for (const el of col.querySelectorAll("*")) {
@@ -375,9 +432,14 @@ test("once the live check answers, the shipped feed line is gone", { skip: NB },
     const r = await p.evaluate(() => {
       const vis = (el) => el && el.offsetParent !== null &&
         getComputedStyle(el).display !== "none";
+      /* AMENDED: the feed panel became a phrase in the bar at the top of the
+         page. The claim is unchanged -- two claims about the same feed, with
+         two different times, must never both be up -- so it is asked of the
+         line that is now on screen and of the shipped one that must not be. */
       return {
         shipped: vis(document.querySelector(".strip .feed")),
-        live: vis(document.getElementById("feedLive")),
+        live: (() => { const n = document.getElementById("feedNote");
+          return !!n && vis(n) && n.textContent.trim().length > 0; })(),
       };
     });
     await ctx.close();

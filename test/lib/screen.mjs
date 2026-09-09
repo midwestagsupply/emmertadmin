@@ -71,6 +71,17 @@ export const OTHER = (site) => ELEVATORS.find((e) => e.site !== site);
    The pairs ending in _EDGE are the smallest size that is still in that
    state, and the ones ending in _UNDER are one pixel outside it. A boundary
    asserted only in its comfortable middle is not asserted at all. */
+/* Real settles for the contracts BOARD_ROWS_FULL quotes, read from agsist on
+   2026-09-08. They sit a quarter to a half cent away from Big River's own
+   quotes on purpose: that gap is the whole reason the Futures column exists. */
+export const SETTLES = {
+  "corn-sep26": { ticker: "ZCU26.CBT", close: 463.75 },
+  "corn-dec26": { ticker: "ZCZ26.CBT", close: 533.5 },
+  "corn-mar27": { ticker: "ZCH27.CBT", close: 548.75 },
+  "corn-may27": { ticker: "ZCK27.CBT", close: 556.25 },
+  "corn-jul27": { ticker: "ZCN27.CBT", close: 559 },
+};
+
 export const LAYOUT = {
   CONSOLE:      { width: 1600, height: 1000 },
   CONSOLE_EDGE: { width: 1440, height: 940 },
@@ -93,6 +104,25 @@ export const col = (site) => `.col[data-elev="${site}"]`;
 export const id = (site, dataId) => `#${site}-${dataId}`;
 /* A named control, scoped to its own column's form. `[name=spread]` on its
    own matches both forms and Playwright silently takes the first. */
+/* THE BASIS BOX FOR ONE DELIVERY MONTH, in one elevator's column.
+ *
+ * These replaced `off` and `offh` -- the cash and new-crop fallback boxes --
+ * on 2026-09-08. With a box on every month a global figure was a second place
+ * the posted price could come from, and the one nobody could see. Where a test
+ * used to reach for `off` it reaches for the nearest delivery's box, and where
+ * it used `offh` it reaches for the first new-crop month, because those are the
+ * rows each of the two used to govern.
+ *
+ * They exist only after the board is drawn, which is a fetch: address them
+ * through Playwright's auto-waiting selectors rather than $eval on load. */
+export const monthBox = (site, month) =>
+  `${col(site)} .cell.ctl[data-month="${month}"] input.mbasis`;
+export const monthTick = (site, month) =>
+  `${col(site)} .cell.pub[data-month="${month}"] input`;
+/* The board fixtures lead with August and call October the first new crop. */
+export const NEAREST = "August";
+export const FIRST_NEW_CROP = "October";
+
 export const named = (site, name) => `${col(site)} [name="${name}"]`;
 
 /* ---- what the four files say, per elevator, by default -------------------
@@ -101,30 +131,64 @@ export const named = (site, name) => `${col(site)} [name="${name}"]`;
    reading its neighbour's. Badger runs the zero new-crop spread on purpose —
    that is a live setting, not a test convenience, and it keeps the zero state
    under test on every load. */
-export const BOARD_ROWS = [
-  { commodity: "Corn", delivery: "August",    futuresMonth: "Sep 26", basisDollars: -0.52, cash: 4.07 },
-  { commodity: "Corn", delivery: "September", futuresMonth: "Sep 26", basisDollars: -0.46, cash: 4.13 },
-  { commodity: "Corn", delivery: "October",   futuresMonth: "Dec 26", basisDollars: -0.55, cash: 4.2825 },
-  { commodity: "Corn", delivery: "November",  futuresMonth: "Dec 26", basisDollars: -0.57, cash: 4.2725 },
-  { commodity: "Corn", delivery: "December",  futuresMonth: "Dec 26", basisDollars: -0.50, cash: 4.3325 },
-  { commodity: "Corn", delivery: "January",   futuresMonth: "Mar 27", basisDollars: -0.60, cash: 4.39 },
-];
+/* ONE PRICE LEVEL ACROSS EVERY FIXTURE IN THIS FILE.
+   This board and SETTLES were written months apart and never compared: the
+   settles put December corn at $5.335 while these rows priced it off a $4.83
+   contract, half a dollar apart, and nothing noticed because this board carried
+   no futures quote at all and the gap indicator therefore never rendered. Both
+   became load-bearing on 2026-09-09, when the Futures column was pointed at the
+   quote the sites actually price from -- the first render printed "-4.75c" as
+   the distance between Big River and the board, which is not a market, it is
+   two fixtures disagreeing.
+   So the quote is derived from SETTLES, a quarter cent under, which is where
+   Big River really sit; and each row's cash is that quote plus its own basis.
+   cash - basis = quote = settle - 0.0025, by construction, in both boards.
+   A row with NO quote is a real state -- the site refuses to price that month --
+   and it gets its own test rather than being the silent default here. */
+const LAG = 0.0025;                                   // Big River, under the settle
+const quoteOf = (futuresMonth) => {
+  const k = "corn-" + futuresMonth.toLowerCase().replace(" ", "");
+  const c = SETTLES[k];
+  if (!c) throw new Error("no settle fixture for " + futuresMonth + " (" + k + ")");
+  return Math.round((c.close / 100 - LAG) * 10000) / 10000;
+};
+const board = (rows) => rows.map(({ delivery, futuresMonth, basisDollars }) => {
+  const q = quoteOf(futuresMonth);
+  return { commodity: "Corn", delivery, futuresMonth, basisDollars,
+           cash: Math.round((q + basisDollars) * 10000) / 10000,
+           futuresPriceCents: Math.round(q * 10000) / 100 };
+});
+
+export const BOARD_ROWS = board([
+  { delivery: "August",    futuresMonth: "Sep 26", basisDollars: -0.52 },
+  { delivery: "September", futuresMonth: "Sep 26", basisDollars: -0.46 },
+  { delivery: "October",   futuresMonth: "Dec 26", basisDollars: -0.55 },
+  { delivery: "November",  futuresMonth: "Dec 26", basisDollars: -0.57 },
+  { delivery: "December",  futuresMonth: "Dec 26", basisDollars: -0.50 },
+  { delivery: "January",   futuresMonth: "Mar 27", basisDollars: -0.60 },
+]);
 /* THE BOARD AT ITS REAL LENGTH. Big River posts eleven deliveries; the fixture
    above is six, and a layout that holds for six is not a layout that holds.
    Same shape, same numbers as the live file on 2026-09-08, with the contract
    quote each row carries so the basis readout can name it. */
-export const BOARD_ROWS_FULL = [
-  ["September", "Dec 26", -0.75, 4.5825], ["October",  "Dec 26", -0.62, 4.7125],
-  ["November",  "Dec 26", -0.55, 4.7825], ["December", "Dec 26", -0.50, 4.8325],
-  ["January",   "Mar 27", -0.60, 4.885],  ["February", "Mar 27", -0.58, 4.905],
-  ["March",     "Mar 27", -0.50, 4.9825], ["April",    "May 27", -0.54, 5.0175],
-  ["May",       "May 27", -0.52, 5.0375], ["June",     "Jul 27", -0.52, 5.0675],
-  ["July",      "Jul 27", -0.52, 5.0675],
-].map(([delivery, futuresMonth, basisDollars, cash]) => ({
-  commodity: "Corn", delivery, futuresMonth, basisDollars, cash,
-  futuresPriceCents: Math.round((cash - basisDollars) * 10000) / 100,
-}));
+export const BOARD_ROWS_FULL = board([
+  { delivery: "September", futuresMonth: "Dec 26", basisDollars: -0.75 },
+  { delivery: "October",   futuresMonth: "Dec 26", basisDollars: -0.62 },
+  { delivery: "November",  futuresMonth: "Dec 26", basisDollars: -0.55 },
+  { delivery: "December",  futuresMonth: "Dec 26", basisDollars: -0.50 },
+  { delivery: "January",   futuresMonth: "Mar 27", basisDollars: -0.60 },
+  { delivery: "February",  futuresMonth: "Mar 27", basisDollars: -0.58 },
+  { delivery: "March",     futuresMonth: "Mar 27", basisDollars: -0.50 },
+  { delivery: "April",     futuresMonth: "May 27", basisDollars: -0.54 },
+  { delivery: "May",       futuresMonth: "May 27", basisDollars: -0.52 },
+  { delivery: "June",      futuresMonth: "Jul 27", basisDollars: -0.52 },
+  { delivery: "July",      futuresMonth: "Jul 27", basisDollars: -0.52 },
+]);
 
+/* THE MONTHS THE FULL BOARD CARRIES, in board order. A test that wants "some
+   months" takes them from here rather than typing a list, so a fixture that
+   grows a month does not leave the test asking about one that is not there. */
+export const MONTHS_ON_BOARD = BOARD_ROWS_FULL.map((b) => b.delivery);
 export const feedFull = (over = {}) => ({
   checkedAt: new Date().toISOString(), status: "ok", bids: BOARD_ROWS_FULL, ...over,
 });
@@ -171,9 +235,19 @@ export const files = (over = {}) => {
   const out = JSON.parse(JSON.stringify(SITE_FILES));
   for (const site of Object.keys(over || {}))
     for (const k of Object.keys(over[site] || {}))
-      out[site][k] = over[site][k] === null ? null : { ...out[site][k], ...over[site][k] };
+      out[site][k] = over[site][k] === null ? null
+        : over[site][k][ONLY] ? { ...over[site][k], [ONLY]: undefined }
+        : { ...out[site][k], ...over[site][k] };
   return out;
 };
+/* files() MERGES OVER THE FIXTURE, which is what nearly every test wants: say
+   the one field you care about and let the rest stay realistic. It is the wrong
+   tool for testing what a site MISSING a field does, because the fixture's
+   field survives the merge and the test quietly exercises the ordinary path.
+   Wrap the body in only() to say "this file is exactly this and nothing else".
+       sites: files({ midwest: only({ spread: 0.1 }) })   // no basis at all */
+const ONLY = Symbol("only");
+export const only = (body) => ({ ...body, [ONLY]: true });
 
 /* ---- the fixture on disk ------------------------------------------------
    The live screen and a copy differ only by data-live on <html>: the copy
@@ -241,6 +315,12 @@ export async function openScreen(browser, dir, opts = {}) {
                          body: "<title>issue form</title>The office would file this." });
     return r.abort();
   });
+  /* THE CBOT SETTLES, from agsist. The catch-all above aborts everything it
+     does not route, so without this the Futures column is an em dash in every
+     test -- which renders "we could not read the settle" and cannot be told
+     apart from "there is no gap between their quote and the contract". */
+  await context.route("**/agsist/main/data/prices.json*", (r) =>
+    r.fulfill(json(opts.settles === undefined ? SETTLES : opts.settles)));
   await context.route("**/boyceville.json*", (r) => feed == null ? r.abort() : r.fulfill(json(feed)));
   for (const e of ELEVATORS) {
     const f = sites[e.site] || {};
@@ -279,11 +359,26 @@ export async function openScreen(browser, dir, opts = {}) {
    * asks for one by name and gets the real thing. */
   if (tab) {
     await page.click(`.rail-b[data-go="${tab}"]`);
-    await page.waitForTimeout(60);
+    await page.waitForTimeout(80);
   } else {
-    await page.evaluate(() => document.body.removeAttribute("data-tab"));
+    /* SHOW BOTH SCREENS AT ONCE. This used to remove data-tab altogether, which
+       worked while the tabs only hid cards. The sheet is placed per screen -- a
+       row that is not on the screen showing gets no row of its own -- so "no
+       tab" has to be a real state the layout knows about rather than the
+       absence of one. `all` lays the basis rows out and then the hours rows
+       under them, which is what a test that wants to reach every control needs. */
+    await page.evaluate(() => {
+      document.body.setAttribute("data-tab", "all");
+      if (window.__layout) window.__layout();
+    });
+    await page.waitForTimeout(80);
   }
-  if (rare) { await page.click("#rareBtn"); await page.waitForTimeout(60); }
+  /* `rare` WAS A FOLD, AND THERE IS NOTHING FOLDED ANY MORE. The weekly hours
+     and the small print were two cards low in a scrolling column; they are four
+     rows of a table now, on screen with everything else. Kept as an accepted
+     option so the tests that ask for it still read, and so the reason is here
+     rather than in a diff. */
+  void rare;
   if (help) { await page.click("#helpBtn"); await page.waitForTimeout(60); }
 
   page.errors = errors;
@@ -391,12 +486,53 @@ export const todayPreview = (page, site) =>
     label: e.querySelector(".l").textContent, hours: e.querySelector(".h").textContent,
   }));
 
-export const basisReads = (page, site) =>
-  page.evaluate((s) => ({
-    cash: document.getElementById(s + "-basisCash").textContent,
-    crop: document.getElementById(s + "-basisNew").textContent,
-    cropClass: document.getElementById(s + "-basisNew").className,
-  }), site);
+/* ONE MONTH'S ROW, read off the rendered screen.
+ *
+ * This replaces basisReads(), which read two standing paragraphs -- a cash
+ * basis readout and a new-crop one -- that the screen no longer has. There are
+ * no longer two basis figures on this screen with a sentence under each; there
+ * are eleven rows, and each carries its own box, its own note saying how far
+ * off Big River that box is, and the figure the elevator's site is publishing
+ * for that month right now.
+ *
+ *   basis   what is in the box (what WE would set)
+ *   vs      the note beside it: "0.20 over them" / "even with them" / ""
+ *   posted  the figure the site is publishing for that month, or "" if none
+ *   tick    whether the month is set to show on the site
+ *   missing true when the board has no such month, so a test can say so rather
+ *           than fail on a null dereference three lines later
+ */
+export const monthRow = (page, site, month) =>
+  page.evaluate(([s, m]) => {
+    const c = document.querySelector('.col[data-elev="' + s + '"]');
+    const at = (sel) => c && c.querySelector(sel + '[data-month="' + m + '"]');
+    const ctl = at(".cell.ctl"), pub = at(".cell.pub"), pay = at(".cell.pay");
+    if (!ctl) return { missing: true, basis: "", posted: "", tick: false };
+    const box = ctl.querySelector("input");
+    return {
+      missing: false,
+      basis: box ? box.value : "",
+      posted: pay ? pay.textContent.trim() : "",
+      tick: !!(pub && pub.querySelector("input") && pub.querySelector("input").checked),
+    };
+  }, [site, month]);
+
+/* Every month on one elevator, in board order: { October: {...}, ... } */
+export const monthRows = (page, site) =>
+  page.evaluate((s) => {
+    const c = document.querySelector('.col[data-elev="' + s + '"]');
+    const out = {};
+    for (const ctl of c ? c.querySelectorAll(".cell.ctl[data-month]") : []) {
+      const m = ctl.getAttribute("data-month");
+      const pub = c.querySelector('.cell.pub[data-month="' + m + '"]');
+      const pay = c.querySelector('.cell.pay[data-month="' + m + '"]');
+      const box = ctl.querySelector("input");
+      out[m] = { basis: box ? box.value : "",
+                 posted: pay ? pay.textContent.trim() : "",
+                 tick: !!(pub && pub.querySelector("input") && pub.querySelector("input").checked) };
+    }
+    return out;
+  }, site);
 
 /* Every figure printed anywhere in an element, as numbers. Used to ask the
    only question that matters about a readout on this screen: is each of these

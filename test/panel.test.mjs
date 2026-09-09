@@ -59,13 +59,36 @@ const open = (opts) => openScreen(browser, dir, opts);
    arrived and not that it stayed. This waits for the fill to have HAPPENED —
    the spread box carrying the fixture's own 0.10 — before anything is typed.
    Deterministic, and no slower on a healthy run. */
+
+/* THE BASIS BOXES ARE MONTH ROWS NOW.
+ * `id(site, "off")` and `id(site, "offh")` were the cash and new-crop fallback
+ * boxes; both went on 2026-09-08, when Sig cut the fallback basis -- "just the
+ * month selector is sufficient with th eenter the basis". Every rule they were
+ * governed by is unchanged and now applies per month, so the tests below are
+ * re-aimed rather than deleted: the pair that used to be (cash, new crop) is
+ * now (the nearest delivery, the first new-crop month), which is exactly what
+ * those two boxes meant.
+ */
+const mbox = (site, month) =>
+  `${col(site)} .cell.ctl[data-month="${month}"] input.mbasis`;
+const NEAR = "August";          // the short fixture board's nearest delivery
+const CROP = "October";         // and its first new-crop month
+const BASIS_BOXES = [[NEAR, "the nearest delivery"], [CROP, "the first new crop"]];
+
 async function filled(p, site = "badger", ms = 15000) {
+  /* THE FIRST MONTH'S BASIS BOX. `#<site>-off` was the single fallback basis
+     box and has not existed since 2026-09-08; waiting on it timed out, and a
+     timeout in a helper called "filled" reads as every test that uses it
+     failing to fill, which is not what was wrong. There is a box per month now,
+     drawn by drawBoard once the feed lands, so what "this column has loaded" 
+     means is: its first month row exists and carries a figure. */
   await p.waitForFunction(
-    /* The fixture's own basis, not a literal repeated here. It was "0.10",
-       the old spread, so this waited for a value the box no longer holds and
-       every test that used it raced the fill instead of waiting for it. */
-    (id) => { const e = document.getElementById(id); return !!e && e.value === "-0.75"; },
-    site + "-off", { timeout: ms });
+    (s) => {
+      const e = document.querySelector(
+        '.col[data-elev="' + s + '"] .cell.ctl[data-month] input.mbasis');
+      return !!e && e.value !== "";
+    },
+    site, { timeout: ms });
 }
 
 async function refusalOf(p, site, ms = 15000) {
@@ -91,7 +114,7 @@ async function refusalOf(p, site, ms = 15000) {
    done. All five panellists hit it. */
 test("A SAVE THAT OPENED ITS TAB DOES NOT SAY NOTHING WAS SAVED", { skip: NB }, async () => {
   const p = await open({});
-  await p.fill(id("badger", "off"), "0.14");
+  await p.fill(mbox("badger", NEAR), "0.14");
   const url = await save(p, "badger");
   const r = await p.evaluate(() => {
     const note = document.getElementById("badger-checkNote");
@@ -121,7 +144,7 @@ test("A SAVE THAT OPENED ITS TAB DOES NOT SAY NOTHING WAS SAVED", { skip: NB }, 
 test("a save whose window really was blocked still says so", { skip: NB }, async () => {
   const p = await open({});
   await p.evaluate(() => { window.open = () => null; });
-  await p.fill(id("badger", "off"), "0.14");
+  await p.fill(mbox("badger", NEAR), "0.14");
   await press(p, `${col("badger")} .btn-go`);
   const text = await refusalOf(p, "badger");
   await p.done();
@@ -187,8 +210,14 @@ test("THE $1.50 THE SANITY BOX PROMISES IS ENFORCED, not just described", { skip
   /* "This screen refuses a basis further than $1.50 from zero" stood on the
      screen with no code behind it. The 1.50 is the applier's own limit,
      mirrored — not a number invented here. */
-  const p = await open({});
-  await filled(p);
+  /* WITH NO FEED, which is the only state this panel is on screen in. It is
+     hidden while `body[data-board="on"]` -- with eleven live prices in front of
+     you there is nothing to post by hand -- so forcing the <details> open on a
+     working screen opens a panel inside a row that is display:none, and the
+     fill times out. That reported as the $1.50 rule not being enforced, which
+     it is; the test simply could not reach the box. */
+  const p = await open({ feed: null });
+  await p.waitForSelector(`${col("badger")} details.byhand`, { state: "attached" });
   await p.evaluate(() => {
     document.querySelector('.col[data-elev="badger"] details.byhand').open = true;
   });
@@ -218,8 +247,7 @@ test("THE $1.50 THE SANITY BOX PROMISES IS ENFORCED, not just described", { skip
    Asserted through SAVE rather than through the check function, because "the
    validator returns a string" and "the office cannot file this" are different
    claims and only the second one is the guard. */
-for (const [box, label] of [["off", "Our basis — cash"],
-                            ["offh", "Our basis — new crop"]])
+for (const [box, label] of BASIS_BOXES)
   /* WAS $10 AGAINST A $1.00 ONE-SIDED CAP. A spread could only ever be a
      positive number of cents under somebody else's board, so one bound was
      enough. A basis is signed and wrong in both directions, and the cap the
@@ -227,7 +255,7 @@ for (const [box, label] of [["off", "Our basis — cash"],
   test(`a basis of $10 is refused at the screen, not at the applier — ${label}`,
     { skip: NB }, async () => {
     const p = await open({});
-    const sel = id("badger", box);
+    const sel = mbox("badger", box);
     if (!(await p.$(sel))) { await p.done(); assert.fail(`${sel} is not on the screen`); }
     /* NEGATIVE, so this tests the CAP. A positive 10 is caught one rule
        earlier -- by the over-the-contract rail, which is a different guard for
@@ -241,8 +269,8 @@ for (const [box, label] of [["off", "Our basis — cash"],
     await p.done();
     assert.equal(url, null, "a -$10 basis sailed through to a filed issue");
     assert.match(why, /past the \$1\.50 limit/);
-    assert.match(why, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
-      "the refusal must name the box as the card names it");
+    assert.match(why, new RegExp("basis for " + box),
+      `the refusal must name the month, so the office knows which of eleven boxes (${label})`);
   });
 
 test("the basis refusals name the box as the card names it", { skip: NB }, async () => {
@@ -251,11 +279,16 @@ test("the basis refusals name the box as the card names it", { skip: NB }, async
      wrong figure into the right box. The box now says "Our basis — cash", and
      it is the basis, so this is the first time the two have agreed. */
   const p = await open({});
-  await p.fill(id("badger", "off"), "abc");
+  await p.fill(mbox("badger", NEAR), "abc");
   await press(p, `${col("badger")} .btn-go`);
   const why = await refusalOf(p, "badger");
   await p.done();
-  assert.match(why, /Our basis — cash/);
+  /* WAS "Our basis — cash", the card's own heading. There are eleven boxes and
+     the only thing that tells them apart is the month, so that is what the
+     refusal has to say -- naming the column would send the office to the right
+     column and leave them counting rows. */
+  assert.match(why, new RegExp("basis for " + NEAR),
+    "the refusal does not say which month is wrong: " + why);
   assert.doesNotMatch(why, /Under Big River/,
     "the refusal still names the box by the spread model's wording");
 });
@@ -271,7 +304,7 @@ test("a stored quarter-cent basis is not rewritten by the box that displays it",
   sites.badger.pricing = { ...sites.badger.pricing, basis: -0.1225 };
   const p = await open({ sites });
   await p.waitForTimeout(400);
-  const v = await p.$eval(id("badger", "off"), (e) => e.value);
+  const v = await p.$eval(mbox("badger", NEAR), (e) => e.value);
   await p.done();
   assert.equal(v, "-0.1225",
     "pricing.json holds -0.1225 and the box shows " + v + " — saving would post the mangled figure back");
@@ -284,167 +317,99 @@ test("the posts columns print a published quarter-cent as published", { skip: NB
   rows[0] = { ...rows[0], cashPrice: 4.2825 };
   const p = await open({ sites });
   await p.waitForTimeout(600);
-  const texts = await p.$$eval('.bd td.pay[data-elev="badger"]', (tds) => tds.map((t) => t.textContent));
+  /* The posts column is a cell of the basis screen now -- one per delivery
+     month, on the row it belongs to -- rather than a <td> tacked on the end of
+     a read-only board above the columns. The rule it is here for has not moved:
+     what a site publishes is PRINTED as published, to the last quarter cent,
+     because a rounded copy cannot be compared with their page line for line. */
+  const texts = await p.$$eval('.sheet .cell.pay[data-elev="badger"]',
+                               (els) => els.map((t) => t.textContent));
   await p.done();
-  assert.ok(texts.some((t) => t === "$4.2825"),
-    "a published 4.2825 renders as " + JSON.stringify(texts) + " — rounded on its way to the screen");
+  /* TO THE CENT, THE WAY THE SITE PRINTS IT. This asserted "$4.2825" -- print
+     what is published, to the last quarter cent, so the column could be
+     compared with Big River's page line for line. Sig reversed that on
+     2026-09-08: "i always want to round the corn price to the hundreds only."
+
+     AND THE SITE ALREADY DID. update-prices.mjs prints money as
+     `"$" + n.toFixed(2)`, so a grower reading badgergrain.com sees $4.28 for a
+     stored 4.2825. A screen printing $4.2825 in a column headed ON THE SITE
+     would be showing the office a figure no customer is being shown -- the
+     opposite of what that column is for. What it has to match is the SITE's
+     rendering, so that is what is checked, and the stored figure is deliberately
+     one that rounds. */
+  assert.ok(texts.some((t) => t === "$4.28"),
+    "a published 4.2825 renders as " + JSON.stringify(texts) +
+    " — the site prints $4.28 for it, and this column has to say what the site says");
+  assert.ok(!texts.some((t) => /\$\d+\.\d{3,}/.test(t)),
+    "a figure is printed to more places than the site prints it: " + JSON.stringify(texts));
 });
 
 /* ══════════════════════════════════════════════════════════════════════════
-   4. THE HOURS TAB FOLD, AND THE BUTTON THAT FOLDS IT
+   4. WHAT REPLACED THE FOLD, THE PIN AND THE PREVIEW PANEL
    ══════════════════════════════════════════════════════════════════════════
-   The hide rule lost a specificity fight nobody had measured, so the weekly
-   table stood open on the hours tab at every size, pushed the previews below
-   a 1440x940 fold, and made the "Weekly hours & small print" button look
-   broken — pressing it changed nothing you could see. */
-test("the weekly table folds on the hours tab until asked for", { skip: NB }, async () => {
-  const p = await open({ tab: "hours", viewport: LAYOUT.CONSOLE_EDGE });
-  const before = await p.evaluate(() => {
-    const w = document.querySelector('.col[data-elev="badger"] [data-id="c-weekly"]');
-    const pane = document.querySelector('.col[data-elev="badger"] .col-panes');
-    return { shown: getComputedStyle(w).display !== "none",
-             over: pane.scrollHeight - pane.clientHeight };
-  });
-  await press(p, "#rareBtn");
-  await p.waitForTimeout(120);
-  const after = await p.evaluate(() => {
-    const w = document.querySelector('.col[data-elev="badger"] [data-id="c-weekly"]');
-    return getComputedStyle(w).display !== "none";
-  });
-  await p.done();
-  assert.equal(before.shown, false, "the weekly table is up before anyone asked");
-  assert.equal(before.over, 0,
-    `the daily tab scrolls by ${before.over}px on the 1440x940 monitor`);
-  assert.equal(after, true, "and the button that promises it does not deliver it");
+   Three tests stood here and all three were about a screen that no longer
+   exists, so they are replaced rather than deleted -- the thing each was
+   protecting is still worth protecting, and this is where somebody will look
+   for it.
+
+   THE FOLD. "the weekly table folds on the hours tab until asked for" guarded a
+   specificity fight: the hide rule lost one nobody had measured, the weekly
+   table stood open at every size, and the button that folded it looked broken.
+   There is no fold. The weekly hours are three rows of a table, on screen with
+   everything else, and a row of a table hides nothing worth hiding.
+
+   THE PIN. "their cash is pinned on a phone" guarded a board that scrolled
+   sideways on a phone with the elevator's own posted price sliding under Big
+   River's. Nothing scrolls sideways now: under 1200px the sheet places the same
+   cells six wide instead of twelve, so there is no sideways to slide in. That
+   is the stronger fix and it is what the first test below asserts.
+
+   THE PANEL. "our own posted price is still on the phone" guarded a preview
+   block that could be lost in a narrow layout. The posted price is a column of
+   the basis screen now -- one figure per delivery month, per elevator -- so the
+   second test below asks the harder question: is it on a phone, for both
+   elevators, on the row it belongs to.
+   ══════════════════════════════════════════════════════════════════════════ */
+
+test("NOTHING SCROLLS SIDEWAYS ON A PHONE, on either screen", { skip: NB }, async () => {
+  for (const tab of ["basis", "hours"]) {
+    const p = await open({ viewport: LAYOUT.PHONE, tab });
+    const r = await p.evaluate(() => {
+      const sheet = document.querySelector(".sheet");
+      return { sheet: sheet.scrollWidth > sheet.clientWidth + 1,
+               page: document.documentElement.scrollWidth > innerWidth + 1,
+               cells: [...document.querySelectorAll(".sheet .cell")]
+                 .filter((c) => c.getClientRects().length && c.scrollWidth > c.clientWidth + 1)
+                 .map((c) => c.className.slice(0, 24)).slice(0, 4) };
+    });
+    await p.done();
+    assert.equal(r.sheet, false, `the sheet scrolls sideways on a phone (${tab})`);
+    assert.equal(r.page, false, `the page scrolls sideways on a phone (${tab})`);
+    assert.deepEqual(r.cells, [], `cells clip their own content on a phone (${tab})`);
+  }
 });
 
-/* ══════════════════════════════════════════════════════════════════════════
-   5. ON THEIR BOARD, THEIR CASH IS THE FIGURE THAT NEVER LEAVES THE PHONE
-   ══════════════════════════════════════════════════════════════════════════
-   This test used to assert the opposite -- that the phone pinned the EDITED
-   ELEVATOR'S posts column -- and it passed while the screen was wrong.
-
-   Measured 2026-08-31 at 390px: the table is 628px in a 390px box, "Their
-   cash" begins at x=361, and the pinned posts column covered everything from
-   x=240. So a table headed "Their posted board" showed, without scrolling:
-   Month, Contract, and OUR price. Their cash and their basis -- the two
-   columns the note beneath calls "the check" -- were both hidden, one of them
-   underneath ours.
-
-   Sig, in his own words: "their posted board should always show their posted
-   cash price not what badger posts or midwest posts."
-
-   So the assertion is inverted and made about POSITION ON SCREEN rather than
-   about a CSS keyword, because "position: sticky" is what the stylesheet says
-   and "is the number in the box" is what the office sees. Our own price is not
-   lost: it is checked by test 6 below, in the panel where it is larger. */
-test("their cash is pinned on a phone; our posts is not on top of it", { skip: NB }, async () => {
-  const p = await open({ viewport: LAYOUT.PHONE, query: "?site=badger" });
-  const r = await p.evaluate(() => {
-    const box = document.querySelector(".board").getBoundingClientRect();
-    const read = (sel) => {
-      const e = document.querySelector(sel);
-      if (!e) return null;
-      const cs = getComputedStyle(e), b = e.getBoundingClientRect();
-      /* How much of this cell is actually inside the box, with the box left
-         un-scrolled -- which is the state the reader arrives in. */
-      const onScreen = Math.max(0, Math.min(b.right, box.right) - Math.max(b.left, box.left));
-      return { pos: cs.position, display: cs.display, onScreen: Math.round(onScreen),
-               width: Math.round(b.width) };
-    };
-    return {
-      only: document.body.getAttribute("data-only"),
-      cash: read(".bd td.cash-cell"),
-      badger: read('.bd td.pay[data-elev="badger"]'),
-      midwest: read('.bd td.pay[data-elev="midwest"]'),
-      scrolls: document.querySelector(".board").scrollWidth >
-               document.querySelector(".board").clientWidth,
-    };
-  });
-  await p.done();
-  assert.equal(r.only, "badger");
-  assert.ok(r.scrolls, "if the board no longer scrolls sideways this test proves nothing");
-  assert.equal(r.cash.pos, "sticky", "their cash must be the pinned column on their own board");
-  assert.equal(r.cash.onScreen, r.cash.width,
-    `their cash is ${r.cash.width - r.cash.onScreen}px short of fully on screen unscrolled`);
-  assert.equal(r.badger.pos, "static",
-    "our posts must not be pinned as well -- two cells at right:0 means one covers the other");
-  assert.equal(r.badger.onScreen, 0,
-    "our posts should be off to the right, reachable by dragging, not sitting over theirs");
-  assert.equal(r.midwest.display, "none",
-    "the other elevator's posts column crowds a 390px screen it was not asked onto");
-});
-
-/* ══════════════════════════════════════════════════════════════════════════
-   THE RARE KEY SAYS WHAT IT DOES, AND SHOWS YOU WHAT IT DID
-   ══════════════════════════════════════════════════════════════════════════
-   Sig, 2026-08-31: "wtf is the weekly hours button in the top right, i clicked
-   it and it changes colors, wow."
-
-   He was right, and the button was working. It reveals two panels — the weekly
-   hours and the small print — and both of them sit low in a column that
-   scrolls on its own, so from where he was standing the only observable effect
-   of pressing it was the button inverting. A control whose entire feedback is
-   its own colour is a control that has not told you anything.
-
-   Three assertions, because the fix is three things: the label carries a VERB
-   and the verb changes; the caret turns; and the panel that was opened is
-   brought into view. */
-test("the rare key names the action, and the name changes when it is pressed",
+test("our own posted price is on a phone, for both elevators, on its own month",
   { skip: NB }, async () => {
-  const p = await open(LAYOUT.CONSOLE, { tab: "hours" });
-  const read = () => p.evaluate(() => {
-    const b = document.getElementById("rareBtn");
-    const card = document.querySelector('.col:not([hidden]) [data-id="c-weekly"]');
-    const pane = card && card.closest(".col-panes");
-    return { label: b.textContent.replace(/\s+/g, " ").trim(),
-             expanded: b.getAttribute("aria-expanded"),
-             caretTurn: getComputedStyle(document.querySelector(".rare-caret"), "::before").transform,
-             cardShown: card ? getComputedStyle(card).display !== "none" : null,
-             /* IS IT ACTUALLY IN THE VISIBLE PART OF THE PANE — not "how many
-                pixels down", which was the first version of this and is a
-                magic number that means different things at different window
-                heights. 215px down a 700px pane is on screen; 215px down a
-                200px pane is not. Ask the question that matters. */
-             inSight: (() => {
-               if (!card || !pane) return null;
-               const c = card.getBoundingClientRect(), q = pane.getBoundingClientRect();
-               return c.top >= q.top - 1 && c.top < q.bottom;
-             })() };
-  });
-  const before = await read();
-  await press(p, "#rareBtn");
-  await p.waitForTimeout(500);
-  const after = await read();
+  const p = await open({ viewport: LAYOUT.PHONE, tab: "basis" });
+  await p.waitForTimeout(600);
+  const r = await p.evaluate(() => ["badger", "midwest"].map((s) => {
+    const cells = [...document.querySelectorAll('.sheet .cell.pay[data-elev="' + s + '"]')];
+    const withPrice = cells.filter((c) => /\$\d/.test(c.textContent));
+    const first = withPrice[0];
+    return {
+      site: s, cells: cells.length, priced: withPrice.length,
+      month: first ? first.getAttribute("data-delivery") : null,
+      shown: first ? first.getBoundingClientRect().height > 0 : false,
+    };
+  }));
   await p.done();
-
-  assert.match(before.label, /^Show /, `the key reads "${before.label}" before it is pressed`);
-  assert.equal(before.expanded, "false");
-  assert.match(after.label, /^Hide /, `the key still reads "${after.label}" after it is pressed`);
-  assert.equal(after.expanded, "true");
-  assert.equal(after.cardShown, true, "the weekly panel did not open");
-  assert.notEqual(after.caretTurn, before.caretTurn, "the caret does not turn");
-  assert.equal(after.inSight, true,
-    "the panel it opened is not in the visible part of its own scrolling pane — " +
-    "opened, and out of sight, which is the complaint");
-});
-
-/* The half of the old decision that still has to hold: taking our price off
-   the pin is only acceptable because it is somewhere better. */
-test("our own posted price is still on the phone, in our own panel", { skip: NB }, async () => {
-  const p = await open({ viewport: LAYOUT.PHONE, query: "?site=badger" });
-  const r = await p.evaluate(() => {
-    const prev = document.querySelector('.col[data-elev="badger"] [data-id="prevBid"]');
-    if (!prev) return { found: false };
-    const cs = getComputedStyle(prev);
-    const head = prev.querySelector(".pb-h");
-    return { found: true, shown: cs.display !== "none" && prev.getBoundingClientRect().height > 0,
-             text: (head ? head.textContent : "").trim() };
-  });
-  await p.done();
-  assert.ok(r.found, "the panel that carries our own posted price is gone");
-  assert.ok(r.shown, "our own posted price is not visible on a phone, so the pin should not have moved");
-  assert.match(r.text, /\$\d/, `our own posted price reads "${r.text}"`);
+  for (const e of r) {
+    assert.ok(e.cells >= 4, `${e.site} has ${e.cells} posted-price cells on a phone`);
+    assert.ok(e.priced >= 1, `${e.site} shows no posted price at all on a phone`);
+    assert.ok(e.shown, `${e.site}'s posted price has no box on a phone`);
+    assert.ok(e.month, `${e.site}'s posted price is not tied to a delivery month`);
+  }
 });
 
 
@@ -469,12 +434,11 @@ test("our own posted price is still on the phone, in our own panel", { skip: NB 
    from it -- every keystroke. A refusal told somebody they were wrong; this
    shows them, in their own numbers, and it is the thing to keep working.
    ══════════════════════════════════════════════════════════════════════════ */
-for (const [box, label] of [["off", "Our basis — cash"],
-                            ["offh", "Our basis — new crop"]])
+for (const [box, label] of BASIS_BOXES)
   test(`a basis over the contract is accepted now, and says what it is — ${label}`,
     { skip: NB }, async () => {
     const p = await open({});
-    const sel = id("badger", box);
+    const sel = mbox("badger", box);
     await p.fill(sel, "");
     await p.fill(sel, "0.75");
     await p.waitForFunction((s) => document.querySelector(s).value === "0.75", sel);
@@ -484,14 +448,13 @@ for (const [box, label] of [["off", "Our basis — cash"],
     assert.ok(url, "a positive basis inside the cap was refused: " + (why || "(no reason given)"));
   });
 
-for (const [box, label] of [["off", "Our basis — cash"],
-                            ["offh", "Our basis — new crop"]])
+for (const [box, label] of BASIS_BOXES)
   test(`a basis past the $1.50 cap is still refused, either sign — ${label}`,
     { skip: NB }, async () => {
     /* The cap is what is left, so it has to hold in the direction the removed
        rule used to cover. */
     const p = await open({});
-    const sel = id("badger", box);
+    const sel = mbox("badger", box);
     await p.fill(sel, "");
     await p.fill(sel, "1.75");
     await p.waitForFunction((s) => document.querySelector(s).value === "1.75", sel);
@@ -509,10 +472,41 @@ test("a small premium over the contract is allowed, because it is a real thing t
      a nickel over the board is doing something ordinary. Fifteen cents is the
      line, and it is drawn where the habit stops being plausible. */
   const p = await open({});
-  await p.fill(id("badger", "off"), "0.15");
-  await p.waitForFunction((s) => document.querySelector(s).value === "0.15", id("badger", "off"));
+  await p.fill(mbox("badger", NEAR), "0.15");
+  await p.waitForFunction((s) => document.querySelector(s).value === "0.15", mbox("badger", NEAR));
   const url = await save(p, "badger");
   const why = await refusalOf(p, "badger");
   await p.done();
   assert.ok(url, "a 15-cent premium was refused; the screen said: " + why);
+});
+
+
+test("THE WEEKLY HOURS AND THE SMALL PRINT ARE ON SCREEN WITHOUT ASKING",
+  { skip: NB }, async () => {
+  /* What the rare key was for. It folded the two panels that "change rarely"
+     out of a column of stacked cards, and the test that stood here checked the
+     button said what pressing it would do. There is no button and no fold: the
+     weekly hours are three rows and the small print is one more, all of them on
+     the hours screen at once. This asserts the thing the fold was hiding is
+     reachable without a fold, which is what the office actually needed. */
+  const p = await open({ tab: "hours" });
+  const r = await p.evaluate(() => {
+    const on = (sel) => {
+      const e = document.querySelector(sel);
+      return !!e && e.getBoundingClientRect().height > 0;
+    };
+    return {
+      rareKey: !!document.getElementById("rareBtn"),
+      week: ["wk_open", "wk_close", "sat_open", "sun_closed"]
+        .map((n) => on('.col[data-elev="badger"] [name="' + n + '"]')),
+      note: on('.col[data-elev="badger"] [name="hoursnote"]'),
+      priceNote: on('.col[data-elev="badger"] [name="price_note"]'),
+    };
+  });
+  await p.done();
+  assert.equal(r.rareKey, false, "the fold button is still on the page with nothing to fold");
+  assert.deepEqual(r.week, [true, true, true, true],
+    "part of the weekly table is not on screen on the hours screen");
+  assert.ok(r.note, "the small print under the hours is not on screen");
+  assert.ok(r.priceNote, "the small print under the prices is not on screen");
 });

@@ -11,26 +11,56 @@
 <body>
 
 <header>
-  <b class="brand">EMMERT</b>
-  <nav class="tabs" id="rail" aria-label="Screens">
-    <button type="button" class="rail-b" data-go="basis" aria-current="true">
-      <span class="rail-t">Basis</span><span class="rail-s">What we post under Big River</span>
-    </button>
-    <button type="button" class="rail-b" data-go="hours">
-      <span class="rail-t">Hours &amp; notices</span><span class="rail-s">Today, the banner, the week</span>
-    </button>
-  </nav>
-  <!-- The two per-elevator summary lines that lived here are gone; see
-       col.html. What is left in this bar is the state of the SCREEN -- whether
-       the feed was read, what time it is, the help key and the handbook --
-       none of which is said anywhere else. -->
-  <span class="feednote" id="feedNote"></span>
-  <span class="railclock" id="railClock"></span>
-  <button type="button" class="helpkey" id="helpBtn" aria-pressed="false"
-          title="Show or hide the explanatory text (?)">? help</button>
-  <a class="docs" id="brOpen" href="https://www.bigriverbids.com/cashbidssingle-2121"
-     target="_blank" rel="noopener noreferrer">Their board</a>
-  <a class="docs" href="handbook.html">Handbook</a>
+  <div class="wrap">
+    <div class="marks">
+      <span class="logo" data-elev="badger">
+        <!-- THE CORN CAME OFF. Two 122x288 PNGs, 49,873 bytes between them,
+             drawn four times into a box 14px by 33px at 1440 -- about a ninth
+             of their own width. Clip-art cobs flanking a wordmark are the
+             single most toy-like thing on a screen the office types grain
+             prices into, and the wordmark already says which elevator this is.
+             The files are still in assets/ and this is two lines to put back. -->
+        <span class="wm"><span class="wm1">Badger</span><span class="wmrule"></span><span class="wm2">Grain Supply</span></span>
+        <span class="sr-only">Badger Grain Supply</span>
+      </span>
+      <span class="marks-sep" aria-hidden="true"></span>
+      <span class="logo" data-elev="midwest">
+        <span class="wm"><span class="wm1">Midwest</span><span class="wmrule"></span><span class="wm2">Commodity Service</span></span>
+        <span class="sr-only">Midwest Commodity Service</span>
+      </span>
+    </div>
+    <div class="hd-acts">
+      <!-- Collapses the two panels that say "changes rarely" on their own
+           faces, in BOTH columns at once. Every control inside them stays in
+           its form either way, so a Save still carries them. -->
+      <!-- THE LABEL SAYS WHAT PRESSING IT DOES, and changes when it has been
+           pressed. It used to read "Weekly hours & small print" in both states
+           — a noun, not an action — and the only feedback was the button's own
+           colour inverting. Sig, 2026-08-31: "wtf is the weekly hours button in
+           the top right, i clicked it and it changes colors, wow." He was
+           right: it had revealed two panels, both of them below the fold of a
+           scrolling column, so the one thing he could see happen was the
+           button changing colour. The verb is in the label now, the caret
+           turns, and the panel it opens is scrolled to. -->
+      <button type="button" class="rare-toggle" id="rareBtn" aria-expanded="false"
+              aria-controls="badger-c-weekly midwest-c-weekly"
+      ><span class="rare-verb">Show</span> weekly hours &amp; small print<span class="rare-caret" aria-hidden="true"></span></button>
+      <!-- The explanation is written for somebody's first day. On day two
+           hundred it is 317px of text between them and the number they came
+           to change. Off by default, one key away, never deleted. -->
+      <button type="button" class="helpkey" id="helpBtn" aria-pressed="false"
+              title="Show or hide the explanatory text (?)">? help</button>
+      <!-- THE WRITTEN-DOWN VERSION, one click away and on the same host.
+           Not the "? help" key: that switches the inline explanation on and
+           off for somebody already in front of a field. This is the whole
+           thing -- where the price comes from, what Save does, what to do
+           when it looks wrong -- for somebody who has just been handed this
+           screen, or who is standing in the scale house on a phone.
+           Deliberately NOT hidden below 1440px the way the two keys beside
+           it are, because a phone is exactly where that person is. -->
+      <a class="docs" href="handbook.html">Handbook</a>
+    </div>
+  </div>
 </header>
 
 <!-- Anything the screen needs to tell you before you start typing lands here:
@@ -61,7 +91,34 @@
      field out of a submission, so a Save carries the whole column whichever
      tab is showing -- the same property the folded "weekly hours & small
      print" panel has always relied on. -->
-
+<nav class="rail" id="rail" aria-label="Sections">
+  <div class="rail-mark">
+    <span class="rail-m1">EMMERT</span>
+    <span class="rail-m2">Staff terminal</span>
+  </div>
+  <button type="button" class="rail-b" data-go="overview" aria-current="true">
+    <span class="rail-t">Overview</span>
+    <span class="rail-s">Both elevators, as published</span>
+  </button>
+  <button type="button" class="rail-b" data-go="basis">
+    <span class="rail-t">Basis</span>
+    <span class="rail-s">What we post under Big River</span>
+  </button>
+  <button type="button" class="rail-b" data-go="hours">
+    <span class="rail-t">Hours &amp; notices</span>
+    <span class="rail-s">Today, the banner, the week, the small print</span>
+  </button>
+  <div class="rail-foot">
+    <!-- TWO LENGTHS, ONE LINK. On the desk the rail is 196px wide and the word
+         fits; below that it is a chip pinned to the right of a scrolling row,
+         where every pixel it takes is a pixel of tab it covers. The accessible
+         name stays "Handbook" either way -- aria-label wins over the text, so
+         a screen reader never has to read "Hndbk" out loud. -->
+    <a class="rail-doc" href="handbook.html" aria-label="Handbook"><span
+       class="doc-long">Handbook</span><span class="doc-short">Hndbk</span></a>
+    <span class="rail-clock" id="railClock" aria-hidden="true"></span>
+  </div>
+</nav>
 
 <noscript>
   <style>
@@ -115,100 +172,54 @@
           <span class="feedlive-dot" aria-hidden="true"></span>
           <div class="feedlive-t" id="feedLiveText" role="status"></div>
           <button type="button" class="feedlive-go" id="feedLiveGo">Check again</button>
-        </div>        <!-- The board that used to live here IS the basis screen now: the
-             month rows of the sheet below, each carrying that month's tick,
-             basis box and posted price for both elevators. Left in place it
-             was a hidden table still holding the five sample rows the file
-             ships with, which the screen's own filler guard could still find
-             and warn about. What remains of this strip is the feed liveness
-             line, which is about the READER and not about the board. -->
+        </div>        <div class="board">
+          <div class="board-hd">
+            <span>Their posted board</span>
+            <span class="board-acts">
+              <!-- Reads their board this second instead of waiting for the next
+                   scheduled check. The table below is otherwise whatever the
+                   last check found, which is normally a few minutes old. -->
+              <a class="board-open" href="#" id="refeed">Check again now</a>
+              <a class="board-open" id="brOpen" href="https://www.bigriverbids.com/cashbidssingle-2121"
+                 target="_blank" rel="noopener noreferrer">Open their page side by side</a>
+            </span>
+          </div>
+          <table class="bd num">
+            <thead>
+              <tr><th>Month</th><th>Contract</th><th class="r">Their basis</th>
+                  <th class="r cash-col">Their cash</th>
+                  <th class="r pays" data-elev="badger">Badger posts</th>
+                  <th class="r pays" data-elev="midwest">Midwest posts</th></tr>
+            </thead>
+            <tbody data-sample>
+              <tr class="is-ref"><td>August</td><td>Sep 26</td><td class="r">&minus;0.52</td>
+                  <td class="r cash-cell">$4.07</td><td class="r pay" data-elev="badger">$3.97</td><td class="r pay" data-elev="midwest">$3.97</td></tr>
+              <tr><td>September</td><td>Sep 26</td><td class="r">&minus;0.46</td>
+                  <td class="r cash-cell">$4.13</td><td class="r pay" data-elev="badger">$4.03</td><td class="r pay" data-elev="midwest">$4.03</td></tr>
+              <tr><td>October</td><td>Dec 26</td><td class="r">&minus;0.55</td>
+                  <td class="r cash-cell">$4.2825</td><td class="r pay" data-elev="badger">$4.18</td><td class="r pay" data-elev="midwest">$4.18</td></tr>
+              <tr><td>December</td><td>Dec 26</td><td class="r">&minus;0.50</td>
+                  <td class="r cash-cell">$4.3325</td><td class="r pay" data-elev="badger">$4.23</td><td class="r pay" data-elev="midwest">$4.23</td></tr>
+              <tr><td>January</td><td>Mar 27</td><td class="r">&minus;0.60</td>
+                  <td class="r cash-cell">$4.39</td><td class="r pay" data-elev="badger">$4.29</td><td class="r pay" data-elev="midwest">$4.29</td></tr>
+            </tbody>
+          </table>
+          <p class="board-note"><strong>This table is the check.</strong> Their basis and
+          their cash are what the reader pulled off their page, not a picture of it. Open
+          their page beside this; the two should agree line for line.<br>
+          The highlighted row is the nearest delivery. The last two columns are what each
+          elevator is publishing to customers this minute, <strong>read from its own site</strong>
+          &mdash; not worked out again here. A blank means that elevator does not post that month.</p>
+        </div>
 </section>
 
-<!-- ══════════════ THE SHEET ══════════════
-     One grid, twelve columns, both elevators. The left six are the market and
-     Big River's board -- facts, not fields. Columns 7-9 are Badger's and 10-12
-     are Midwest's, on BOTH screens, so the elevator a cell belongs to is the
-     same place on the page whichever screen you are on.
+<!-- The two elevators. Both are live forms. Each has its own Save, files its
+     own GitHub issue, and touches its own repository only. -->
+<!-- Phone only. On a desk both columns are on screen and this is not
+     rendered at all; the stylesheet, not this markup, decides. -->
+<div class="wrap"><div class="elev-switch" id="elevSwitch" role="group" aria-label="Which elevator"></div></div>
 
-     WHY A GRID AND NOT A TABLE. Each elevator's controls have to sit inside
-     that elevator's own <form>, or one Save carries the other's work -- and a
-     <form> cannot wrap cells across the rows of a table. `display:contents` on
-     the column and its form lifts their cells into this grid, so the DOM keeps
-     the shape the forms need and the screen keeps the shape a person reads.
-     The roles below carry the table semantics the layout gave up. -->
-<div class="sheet" id="floor" role="table" aria-label="Both elevators">
-
-  <div class="cell hd grp" data-row="1" data-tab="basis" style="grid-column:1/7" role="columnheader">Market &amp; Big River &middot; Boyceville</div>
-  <div class="cell hd grp" data-row="1" data-tab="hours" style="grid-column:1/7" role="columnheader">What you are setting</div>
-  <div class="cell hd grp gb" data-row="1" style="grid-column:7/10" role="columnheader">Badger Grain Supply &middot; Wheeler</div>
-  <div class="cell hd grp gm" data-row="1" style="grid-column:10/13" role="columnheader">Midwest Commodity Service &middot; Baldwin</div>
-
-  <!-- Column headings. One set per screen, because the columns under them are
-       different things; the group row above is shared and never moves. -->
-  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:1">Month</div>
-  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:2">Contract</div>
-  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:3">Futures</div>
-  <!-- "Their quote" was column 4 and is gone; see drawBoard. Column 6 is now an
-       empty gutter between the board and the first elevator, sized 0px in the
-       template rather than renumbered, because the elevator groups, the save
-       bars and every `bc`/`abc` span on the hours screen are placed against
-       these numbers and renumbering one screen is how a heading ends up over
-       the wrong column. -->
-  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:4">Their basis</div>
-  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:5">Their bid</div>
-  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:7">Show</div>
-  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:8">Our basis</div>
-  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:9">On the site</div>
-  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:10">Show</div>
-  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:11">Our basis</div>
-  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:12">On the site</div>
-
-  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:1/7">Setting</div>
-  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:7">Set</div>
-  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:8">Times or text</div>
-  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:10">Set</div>
-  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:11">Times or text</div>
-
-  <!-- The basis screen's own rows are drawn from the feed by drawBoard(); the
-       month cells on the left land here and each elevator's three cells land
-       inside its own form. The two static rows below sit above them: the
-       bucket basis a month falls back to when its own box is empty. -->
-  <div class="cell lab" data-row="91" data-tab="basis" style="grid-column:1/7">
-    <b>Post a price by hand</b>
-    <span class="sub">Break glass. Anything typed here overrides the feed until it is cleared.</span>
-  </div>
-
-
-  <!-- The hours screen's rows. Static: these are the same seven settings
-       whatever their board is doing today. -->
-  <div class="cell lab" data-row="3" data-tab="hours" style="grid-column:1/7">
-    <b>Today</b><span class="sub">The big box at the top of the site. <span class="who-day"></span></span>
-  </div>
-  <div class="cell lab" data-row="4" data-tab="hours" style="grid-column:1/7">
-    <b>Notice banner</b><span class="sub">The yellow bar under the logo. 160 characters.</span>
-  </div>
-  <div class="cell lab" data-row="5" data-tab="hours" style="grid-column:1/7">
-    <b>Monday to Friday</b><span class="sub">The regular week. Changes rarely.</span>
-  </div>
-  <div class="cell lab" data-row="6" data-tab="hours" style="grid-column:1/7"><b>Saturday</b></div>
-  <div class="cell lab" data-row="7" data-tab="hours" style="grid-column:1/7"><b>Sunday</b></div>
-  <!-- Said once, under the market columns, instead of twice under two Save
-       buttons. It was the same sentence in both elevators' save bars and it
-       was what made that row 131px tall. -->
-  <div class="cell foot-note" data-row="99" style="grid-column:1/7">
-    Save opens a GitHub page with this form already filled in.
-    <b>It is not saved until you press the green &ldquo;Submit new issue&rdquo; button there.</b>
-  </div>
-
-  <div class="cell lab" data-row="8" data-tab="hours" style="grid-column:1/7">
-    <b>Small print under the hours</b><span class="sub">Prints under the hours. 200 characters.</span>
-  </div>
-  <div class="cell lab" data-row="9" data-tab="hours" style="grid-column:1/7">
-    <b>Price note</b><span class="sub">Prints under the bid table. 240 characters. Keep the
-    last sentence: it ties a posted price to the drying schedule.</span>
-  </div>
-</div>
-
+<div class="floor" id="floor"></div>
 
 </main>
 
@@ -224,54 +235,86 @@
      no-script form by shipping the columns flat, so they are shipped once. -->
 <template id="elevTpl">
   <section class="col" data-elev="">
-    <!-- THE TWO SUMMARY LINES AT THE TOP OF THE PAGE ARE GONE.
-         Sig, 2026-09-09, striking both of them out: "i dont hink those two
-         lines are necessary either".
-
-         The strip said, per elevator: the cash price and its delivery month,
-         whether the site is open today, and whether the yellow bar is showing.
-         Every one of those is on one of the two screens under it -- the price
-         in the ON THE SITE column, the hours and the banner in their own rows
-         on Hours & notices -- so the bar was the same restatement as the "on
-         the site" column he cut off the hours screen an hour earlier, said
-         twice at the top of every page.
-
-         WHAT WENT WITH IT: syncOver(), which existed only to fill these chips
-         and ran on every input and change event in the document, capturing;
-         the second bids.json fetch in liveCheck, which built the cash chip
-         from a file fillPosts() already reads a month at a time; and the three
-         filler-walker patches that existed only because this strip had to be
-         moved out of the sheet and into the bar. -->
-
-
+    <div class="col-hd">
+      <span class="col-rail" aria-hidden="true"></span>
+      <span class="col-name"></span>
+      <span class="col-town"></span>
+      <!-- Where this column's Save actually goes. With two live forms the
+           single most useful fact in a column header is which repository it
+           writes to -- it is the thing that makes pressing the wrong Save
+           impossible to do without noticing. Replaces "Signed in as Office",
+           which was a fiction: this is a static page with no sign-in. -->
+      <span class="col-live" data-id="whoNote"></span>
+    </div>
     <form class="col-form" novalidate>
+      <div class="col-panes">
+    <!-- ============ OVERVIEW ============ -->
+    <!-- WHAT THIS ELEVATOR IS PUBLISHING RIGHT NOW, in one card, read and not
+         recomputed. Every value in here is copied out of a node the screen
+         had already worked out -- the basis readouts, the customer previews,
+         the applier's own stamp. Nothing new is calculated, because a second
+         implementation of the rounding rule is the one thing this screen is
+         forbidden to grow. -->
+    <div class="card" data-id="c-over" data-tab="overview">
+      <h2>Live on the site <span class="hint" data-id="overWhen"></span></h2>
+      <div class="body">
+        <dl class="over">
+          <dt>Cash basis</dt><dd data-id="overCash">&mdash;</dd>
+          <dt>New crop</dt><dd data-id="overNew">&mdash;</dd>
+          <dt>Cash price</dt><dd data-id="overCashPrice">&mdash;</dd>
+          <dt>Harvest price</dt><dd data-id="overHarvestPrice">&mdash;</dd>
+          <dt>Today</dt><dd data-id="overToday">&mdash;</dd>
+          <dt>Banner</dt><dd data-id="overBanner">&mdash;</dd>
+        </dl>
+      </div>
+    </div>
 
-      <!-- WHICH MONTHS THIS ELEVATOR PUBLISHES, AND WHAT EACH ONE PAYS.
-           One hidden field, not twenty-two visible ones. The ticks and boxes
-           on the basis rows are drawn by drawBoard() and write into this on
-           every change; it is what travels in the issue, and it is the only
-           thing on this screen the applier reads about months. Its value is
-           lines of "September -0.85 show", which is a table a person can read
-           on the issue page before pressing Submit. -->
-      <input type="hidden" data-id="months" name="months" value="">
+    <!-- ============ OUR BASIS ============ -->
+    <!-- What used to be the whole corn-bid card. Big River's board is one
+         board and it now sits once, above both columns, with a column each
+         for what the two elevators publish against it. What stays here is
+         the part that is genuinely this elevator's: its basis, its
+         break-glass by-hand price, and the small print under its table. -->
+    <div class="card" data-id="c-bid" data-tab="basis">
+      <h2>Our basis <span class="hint"><span class="who-town"></span> &middot; the board is above</span></h2>
+      <div class="body">
+        <!-- Two boxes because old crop and new crop are two decisions. Blank
+             on the second means it follows the first, which is how it behaved
+             when there was only one. The figures are per elevator: this screen
+             writes the one you are editing and never touches the other. -->
+        <div class="row spread-row">
+          <!-- The name Jessie already thinks in. This box held a SPREAD until
+               2026-09-07 and was labelled for it; the confusion that caused --
+               she thinks in the basis, like everyone in the trade -- is what
+               the change to an absolute basis ended. Box and label now hold
+               the same quantity for the first time. -->
+          <label class="fl" data-for="off">Our basis &mdash; cash</label>
+          <!-- THE MINUS IS NO LONGER PRINTED FOR THEM. It used to be, because
+               the box held a spread and a spread is always a positive number
+               of cents under somebody else's board. This box now holds OUR
+               BASIS against the contract month, and a basis is signed: -0.75
+               is seventy-five under, +0.05 is a nickel over. Printing a minus
+               beside a box that can hold either sign is how somebody types
+               0.75 meaning under and posts a price seventy-five cents over.
+               The `name` is still "spread": it is threaded through this page,
+               the applier, and seven test files, and renaming it in the same
+               change as the arithmetic is how a wrong price reaches a page.
+               The kit's README carries that as a known naming debt. -->
+          <div class="money sm"><span>$</span><input data-id="off" name="spread" type="text" inputmode="decimal" value="-0.75" data-sample-value="-0.75"></div>
+          <div class="counter">Corn off the truck today.</div>
+          <!-- NOT a .counter and NOT a .help: this is state, not explanation,
+               so the ? key must never take it away. -->
+          <div class="basis-read" data-id="basisCash"></div>
+        </div>
 
-      <!-- ============ BASIS ============ -->
-      <!-- THE FALLBACK BASIS IS GONE FROM THE SCREEN.
-           Two boxes, cash and new crop, were the whole basis screen before every
-           month had a box of its own. Sig, 2026-09-08: "why do we need fallback
-           basis at all, just the month selector is sufficient with the enter the
-           basis." He is right, and the reason is the one this project keeps
-           coming back to: with a box on every month, a global figure is a SECOND
-           place the posted price can come from, and it is the one nobody can see.
+        <div class="row spread-row">
+          <label class="fl" data-for="offh">Our basis &mdash; new crop</label>
+          <div class="money sm"><span>$</span><input data-id="offh" name="spread_harvest" type="text" inputmode="decimal" value="" placeholder="same as cash"></div>
+          <div class="counter">October and November delivery.</div>
+          <div class="basis-read" data-id="basisNew"></div>
+          <div class="basis-out" data-id="basisOut"></div>
+        </div>
 
-           `spread` and `spread_harvest` still exist in pricing.json and the sites
-           still read them for any month the table does not name -- the applier's
-           branches for them are untouched, so an issue filed before today still
-           applies. What has changed is that this screen no longer writes them,
-           and every month box opens carrying the number the site is using right
-           now, so nothing on the board resolves to a figure that is not on it. -->
-
-      <div class="cell ctl wide" data-row="91" data-tab="basis" data-col="abc">
         <details class="byhand">
           <summary>Post a price by hand instead</summary>
           <div class="byhand-body">
@@ -298,6 +341,16 @@
             <p class="help">Basis is optional. Type it the way you say it, so
             <span class="num">-0.42</span> for forty two under. Leave it blank rather than
             typing a zero: blank means we are not saying, zero means even with the board.</p>
+            <!-- This box used to say USDA had reported a Wisconsin range and that
+                 anything outside it would be refused. Nothing in the Worker has ever
+                 fetched that figure, so the range was decoration and the promise was
+                 false. It now describes the checks that actually run. If the USDA
+                 cross-check is wired up later, say so here and give the real range.
+
+                 The limits below are enforced by the Worker on save. This screen
+                 checks shape only -- is it a number, is a basis accompanied by
+                 the price it belongs to -- deliberately, so there is one copy of
+                 the range rule rather than two that drift apart. -->
             <div class="sanity">
               <strong>Sanity check.</strong> A price outside <span class="num">$2.00</span> to
               <span class="num">$12.00</span> is refused <em>by the site when it publishes</em>,
@@ -310,112 +363,177 @@
             </div>
           </div>
         </details>
-      </div>
 
-      <div class="cell ctl wide" data-row="9" data-tab="hours" data-col="abc">
-        <textarea data-id="pnote" name="price_note" maxlength="240">Prices change with the market and are not final until you call. Grain is bought subject to the drying and discount schedule below.</textarea>
-        <div class="counter">Shows under the prices on both sites.</div>
-      </div>
-
-      <!-- ============ HOURS ============ -->
-      <div class="cell ctl" data-row="3" data-tab="hours" data-col="a">
-        <fieldset>
-          <legend class="sr-only">Are you open today?</legend>
-          <div class="choices">
-            <label class="choice"><input type="radio" name="today" value="usual" checked>
-              <span>Usual<small data-id="usualSummary">8:00a to 5:00p weekdays, 8:00a to 12:00p Saturday</small></span></label>
-            <label class="choice"><input type="radio" name="today" value="custom">
-              <span>Different<small>Set the times beside this</small></span></label>
-            <label class="choice"><input type="radio" name="today" value="closed">
-              <span>Closed<small>Shows CLOSED at the top</small></span></label>
-            <label class="choice"><input type="radio" name="today" value="harvest">
-              <span>Harvest<small><span class="who-harvest" data-badger="8:00a to 7:00p" data-midwest="7:00a to 7:00p">8:00a to 7:00p</span>, seven days</small></span></label>
+        <div class="prev">
+          <div class="prev-l">What customers will see</div>
+          <!-- TWO ROWS, BECAUSE THE SITE POSTS TWO. The live preview under this
+               has always rendered a cash row AND a harvest row, but the shipped
+               sample carried a single "Cash, corn" line -- so every time the
+               screen was opened before the feed answered it taught the wrong
+               shape, and the new-crop basis box appeared to govern nothing.
+               The sample now has the shape the real thing has. -->
+          <div class="prev-bid" data-id="prevBid" data-sample>
+            <div class="pb-row"><span class="pb-l">Cash, corn<small>August delivery</small></span><span class="pb-h num">$3.97</span></div>
+            <div class="pb-row"><span class="pb-l">Harvest<small>October and November delivery</small></span><span class="pb-h num">$4.18</span></div>
           </div>
-        </fieldset>
-        <span class="hint" data-id="todayDate"></span>
-        <!-- The only thing the Today preview said that the controls do not:
-             what the SITE does on its own after closing time. It is a fact
-             about the site, not a readback of this form, so it outlived the
-             column it used to sit in. -->
-        <p class="hint self" data-id="prevTodayNote"></p>
-      </div>
-      <div class="cell ctl" data-row="3" data-tab="hours" data-col="b">
-        <div class="times" data-id="todayTimes">
-          <label class="fl sr-only" data-for="o">Opens</label><input data-id="o" type="time" name="open" value="08:00" data-sample-value="08:00">
-          <label class="fl sr-only" data-for="c">Closes</label><input data-id="c" type="time" name="close" value="17:00" data-sample-value="17:00">
+          <p class="prev-n" data-id="prevBidNote"></p>
+        </div>
+
+        <!-- THE BUTTON AT THE TOP OF THE SCREEN ALREADY SAYS "Weekly hours &
+             small print". This IS the small print, it changes about twice a
+             year, and it sat 85px tall in the middle of the card somebody opens
+             every morning to change a basis. It folds with the rest of the
+             rarely-touched controls now. It is still IN the form when folded --
+             CSS display does not take a field out of a submission -- so a Save
+             carries it either way, which is the same argument the weekly hours
+             table has always relied on. -->
+        <div class="row rare-row">
+          <label class="fl" data-for="pnote">Small print under the price table</label>
+          <textarea data-id="pnote" name="price_note" maxlength="240">Prices change with the market and are not final until you call. Grain is bought subject to the drying and discount schedule below.</textarea>
+          <div class="counter">Shows under the prices on both sites. Keep the last sentence: it ties a posted price to the drying schedule.</div>
         </div>
       </div>
+    </div>
 
-      <div class="cell ctl" data-row="4" data-tab="hours" data-col="a">
+    <!-- ============ TODAY ============ -->
+    <div class="card" data-id="c-today" data-tab="hours">
+      <h2>Today&rsquo;s hours <span class="hint" data-id="todayDate"></span></h2>
+      <div class="body">
+        <p class="help">The big box at the top of the site. Nothing changed today? Leave it on the first choice.</p>
         <fieldset>
-          <legend class="sr-only">Show the banner?</legend>
+          <legend>Are you open today?</legend>
           <div class="choices">
-            <label class="choice"><input type="radio" name="banner" value="on" checked>
-              <span>Show<small>Appears under the logo</small></span></label>
-            <label class="choice"><input type="radio" name="banner" value="off">
-              <span>Hide<small>Site looks normal</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="usual" checked>
+              <span>Open, usual hours<small data-id="usualSummary">8:00a to 5:00p weekdays, 8:00a to 12:00p Saturday</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="custom">
+              <span>Open, different hours<small>Set the times below</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="closed">
+              <span>Closed today<small>Shows CLOSED at the top of the site</small></span></label>
+            <label class="choice"><input type="radio" name="today" value="harvest">
+              <span>Harvest hours<small><span class="who-harvest" data-badger="8:00a to 7:00p" data-midwest="7:00a to 7:00p">8:00a to 7:00p</span>, seven days a week</small></span></label>
           </div>
         </fieldset>
+        <div class="times" data-id="todayTimes">
+          <div><label class="fl" data-for="o">Opens</label><input data-id="o" type="time" name="open" value="08:00" data-sample-value="08:00"></div>
+          <div><label class="fl" data-for="c">Closes</label><input data-id="c" type="time" name="close" value="17:00" data-sample-value="17:00"></div>
+        </div>
+        <div class="prev">
+          <div class="prev-l">What customers will see</div>
+          <div class="prev-today" data-id="prevToday">
+            <div class="l">Open today, Friday</div>
+            <div class="h">8:00a to 5:00p</div>
+          </div>
+          <p class="prev-n" data-id="prevTodayNote"></p>
+        </div>
       </div>
-      <div class="cell ctl" data-row="4" data-tab="hours" data-col="bc">
-        <textarea data-id="msg" name="message" maxlength="160">Harvest hours start Monday. We will run until 8:00p and open Sundays as the crop demands.</textarea>
-        <div class="counter">Two lines on a phone.</div>
-      </div>
+    </div>
 
-      <div class="cell ctl" data-row="5" data-tab="hours" data-col="a">
-        <label class="cl"><input type="checkbox" name="wk_closed" value="1" aria-label="Monday to Friday, closed all day"> Closed</label>
+    <!-- ============ NOTICE ============ -->
+    <div class="card" data-id="c-banner" data-tab="hours">
+      <h2>Notice banner <span class="hint">The yellow bar</span></h2>
+      <div class="body">
+        <p class="help">Anything a customer needs to know before they haul.</p>
+        <fieldset>
+          <legend>Show the banner?</legend>
+          <div class="choices">
+            <label class="choice"><input type="radio" name="banner" value="on" checked>
+              <span>Show the banner<small>Appears under the logo</small></span></label>
+            <label class="choice"><input type="radio" name="banner" value="off">
+              <span>Hide it<small>Site looks normal</small></span></label>
+          </div>
+        </fieldset>
+        <div class="row">
+          <label class="fl" data-for="msg">Message</label>
+          <textarea data-id="msg" name="message" maxlength="160">Harvest hours start Monday. We will run until 8:00p and open Sundays as the crop demands.</textarea>
+          <div class="counter">Two lines on a phone.</div>
+        </div>
+        <div class="prev">
+          <div class="prev-l">What customers will see</div>
+          <div class="prev-notice">Harvest hours start Monday. We will run until 8:00p and open Sundays as the crop demands.</div>
+        </div>
       </div>
-      <div class="cell ctl" data-row="5" data-tab="hours" data-col="b">
-        <input type="time" name="wk_open" value="08:00" aria-label="Monday to Friday, opening time" data-sample-value="08:00">
-        <input type="time" name="wk_close" value="17:00" aria-label="Monday to Friday, closing time" data-sample-value="17:00">
+    </div>
+
+    <!-- ============ WEEKLY ============ -->
+    <div class="card" data-id="c-weekly" data-tab="hours">
+      <h2>Regular weekly hours <span class="hint">Changes rarely</span></h2>
+      <div class="body">
+        <p class="help">Only change this when the normal schedule changes for good.</p>
+        <table class="week">
+          <thead><tr><th scope="col">Day</th><th scope="col">Opens</th><th scope="col">Closes</th><th scope="col">Closed</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">Mon to Fri</th>
+                <td data-lab="Opens"><input type="time" name="wk_open" value="08:00" aria-label="Monday to Friday, opening time" data-sample-value="08:00"></td>
+                <td data-lab="Closes"><input type="time" name="wk_close" value="17:00" aria-label="Monday to Friday, closing time" data-sample-value="17:00"></td>
+                <td><label class="cl"><input type="checkbox" name="wk_closed" value="1" aria-label="Monday to Friday, closed all day"> Closed</label></td></tr>
+            <tr><th scope="row">Saturday</th>
+                <td data-lab="Opens"><input type="time" name="sat_open" value="08:00" aria-label="Saturday, opening time" data-sample-value="08:00"></td>
+                <td data-lab="Closes"><input type="time" name="sat_close" value="12:00" aria-label="Saturday, closing time" data-sample-value="12:00"></td>
+                <td><label class="cl"><input type="checkbox" name="sat_closed" value="1" aria-label="Saturday, closed all day"> Closed</label></td></tr>
+            <tr><th scope="row">Sunday</th>
+                <td data-lab="Opens"><input type="time" name="sun_open" value="" disabled aria-label="Sunday, opening time"></td>
+                <td data-lab="Closes"><input type="time" name="sun_close" value="" disabled aria-label="Sunday, closing time"></td>
+                <td><label class="cl"><input type="checkbox" name="sun_closed" value="1" aria-label="Sunday, closed all day" checked> Closed</label></td></tr>
+          </tbody>
+        </table>
+
+        <!-- WHAT CUSTOMERS WILL SEE, for the one block that never had it.
+             Every other card on this screen previews its own result. This one
+             did not, and this is the block Jesse Cebulla used on 2026-08-19 to
+             close Saturday: he set it, the site did not change, he set it back
+             to be sure, then set it again. Three commits of somebody doubting
+             a tool that was working. Rendered by the same rule the site uses,
+             so what is printed here is what will be published. -->
+        <div class="prev">
+          <div class="prev-l">What customers will see</div>
+          <div class="prev-week" data-id="prevWeek"></div>
+        </div>
       </div>
+    </div>
 
-      <div class="cell ctl" data-row="6" data-tab="hours" data-col="a">
-        <label class="cl"><input type="checkbox" name="sat_closed" value="1" aria-label="Saturday, closed all day"> Closed</label>
+    <!-- ============ HARVEST NOTE ============ -->
+    <!-- WAS ITS OWN TAB. One text box and then most of a screen of grey --
+         52% empty rows at 1440, measured. A tab is a promise that there is
+         enough behind it to be worth the trip. Folded in here because the note
+         it holds prints under the hours, which is the thing this tab is
+         already about. Somebody whose browser remembers "settings" as their
+         last tab lands on Overview: go() checks the saved name against the
+         buttons that exist and falls back. -->
+    <div class="card" data-id="c-print" data-tab="hours">
+      <h2>Small print under the hours</h2>
+      <div class="body">
+        <div class="row">
+          <label class="fl" data-for="hn">Note</label>
+          <textarea data-id="hn" name="hoursnote" maxlength="200">During harvest we run longer, seven days a week. Outside harvest the hours above hold. Updated hours are posted here first. When in doubt, call.</textarea>
+        </div>
       </div>
-      <div class="cell ctl" data-row="6" data-tab="hours" data-col="b">
-        <input type="time" name="sat_open" value="08:00" aria-label="Saturday, opening time" data-sample-value="08:00">
-        <input type="time" name="sat_close" value="12:00" aria-label="Saturday, closing time" data-sample-value="12:00">
-      </div>
+    </div>      </div>
 
-      <div class="cell ctl" data-row="7" data-tab="hours" data-col="a">
-        <label class="cl"><input type="checkbox" name="sun_closed" value="1" aria-label="Sunday, closed all day" checked> Closed</label>
-      </div>
-      <div class="cell ctl" data-row="7" data-tab="hours" data-col="b">
-        <input type="time" name="sun_open" value="" disabled aria-label="Sunday, opening time">
-        <input type="time" name="sun_close" value="" disabled aria-label="Sunday, closing time">
-      </div>
-
-      <div class="cell ctl wide" data-row="8" data-tab="hours" data-col="abc">
-        <textarea data-id="hn" name="hoursnote" maxlength="200">During harvest we run longer, seven days a week. Outside harvest the hours above hold. Updated hours are posted here first. When in doubt, call.</textarea>
-      </div>
-
-      <!-- THE "ON THE SITE" COLUMN IS GONE FROM THIS SCREEN.
-           Sig, 2026-09-09, over a screenshot with both of them crossed out: "i
-           dont think the on the site column is necessary at all, it is just
-           clutter for what is already being set or displayed on page".
-
-           He is right, and only about this screen. Every line it printed --
-           "Mon to Fri 8:00a to 5:00p", "Saturday 8:00a to 12:00p", "Nothing.
-           The yellow bar is hidden." -- was the screen reading back the two
-           boxes and the checkbox sitting six inches to its left. The basis
-           screen's column of the same name is NOT this: it carries the price
-           the site is publishing right now, which differs from what is in the
-           box until Save is pressed, and it stays.
-
-           What did not survive the cut and had to be put somewhere: the top
-           bar's TODAY chip was built out of the Today preview's own text, so
-           the line is still computed -- see syncTodayPreview, which now stamps
-           it on the column instead of drawing it. -->
-
-      <!-- ============ SAVE ============ -->
       <!-- Keeps the `save` class as well as `col-save`: the script inserts the
-           refusal note immediately before .save. -->
-      <div class="cell col-save save" data-row="99">
+           refusal note immediately before .save, and with only the new name it
+           fell through to a fallback that buried the note inside the collapsed
+           by-hand panel, where a refusal is invisible. -->
+      <div class="col-save save">
+        <!-- THE BUTTON SAYS WHAT IT DOES. It said "Save Badger Grain Supply",
+             which is a promise this page cannot keep on its own: it is a
+             static file, it holds no password, and the only thing that can
+             write to the site is GitHub. So Save opens a second page where
+             the change is actually filed, and until 2026-08-25 nothing on
+             this screen said so -- the word GitHub appeared nowhere a person
+             could read. Somebody typed a notice, pressed a big button, saw
+             nothing change, and closed the tab that opened. -->
         <button class="btn btn-go" type="submit">Save <span class="save-who"></span>
           <small class="btn-sub">opens a second page to finish</small></button>
         <button class="btn" type="reset">Undo</button>
         <span class="saved" data-id="savedNote"></span>
+        <!-- INSIDE the command bar, not under it. Put underneath, it became the
+             last thing in the column and the bar stopped being the floor of the
+             window -- five layout tests said so immediately. It wraps to its own
+             line within the bar instead.
+
+             Deliberately NOT .help: the ? key hides EXPLANATION and this is the
+             procedure. Somebody who does not do the second step has not saved,
+             so it must not be switchable. -->
         <p class="save-how" data-id="saveHow">Save opens a GitHub page with this form
           already filled in. <b>It is not saved until you press the green
           &ldquo;Submit new issue&rdquo; button there.</b></p>
@@ -443,11 +561,6 @@
   var SITES = { badger: "Badger Grain Supply", midwest: "Midwest Commodity Service" };
   var DEFAULT_SITE = "badger";
   var SIGN_OUT_URL = "";          // set when the Worker has somewhere to send it
-
-  /* THE CBOT SETTLE, and the only address on this screen outside the reader
-     and the two sites. It is what the Futures column shows beside Big River's
-     own quote, so the gap between the two is printed rather than implied. */
-  var SETTLES_URL = "https://raw.githubusercontent.com/dnilgis/agsist/main/data/prices.json";
 
   var STRIP = document.getElementById("boardStrip");
   /* MONEY IS PRINTED AS STORED: at least two decimals, and any real extra
@@ -557,9 +670,6 @@
      the two together rather than trusting a comment to be read. */
   var NEW_CROP = ["October", "November"];
   var TOWN    = { badger: "Wheeler",     midwest: "Baldwin" };
-  /* The name on the button. The full one is in the column header above it, in
-     this elevator's own colour, so the button does not have to carry it. */
-  var SHORT   = { badger: "Badger",      midwest: "Midwest" };
   var HARVEST_HRS = { badger: "8:00a to 7:00p", midwest: "7:00a to 7:00p" };
   var floor = document.getElementById("floor");
   var tpl   = document.getElementById("elevTpl");
@@ -595,8 +705,7 @@
     node.querySelectorAll(".who-harvest").forEach(function (el) {
       el.textContent = HARVEST_HRS[site];
     });
-    node.querySelectorAll(".save-who").forEach(function (el) { el.textContent = SHORT[site]; });
-    node.querySelectorAll(".save-who-never").forEach(function (el) {
+    node.querySelectorAll(".save-who").forEach(function (el) {
       el.textContent = SITES[site];
     });
     node.querySelectorAll('[data-id="todayDate"]').forEach(function (el) {
@@ -612,793 +721,51 @@
   var COLS = {};
   Object.keys(SITES).forEach(function (site) { COLS[site] = stamp(site); });
 
-  /* ══════════════════════════════════════════════════════════════════════
-     PLACEMENT
-     ══════════════════════════════════════════════════════════════════════
-     Every cell says which logical row it belongs to (data-row), which of an
-     elevator's three columns it wants (data-col: a, b, c, or a run like "bc"),
-     and which screen it is on (data-tab). layout() turns that into real grid
-     coordinates for the tab that is showing.
-
-     ROWS ARE ASSIGNED CONTIGUOUSLY, which is the whole reason this is script
-     and not a stylesheet. A grid row that is numbered but empty is still a
-     track, and an empty track is dead space -- the thing this screen was
-     rebuilt to get rid of. Only the rows actually on screen get a number, in
-     order, with no gaps.
-
-     AND IT PLACES THE SHEET TWICE. Over 1200px the twelve columns are the
-     screen. Under it the same cells go six wide, shared cells full width and
-     each elevator's beneath them, which is the only honest thing to do with
-     twelve columns on a phone. Same markup both times. */
-  var COL_BASE = { badger: 7, midwest: 10 };
-  var SPAN = { a: [0, 1], b: [1, 2], c: [2, 3], ab: [0, 2], bc: [1, 3], abc: [0, 3] };
-  /* What each elevator is called when there is no room for what it is called.
-     Same word as its own Save button, so the two cannot drift apart. */
-  var SHORT = { badger: "Badger", midwest: "Midwest" };
-  /* Big River's basis by delivery month, filled by drawBoard. */
-  var THEIRS = {};
-  var wide = null;
-
-  function layout() {
-    var sheet = floor;
-    if (!sheet) return;
-    var tab = document.body.getAttribute("data-tab") || "basis";
-    /* `all` is both screens at once. Nothing in the office ever sees it -- the
-       tabs cannot produce it -- but a test that reaches for every control on
-       the page needs one state where every control has a row. */
-    var showAll = tab === "all";
-    var isWide = matchMedia("(min-width: 1260px)").matches;
-    var cells = [].slice.call(sheet.querySelectorAll(".cell"));
-
-    /* The logical rows on this screen, in the order their data-row sorts. A
-       month row's id is "M" + its place on the board, so they sort after the
-       static ones and among themselves in the board's own order. */
-    var order = {}, seen = {};
-    cells.forEach(function (c) {
-      var t = c.getAttribute("data-tab");
-      if (t && !showAll && t !== tab) return;
-      var r = c.getAttribute("data-row");
-      if (!r || r === "1" || r === "2" || r === "99") return;
-      if (!seen[r]) { seen[r] = true; }
-    });
-    /* THE MONTHS COME FIRST. They are the screen: eleven rows a person ticks
-       and types in. Everything else on the basis screen is a fallback nobody
-       touches in a normal week, and it used to sit ABOVE them -- a hundred and
-       eighty pixels of rarely-used boxes between the header and the board.
-       Sig, 2026-09-08: "i want the basis page to read like the lower portion".
-       So: month rows in board order, then whatever is numbered after them. */
-    Object.keys(seen).sort(function (a, b) {
-      var na = a.charAt(0) === "M", nb = b.charAt(0) === "M";
-      if (na !== nb) return na ? -1 : 1;
-      return parseFloat(a.replace("M", "")) - parseFloat(b.replace("M", ""));
-    }).forEach(function (r, i) { order[r] = i; });
-
-    var n = Object.keys(order).length;
-    var sizes = [];
-    var lines = [];
-
-    if (isWide) {
-      /* row 1 is the two column headers, row 2 the column names. */
-      sizes.push("auto", "auto");
-      var rowFlex = {};
-      cells.forEach(function (c) {
-        var r = c.getAttribute("data-row");
-        if (r in order && c.hasAttribute("data-flex")) rowFlex[r] = true;
-      });
-      Object.keys(order).forEach(function () {});
-      var byIndex = [];
-      Object.keys(order).forEach(function (r) { byIndex[order[r]] = r; });
-      /* A CEILING ON THE FLEX ROWS. `1fr` let eleven month rows share every
-         spare pixel of a tall desk, which is how a row holding one checkbox,
-         one box and two figures came to be 71px of mostly air -- and reading
-         across 71px of nothing is what made the table look loose even after
-         the clutter came out of it. 52px is a comfortable target for a finger
-         and about as tall as the tallest thing in the row. The slack that used
-         to be spread down the table now sits under it, as one margin instead
-         of eleven gaps -- the same move the columns just made sideways. */
-      byIndex.forEach(function (r) {
-        sizes.push(rowFlex[r] ? "minmax(34px, 52px)" : "auto");
-      });
-      sizes.push("auto");                                    // the save row
-      cells.forEach(function (c) {
-        var r = c.getAttribute("data-row");
-        var elev = c.closest ? c.closest(".col") : null;
-        var site = elev && elev.getAttribute("data-elev");
-        var base = site ? COL_BASE[site] : 1;
-        var span = parseInt(c.getAttribute("data-rowspan") || "1", 10);
-        c.style.gridRow = r === "1" ? "1" : r === "2" ? "2"
-          : r === "99" ? String(n + 3)
-          : (order[r] + 3) + (span > 1 ? " / span " + span : "");
-        if (c.classList.contains("colhd")) {
-          c.style.gridColumn = base + " / " + (base + 3);
-        } else if (c.classList.contains("col-save")) {
-          c.style.gridColumn = base + " / " + (base + 3);
-        } else if (site) {
-          var sp = SPAN[c.getAttribute("data-col") || "a"] || SPAN.a;
-          c.style.gridColumn = (base + sp[0]) + " / " + (base + sp[1]);
-        } else if (!c.style.gridColumn) {
-          c.style.gridColumn = "1 / 7";
-        }
-        c.classList.remove("narrow-head");
-        c.removeAttribute("data-head");
-        c.removeAttribute("data-who");
-      });
-      lines = sizes;
-    } else {
-      /* NARROW: one logical row becomes a small block, not a stack of cells.
-         The first version gave every cell its own row -- twelve rows a month,
-         a hundred and forty-eight in all -- which is not a card, it is a list
-         of fragments.
-
-         The basis screen PACKS: the six market facts two to a line, then each
-         elevator's tick, basis and posted price on one line of its own behind
-         its own colour. That is the mock, and it is what fits a month into two
-         hundred pixels instead of eight hundred.
-
-         The hours screen STACKS: its cells hold a four-way choice, a pair of
-         time boxes and a sentence, and none of those survive a third of a
-         phone. Full width each. */
-      /* THE HEADINGS, FOR A SCREEN THAT HAS NO HEADING ROW.
-         On a phone the row of column headings is dropped -- there are no
-         columns left to head -- and the six market figures came out as
-         "$5.33 · $5.33 -0.25c · −0.75 · $4.58" with nothing saying which was
-         the futures, which was Big River's quote and which was their basis.
-         Four dollar figures in a stack, one of them the number the basis is
-         set against and one of them somebody else's bid. Measured on a 430px
-         render before this went in.
-         Read out of the heading cells themselves rather than typed here, so
-         the phone cannot start calling a column something the desk does not. */
-      var HEADS = cells.filter(function (c) {
-        return c.getAttribute("data-row") === "2" && !c.closest(".col") &&
-               (c.getAttribute("data-tab") || tab) === tab;
-      }).map(function (c) { return (c.textContent || "").trim(); });
-
-      var at = 1;
-      var byIndexN = [];
-      Object.keys(order).forEach(function (r) { byIndexN[order[r]] = r; });
-      var full = function (c, row) { c.style.gridRow = String(row); c.style.gridColumn = "1 / -1"; };
-
-      cells.forEach(function (c) {
-        var r = c.getAttribute("data-row");
-        if (r === "1") { full(c, at); if (c.classList.contains("colhd")) at++; }
-        else if (r === "2") { c.style.gridRow = ""; c.style.gridColumn = ""; }
-      });
-      at++;
-
-      byIndexN.forEach(function (r) {
-        var mine = cells.filter(function (c) {
-          var t = c.getAttribute("data-tab");
-          return c.getAttribute("data-row") === r && (!t || showAll || t === tab);
-        });
-        var shared = mine.filter(function (c) { return !c.closest(".col"); });
-        var first = true;
-        if (tab === "basis" && shared.length > 1) {
-          /* A MONTH IS TWO LINES, NOT THREE RAGGED ONES.
-             Sig, 2026-09-09: "htha mobile expierience looks like a hot mess".
-             He was right. Five figures packed two to a line left the fifth
-             alone on a line of its own with half the phone empty beside it,
-             and the pairs did not line up down the block: CONTRACT sat over
-             THEIR BASIS sat over nothing.
-
-                 September  cash          CONTRACT Dec 26
-                 FUTURES $5.33  -0.25c    THEIR BASIS -0.75
-                 THEIR BID $4.58
-
-             Now the name and its contract take the first line, and the three
-             figures share the second, each a third of the width, so they line
-             up as columns down the whole board the way they do on the desk. */
-          var NARROW = ["1 / 4", "4 / 7", "1 / 3", "3 / 5", "5 / 7"];   // see LINE
-          var LINE   = [0, 0, 1, 1, 1];
-          shared.forEach(function (c, i) {
-            c.style.gridRow = String(at + (LINE[i] === undefined ? Math.floor(i / 2) : LINE[i]));
-            c.style.gridColumn = NARROW[i] || "1 / 7";
-            /* The month names itself; the figures do not. */
-            if (i > 0 && HEADS[i]) c.setAttribute("data-head", HEADS[i]);
-            c.classList.toggle("narrow-head", first); first = false;
-          });
-          at += 2;
-        } else {
-          shared.forEach(function (c) {
-            full(c, at); c.classList.toggle("narrow-head", first); first = false; at++;
-          });
-        }
-        ["badger", "midwest"].forEach(function (site) {
-          var group = mine.filter(function (c) {
-            var col = c.closest(".col");
-            return col && col.getAttribute("data-elev") === site;
-          });
-          if (!group.length) return;
-          var packable = tab === "basis" && group.length === 3 &&
-                         !group.some(function (c) { return c.classList.contains("wide"); });
-          group.forEach(function (c, i) {
-            c.setAttribute("data-elev", site);
-            /* THE SHORT NAME ON A PHONE. "Midwest Commodity Service" wrapped
-               to three lines beside a 42px box and made every elevator block
-               taller than the four figures above it; the column it heads is
-               already the elevator's own colour and the Save button under it
-               says the same word. The full name is on the block above. */
-            c.setAttribute("data-who", i === 0 ? (SHORT[site] || SITES[site]) : "");
-            if (packable) {
-              c.style.gridRow = String(at);
-              c.style.gridColumn = ["1 / 3", "3 / 5", "5 / 7"][i];
-              /* The elevator's own name heads the first cell of its line, so
-                 the tick and the box are placed. The third is a dollar figure
-                 sitting on its own next to another dollar figure, and only the
-                 heading says one is ours and the other is what is published. */
-              if (i === 2 && HEADS[HEADS.length - 1])
-                c.setAttribute("data-head", HEADS[HEADS.length - 1]);
-            } else {
-              full(c, at + i);
-            }
-          });
-          if (group[0] && !shared.length && !first) group[0].classList.add("narrow-head");
-          at += packable ? 1 : group.length;
-        });
-      });
-      /* The two Saves share the last row, side by side, because a sticky footer
-         two rows tall would hide the row above it -- which on the first phone
-         render was Badger's own Save. */
-      var sv = 0;
-      cells.forEach(function (c) {
-        if (c.getAttribute("data-row") !== "99") return;
-        if (c.classList.contains("foot-note")) { c.style.gridRow = ""; return; }
-        c.style.gridRow = String(at);
-        c.style.gridColumn = sv === 0 ? "1 / 4" : "4 / 7";
-        sv++;
-      });
-      at++;
-      lines = null;
-    }
-
-    sheet.style.gridTemplateColumns = isWide
-      ? (tab !== "hours"
-          /* PACKED, NOT SPREAD. Every column is sized to the widest thing it
-             holds and no wider; the fr shares are small and equal so what slack
-             there is spreads evenly instead of opening a gap between a heading
-             and the figures under it. Sig: "reduce wasted space bigtime. left
-             hand justify, orderly." */
-          /* EVERY COLUMN IS ITS OWN CONTENT WIDE, AND ONE TRAILING TRACK TAKES
-             THE REST. Sig, 2026-09-09: "i just wanted wasted space tightend
-             up, remember to justify everthing left".
-
-             The old template gave every column an fr share, so slack was
-             spread evenly down the table: a 46px checkbox column resolved to
-             197px on a wide desk and the tick sat alone at the left of it with
-             a hand's width of nothing to its right. Sharing the slack is what
-             MAKES the wasted space -- eleven columns each holding a little of
-             it reads as a table that has come apart.
-
-             So: max-content on the columns that hold a figure, a fixed width
-             on the two that hold a box, and one greedy track at the end. The
-             table packs hard against the left edge and whatever the desk has
-             spare lands in a single margin on the right, where it is margin
-             rather than eleven gaps. Track 6 is the gutter the "Their quote"
-             cut left; it is the one place a deliberate space is wanted, so it
-             is the one fixed non-zero gap. */
-          ? "max-content max-content max-content max-content max-content 26px " +
-            "max-content 112px max-content " +
-            "max-content 112px max-content minmax(0, 1fr)"
-          /* The minimums add up to what the screen actually needs: two time
-             boxes wide enough to show AM/PM is 256, and 130 + (100+256+120)*2
-             is 1082, which fits the 1200px this layout starts at. The first
-             set totalled 1190 and the hours screen scrolled sideways at 1280. */
-          /* Only the two time columns carry a real minimum -- 256 is two boxes
-             wide enough to show AM/PM. Everything else is free to take what is
-             left, because a definite minimum on twelve tracks is twelve chances
-             for a fractional pixel to land outside the box, and eight of them
-             did at 1200. */
-          /* THE TWO 1.1fr TRACKS ARE NOW 0px: they held the "On the site"
-             preview, which Sig cut on 2026-09-09 as a readback of the boxes
-             beside it. Zeroed rather than deleted because the grid is twelve
-             tracks wide on both screens and the elevator group headings, the
-             save bars and every `bc`/`abc` span are placed against those
-             numbers -- renumbering the hours screen alone is how a heading
-             ends up over the wrong column. A 0px track with nothing in it
-             takes no room, which is the whole point of the cut; a track that
-             kept its 1.1fr and lost its cell is exactly the dead space he has
-             been asking me to stop leaving. The width goes to the text boxes,
-             which is where the small print and the banner message live. */
-          : "minmax(0,.85fr) 0px 0px 0px 0px 0px minmax(0,1.1fr) minmax(256px,1.55fr) " +
-            "0px minmax(0,1.1fr) minmax(256px,1.55fr) 0px")
-      : "repeat(6, minmax(0, 1fr))";
-    sheet.style.gridTemplateRows = lines ? lines.join(" ") : "";
-    sheet.style.gridAutoRows = lines ? "" : "auto";
-    wide = isWide;
-  }
-
-  /* Exposed for the test harness, which has to re-place the sheet after it sets
-     a state the tabs cannot reach. Nothing on the page calls it this way. */
-  window.__layout = layout;
-
-  var layoutPending = null;
-  function relayout() {
-    if (layoutPending) return;
-    layoutPending = requestAnimationFrame(function () { layoutPending = null; layout(); });
-  }
-  window.addEventListener("resize", relayout);
-
-  /* ══════════════════════════════════════════════════════════════════════
-     THE MONTHS THIS ELEVATOR PUBLISHES
-     ══════════════════════════════════════════════════════════════════════
-     One hidden field per column carries the whole table, because forty-four
-     visible controls would not fit the 7,500-character cap this screen already
-     enforces on the issue URL, and would mean twenty-two more entries in the
-     map that keeps this screen and the applier level.
-
-     The value is lines of "September -0.85 show" -- a table a person can read
-     on the issue page before pressing Submit. `same` means the month has no
-     basis of its own and falls through to the cash or new-crop box above.
-
-     WHAT IT STARTS AS. The months the site is publishing today, read from its
-     own pricing.json. If it has never been set -- which is every site right now
-     -- the default is the nearest delivery and the first new-crop month, which
-     is exactly what the page shows today. So saving without touching anything
-     publishes what is already published. */
-  var MONTHS = {};        // site -> { Month: {basis: string, publish: bool} }
-  var MONTH_ORDER = [];   // board order
-
-  function monthsField(site) {
-    var col = COLS[site];
-    return col ? col.querySelector('[data-id="months"]') : null;
-  }
-  /* SEEDING IS NOT TYPING. writeMonths fires an input event so the unsaved-work
-     guard, the previews and the refusal checks see this table the way they see
-     every other field. It is also called while the screen reads what each site
-     is publishing -- eleven months, twice, and again after a save -- and that
-     armed the guard over work nobody had done: the office pressed Save, the tab
-     opened, and the screen still said they had unsaved changes. Only a real
-     change, made by a person, fires. */
-  var seeding = 0;
-  function writeMonths(site) {
-    var f = monthsField(site);
-    if (!f) return;
-    var t = MONTHS[site] || {};
-    var was = f.value;
-    f.value = MONTH_ORDER.filter(function (m) { return t[m]; }).map(function (m) {
-      var v = String(t[m].basis == null ? "" : t[m].basis).trim();
-      return m + " " + (v === "" ? "same" : v) + " " + (t[m].publish ? "show" : "hide");
-    }).join("\n");
-    if (f.value === was || seeding) return;
-    var ev = document.createEvent("HTMLEvents");
-    ev.initEvent("input", true, false);
-    f.dispatchEvent(ev);
-  }
-  function seedMonths(site, pricing) {
-    seeding++;
-    try { seedMonthsInner(site, pricing); } finally { seeding--; }
-  }
-  function seedMonthsInner(site, pricing) {
-    var t = MONTHS[site] = MONTHS[site] || {};
-    var have = pricing && pricing.months && typeof pricing.months === "object" ? pricing.months : null;
-    /* What this site prices a month on today, out of its own pricing.json. On
-       the basis path that is `basis` and `basisHarvest`; a site still on the old
-       spread path has neither, and its boxes open empty and mean "leave it as it
-       is", which is what an empty box has always meant here. */
-    var num = function (v) { return typeof v === "number" && isFinite(v) ? String(v) : ""; };
-    var cash = pricing ? num(pricing.basis) : "";
-    var crop = pricing && pricing.basisHarvest != null ? num(pricing.basisHarvest) : cash;
-    MONTH_ORDER.forEach(function (m, i) {
-      if (t[m]) return;
-      if (have && have[m])
-        t[m] = { basis: have[m].basis == null ? "" : String(have[m].basis),
-                 publish: have[m].publish === true, mine: true };
-      else {
-        /* A SITE WITH NO MONTHS TABLE STILL PUBLISHES TWO MONTHS -- the
-           nearest delivery and the first new crop -- off its two global basis
-           figures. Those two are live prices, so they are `mine` and Big
-           River's board must not touch them, exactly like a month the file
-           names. It is the other nine, which the site prices nothing on, that
-           take their board as a starting point. */
-        var live = i === 0 || m === firstNewCrop();
-        t[m] = { basis: NEW_CROP.indexOf(m) !== -1 ? crop : cash,
-                 publish: live, mine: live };
-      }
-    });
-    fromTheirBoard(site);
-    writeMonths(site);
-  }
-  /* THEIR BASIS IS THE DEFAULT ON A MONTH THIS SITE DOES NOT PRICE YET.
-     Sig, 2026-09-09: "big rivers is their for reference and as the default if a
-     month box is selected on the site".
-
-     A month the site already publishes keeps the site's own figure -- that is
-     what is live and nothing here may move it. Every other month used to open
-     holding the site's ONE global basis, so ticking March offered whatever
-     September happened to be set at: a number with nothing to do with March,
-     four contracts and eight months away. Big River quote a basis for every
-     month on the board, and their March basis is the only sensible thing to
-     start a March price from.
-
-     `mine` says where a row's figure came from. It is set false only for a
-     month the site's own pricing.json says nothing about, and push() drops it
-     the moment somebody types in the box or ticks it -- after that the row is
-     theirs and nothing reseeds it. */
-  function fromTheirBoard(site) {
-    var t = MONTHS[site];
-    if (!t) return;
-    Object.keys(t).forEach(function (m) {
-      if (t[m].mine) return;
-      if (typeof THEIRS[m] !== "number") return;
-      t[m].basis = String(THEIRS[m]);
-    });
-  }
-
-  function firstNewCrop() {
-    for (var i = 0; i < MONTH_ORDER.length; i++)
-      if (NEW_CROP.indexOf(MONTH_ORDER[i]) !== -1) return MONTH_ORDER[i];
-    return null;
-  }
-
-  /* ══════════════════════════════════════════════════════════════════════
-     THE BOARD IS THE BASIS SCREEN
-     ══════════════════════════════════════════════════════════════════════
-     It used to be a table above both columns, read-only, with a "Badger posts"
-     and a "Midwest posts" column tacked on the end. It is now the left six
-     columns of the sheet, and each elevator's tick, basis box and posted price
-     sit on the same row as the month they are about -- which is the whole of
-     what Sig asked for and the reason the cards are gone.
-
-     WHAT IS STILL NOT COMPUTED HERE. "On the site" is read out of each site's
-     own published bids.json and joined by delivery month, exactly as the posts
-     columns always were. No cash price is worked out on this screen; that rule
-     is older than this layout and the rounding rule it protects still has one
-     implementation, in each site's update-prices.mjs. */
-  var boardDrawn = false;
-  /* Set before anything is read, so the by-hand panel is on screen for the
-     moment between load and the first answer -- the state where somebody who
-     has come to post a price by hand because they already know the feed is down
-     should not have to wait to be shown the box. */
-  document.body.setAttribute("data-board", "off");
-  var SETTLES = null;            // contract -> CBOT settle, from agsist
-
-  function cellFor(cls, text) {
-    var d = document.createElement("div");
-    d.className = "cell " + cls;
-    if (text != null) d.textContent = text;
-    return d;
-  }
-
-  function drawBoard(j) {
-    if (!floor) return;
-    var rows = (j.bids || []).filter(function (r) { return r.commodity === "Corn"; });
-    if (!rows.length) return;
-    /* Big River's own basis, month by month, kept for seedMonths -- see
-       THEIR BASIS IS THE DEFAULT below. */
-    rows.forEach(function (r) {
-      if (typeof r.basisDollars === "number") THEIRS[r.delivery] = r.basisDollars;
-    });
-    /* THE BOARD CAN LAND AFTER THE SITES DO. Each column reads its own
-       pricing.json and the feed is a separate fetch, so seedMonths has often
-       already run with THEIRS still empty and filled the untouched months from
-       the site's one global basis. Re-apply now that their board is here.
-       Inside the seeding counter: this is the screen reading, not a person
-       typing, and it must not arm the unsaved-work guard. */
-    seeding++;
-    try {
-      Object.keys(SITES).forEach(function (site) {
-        if (!MONTHS[site]) return;
-        fromTheirBoard(site);
-        writeMonths(site);
-      });
-    } finally { seeding--; }
-
-    /* TO THE CENT. Sig, 2026-09-08: "i always want to round the corn price to
-       the hundreds only."
-       This reverses a decision made on 2026-08-31, and the reason it was made is
-       still true and is the cost of this one: Big River's page prints quarter
-       cents, so a board printed to the cent can no longer be compared with
-       theirs line for line -- 5.3325 and 5.335 both read $5.33 and $5.34 and two
-       different quotes of theirs can read the same here.
-       WHAT IS NOT LOST: the arithmetic still balances on screen, because their
-       cash and their quote round the same way -- 4.58 plus 0.75 is 5.33 whichever
-       of the two you check. And nothing here changes a stored figure: the feed,
-       bids.json and everything the sites publish carry the full number. This is
-       how it is PRINTED on this screen and nowhere else. */
-    var money = function (v) {
-      if (typeof v !== "number") return "—";
-      return "$" + v.toFixed(2);
-    };
-    var signed = function (v) {
-      if (typeof v !== "number") return "—";
-      return (v < 0 ? "−" : "") + Math.abs(v).toFixed(2);
-    };
-
-    [].slice.call(floor.querySelectorAll("[data-month]")).forEach(function (e) { e.remove(); });
-    MONTH_ORDER = rows.map(function (r) { return r.delivery; });
-
-    rows.forEach(function (r, i) {
-      var rid = "M" + i;
-      var quote = typeof r.futuresPriceCents === "number" ? r.futuresPriceCents / 100 : null;
-      var settle = SETTLES ? SETTLES[r.futuresMonth] : null;
-
-      var mo = cellFor("mo", null);
-      mo.appendChild(document.createTextNode(r.delivery));
-      if (i === 0 || NEW_CROP.indexOf(r.delivery) !== -1) {
-        var tag = document.createElement("span");
-        tag.className = "tag";
-        tag.textContent = i === 0 ? "cash" : "new crop";
-        mo.appendChild(tag);
-      }
-      var con = cellFor("num mut", r.futuresMonth || "—");
-      /* THEIR QUOTE IS NO LONGER ITS OWN COLUMN. Sig, 2026-09-09, drawing a
-         line down the whole length of it: "get rid of a lot oof dumb shit".
-
-         What it printed was "$5.33" beside a Futures column already reading
-         $5.33, with a quarter-cent tick after it. To the cent the two numbers
-         are the same number on every contract on the board today, so the
-         column was a second copy of its neighbour carrying one small
-         difference -- and eleven rows of near-duplicate is exactly the kind of
-         thing that makes a person stop reading a table.
-
-         THE DIFFERENCE ITSELF IS NOT DROPPED. Big River's quoted futures and
-         the CBOT settle really are a quarter to a half cent apart, and the
-         basis is set against THEIRS, because theirs is what the applier pays
-         from. The tick now hangs off the Futures figure -- one column, both
-         facts -- and `data-quote` still carries the exact figure for anything
-         that needs it. Rounded through 10000 because Math.round(-0.25) is -0,
-         which is falsy, and the indicator was invisible on exactly the gap it
-         exists for. */
-      /* THE FUTURES IN THIS COLUMN IS THE ONE THE PRICE IS MADE FROM.
-         Sig, 2026-09-09: "our on site price is future minus basis".
-
-         That sentence has to be true of the two numbers actually printed in
-         the row, and until now it was not. The column showed the CBOT SETTLE
-         while both sites compute the price from Big River's QUOTED futures --
-         update-prices.mjs, board(): `futures = b.futuresPriceCents / 100`,
-         then `payFromBasis(futures, ours)`. The two are a quarter to a half
-         cent apart on every contract on the board today, so a person reading
-         Futures minus their basis off this screen got an answer the site would
-         not publish. It went unnoticed while "Their quote" had a column of its
-         own; cutting that column is what made it a lie.
-
-         So the figure is theirs, and the settle is the small reference beside
-         it. Same two facts, opposite billing, and the row now says what it
-         means: this futures, less this basis, is what the site posts. */
-      var fut = cellFor("num set", quote == null ? "—" : "$" + quote.toFixed(2));
-      if (quote != null && settle != null) {
-        var lagC = Math.round((quote - settle) * 10000) / 100;
-        if (lagC) {
-          var lg = document.createElement("span");
-          lg.className = "lag";
-          lg.title = "Big River quote this contract at $" + quote.toFixed(4).replace(/0+$/, "") +
-                     ". The CBOT settle is $" + settle.toFixed(4).replace(/0+$/, "") +
-                     ". The price is made from theirs.";
-          lg.textContent = (lagC > 0 ? "+" : "") + lagC.toFixed(2) + "c";
-          fut.appendChild(lg);
-        }
-      }
-      var bas = cellFor("num mut basis-cell", signed(r.basisDollars));
-      var bid = cellFor("num mut", money(r.cash));
-
-      /* The two marks the basis readouts read back: the nearest delivery, which
-         the cash box governs, and the first new-crop month, which the new-crop
-         box governs. One definition -- NEW_CROP, held to the sites' own
-         HARVEST_MONTHS by a test -- rather than a second list down here. */
-      if (i === 0) bas.classList.add("is-ref");
-      if (NEW_CROP.indexOf(r.delivery) !== -1) bas.classList.add("is-new");
-      bas.setAttribute("data-contract", r.futuresMonth || "");
-      if (quote != null) bas.setAttribute("data-quote", quote.toFixed(4));
-
-      [mo, con, fut, bas, bid].forEach(function (c, k) {
-        c.setAttribute("data-row", rid);
-        c.setAttribute("data-tab", "basis");
-        c.setAttribute("data-month", r.delivery);
-        c.setAttribute("data-flex", "1");
-        c.style.gridColumn = String(k + 1);
-        floor.appendChild(c);
-      });
-
-      Object.keys(SITES).forEach(function (site) {
-        var form = COLS[site] && COLS[site].querySelector("form");
-        if (!form) return;
-        var pub = cellFor("pub", null);
-        var lab = document.createElement("label");
-        lab.className = "cl";
-        var box = document.createElement("input");
-        box.type = "checkbox";
-        box.setAttribute("aria-label", "Show " + r.delivery + " on " + SITES[site]);
-        lab.appendChild(box);
-        pub.appendChild(lab);
-
-        var bx = cellFor("ctl", null);
-        var inp = document.createElement("input");
-        inp.type = "text";
-        inp.setAttribute("inputmode", "decimal");
-        inp.className = "mbasis";
-        /* "same" is what an empty box means to the applier and to the sites:
-           leave this month on whatever the file already says. It is a
-           placeholder rather than a value, so a box somebody clears still says
-           what clearing it does. */
-        inp.placeholder = "same";
-        inp.setAttribute("aria-label", "Our " + r.delivery + " basis on " + SITES[site]);
-        bx.appendChild(inp);
-
-        /* THE "0.62 OVER THEM" NOTE IS GONE. Sig, 2026-09-09, striking it out
-           down both columns: "get rid of a lot oof dumb shit".
-           It said their basis less ours, in words, under all twenty-two boxes:
-           a line of grey text per box restating a subtraction of the two
-           figures sitting in the same row -- Their basis −0.62, ours 0. It was
-           twenty-two lines of screen to save one subtraction, and it made every
-           month a line taller on a phone. The comparison it made is still
-           there to be made, in the row, by eye. */
-
-        /* THE SAMPLE MARKER LIVES HERE NOW.
-           `data-sample` is how this screen knows nothing real has been loaded
-           yet, and it is what outlines every box still holding the value the
-           page shipped with -- the one thing standing between the office and
-           quoting a made-up price. It used to sit on the customer preview
-           inside the live strip; that strip is gone (see col.html), and this
-           is the honest replacement: the cells that genuinely hold placeholder
-           content until fillPosts() reads the site's own bids.json. */
-        var pay = cellFor("pay", "…");
-        pay.setAttribute("data-elev", site);
-        pay.setAttribute("data-delivery", r.delivery);
-        pay.setAttribute("data-sample", "");
-        pay.classList.add("posts");
-
-        var st = (MONTHS[site] && MONTHS[site][r.delivery]) || null;
-        if (st) { box.checked = st.publish; inp.value = st.basis || ""; }
-
-        var push = function () {
-          MONTHS[site] = MONTHS[site] || {};
-          MONTHS[site][r.delivery] = { basis: inp.value.trim(), publish: box.checked };
-          writeMonths(site);
-          paintRow(r.delivery);
-        };
-        box.addEventListener("change", push);
-        inp.addEventListener("input", push);
-
-        [pub, bx, pay].forEach(function (c, k) {
-          c.setAttribute("data-row", rid);
-          c.setAttribute("data-tab", "basis");
-          c.setAttribute("data-month", r.delivery);
-          c.setAttribute("data-col", ["a", "b", "c"][k]);
-          c.setAttribute("data-flex", "1");
-          form.appendChild(c);
-        });
-      });
-    });
-
-    boardDrawn = true;
-    document.body.setAttribute("data-board", "on");
-    Object.keys(SITES).forEach(function (site) { seedMonths(site, null); paintRow(null); });
-    layout();
-    boardHooks.forEach(function (f) { try { f(); } catch (_) {} });
-    Object.keys(SITES).forEach(fillPosts);
-    Object.keys(SITES).forEach(readLiveMonths);
-  }
-
-  /* A ticked month is worth seeing from across the room; an unticked one has to
-     stay legible, because its box is still where you would type. */
-  function paintRow(month) {
-    if (!floor) return;
-    MONTH_ORDER.forEach(function (m) {
-      if (month && m !== month) return;
-      var on = Object.keys(SITES).some(function (s) {
-        return MONTHS[s] && MONTHS[s][m] && MONTHS[s][m].publish;
-      });
-      [].slice.call(floor.querySelectorAll('[data-month="' + m + '"]')).forEach(function (c) {
-        c.classList.toggle("row-on", on);
-      });
-      Object.keys(SITES).forEach(function (s) {
-        var t = MONTHS[s] && MONTHS[s][m];
-        [].slice.call(floor.querySelectorAll(
-          '.cell.pay[data-elev="' + s + '"][data-delivery="' + m + '"]')).forEach(function (c) {
-          c.classList.toggle("off", !(t && t.publish));
-        });
-      });
-    });
-  }
-
-  /* What the site is publishing today, so the ticks open on the truth rather
-     than on a guess. A site that has never had a months table falls back to the
-     nearest delivery and the first new-crop month, which is exactly the two
-     rows its page shows today. */
-  function readLiveMonths(site) {
-    fetch(LIVE_BASE + REPO_OF[site] + "/main/pricing.json?t=" + Date.now(), { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (pr) {
-        MONTHS[site] = {};
-        seedMonths(site, pr);
-        MONTH_ORDER.forEach(function (m) {
-          var st = MONTHS[site][m];
-          if (!st) return;
-          var form = COLS[site] && COLS[site].querySelector("form");
-          if (!form) return;
-          var pub = form.querySelector('.cell.pub[data-month="' + m + '"] input');
-          var bx = form.querySelector('.cell.ctl[data-month="' + m + '"] input');
-          if (pub) pub.checked = st.publish;
-          /* NO EVENT IS FIRED HERE. It used to be, so the "how far off them"
-             note beside the box would be rewritten with the figure that had
-             just landed. Sig cut that note on 2026-09-09, and the dispatch
-             outlived the only thing that listened to it -- so every load fired
-             an `input` on every month box in both columns, which is exactly
-             what the unsaved-changes guard watches for. The screen came up
-             telling the office it had unsaved work before anybody had touched
-             it, and went on saying so after a save.
-             Setting .value does not fire input, which is the whole reason the
-             line was there and is now the reason it is not. */
-          if (bx) bx.value = st.basis || "";
-        });
-        paintRow(null);
-      })
-      .catch(function () { seedMonths(site, null); });
-  }
-
-  /* The CBOT settle, from agsist, which is the only place in this system that
-     holds one. It is NOT what the basis is set against -- the applier pays from
-     Big River's own quote -- so it is shown beside theirs with the gap named,
-     and a failure to read it leaves an em dash rather than a guess. */
-  function loadSettles() {
-    return fetch(SETTLES_URL + "?t=" + Date.now(), { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (p) {
-        SETTLES = {};
-        Object.keys(p || {}).forEach(function (k) {
-          var m = /^corn-([a-z]{3})(\d{2})$/.exec(k);
-          if (!m) return;
-          var close = p[k] && typeof p[k].close === "number" ? p[k].close : null;
-          if (close == null) return;
-          SETTLES[m[1].charAt(0).toUpperCase() + m[1].slice(1) + " " + m[2]] = close / 100;
-        });
-      })
-      .catch(function () { SETTLES = null; });
-  }
-
-  function fillPosts(site) {
-    var cells = floor ? floor.querySelectorAll('.cell.pay[data-elev="' + site + '"]') : [];
-    if (!cells.length) return;
-    fetch(LIVE_BASE + REPO_OF[site] + "/main/bids.json?t=" + Date.now(), { cache: "no-store" })
-      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
-      .then(function (bj) {
-        var by = {};
-        ((bj && bj.bids) || []).forEach(function (r) { by[r.delivery] = r.cashPrice; });
-        [].slice.call(cells).forEach(function (td) {
-          var v = by[td.getAttribute("data-delivery")];
-          /* What the site is publishing, to the cent like everything else on
-             this screen. The site's own page still prints what it prints. */
-          td.textContent = typeof v === "number" ? "$" + v.toFixed(2) : "—";
-          td.removeAttribute("title");
-          /* Read from the site: no longer a sample. A month the site does not
-             post reads "—", which is an answer from the file rather than the
-             placeholder, so its marker comes off too. */
-          td.removeAttribute("data-sample");
-        });
-      })
-      .catch(function () {
-        /* A dash would read as "this elevator does not post that month", which
-           is a different and much more alarming thing than "this screen could
-           not read the file". Say which one it is. */
-        [].slice.call(cells).forEach(function (td) {
-          td.textContent = "?";
-          td.setAttribute("title", "Could not read what " + SITES[site] +
-            " is publishing. This is not a price of theirs.");
-          /* NOT SAMPLE CONTENT EITHER. "?" is this screen reporting a failed
-             read -- an answer, and one the office has to act on. The marker
-             means "still showing what the page shipped with", so it comes off
-             on both paths; leaving it on the failure path would put eleven
-             cells into the filler count and bury the boxes that really are
-             still holding their shipped values. */
-          td.removeAttribute("data-sample");
-        });
-      });
-  }
-
-
   document.title = "Emmert elevators \u2014 both boards";
 
-  /* ---- BOTH ELEVATORS, ON EVERY SCREEN ----------------------------------
-     There used to be a chip row that showed one elevator at a time below
-     1440px, because two columns of stacked cards could not both fit. The sheet
-     places the same cells six wide under 1200px instead -- shared row, then
-     Badger's cells, then Midwest's -- so nothing has to be hidden and Save can
-     never carry a column that is not on the screen, because both always are.
+  /* ---- one elevator at a time, on a phone --------------------------------
+     The desktop shows both columns; a 390px screen cannot, and pretending
+     otherwise gives you a twelve-screen scroll with no idea which elevator
+     you are in halfway down.
 
-     ?site= is still honoured for an old bookmark: it says which column opens
-     focused, and nothing else. */
+     The hidden column is display:none from the stylesheet, which takes it out
+     of the tab order and out of its form's submission entirely -- so this is
+     not a visual trick over two live forms. The forms stay separate; one of
+     them is simply not on the screen.
+
+     ?site= is honoured here: an old bookmark that named an elevator opens on
+     that elevator, which is exactly what it always did. */
+  var switchBox = document.getElementById("elevSwitch");
   var wanted = (location.search.match(/[?&]site=([^&#]*)/i) || [])[1];
   wanted = wanted ? decodeURIComponent(wanted).toLowerCase() : "";
   var shown = Object.prototype.hasOwnProperty.call(SITES, wanted) ? wanted : "badger";
+
+  function showOnly(site) {
+    shown = site;
+    floor.setAttribute("data-only", site);
+    /* Mirrored on <body> because the BOARD sits above the floor in the
+       document and no CSS selector can reach backwards to it from the floor's
+       attribute. The phone board's pinned posts column follows this. */
+    document.body.setAttribute("data-only", site);
+    switchBox.querySelectorAll("button").forEach(function (b) {
+      b.setAttribute("aria-pressed", b.getAttribute("data-elev") === site ? "true" : "false");
+    });
+  }
+  if (switchBox) {
+    Object.keys(SITES).forEach(function (site) {
+      var b = document.createElement("button");
+      b.type = "button";
+      b.setAttribute("data-elev", site);
+      b.innerHTML = "";
+      b.appendChild(document.createTextNode(SITES[site]));
+      var sm = document.createElement("small");
+      sm.textContent = TOWN[site];
+      b.appendChild(sm);
+      b.addEventListener("click", function () { showOnly(site); });
+      switchBox.appendChild(b);
+    });
+    showOnly(shown);
+  }
   /* ---- sign out ---------------------------------------------------------
      Was href="#": a live-looking link that did nothing, on a screen whose
      whole premise is being behind a password. */
@@ -1503,16 +870,6 @@
     return Math.round(h / 24) + " days ago";
   }
   function setFeed(kind, html) {
-    /* THE SAME WORDS, IN A LINE INSTEAD OF A PANEL. The panel was 60px tall and
-       said "nothing for you to do" nine times out of ten. The whole sentence is
-       still in the strip below for the days it is not. */
-    var note = document.getElementById("feedNote");
-    if (note) {
-      var t = document.createElement("div");
-      t.innerHTML = html;
-      note.textContent = (t.textContent || "").replace(/\s+/g, " ").trim();
-      note.className = "feednote is-" + kind;
-    }
     if (!fl) return;
     fl.hidden = false;
     fl.className = "feedlive is-" + kind;
@@ -1625,12 +982,10 @@
      that -- the per-column filler walker cannot reach the strip, and the feed
      line above the board is about the FEED, not about the table. */
   function boardVerdict() {
-    /* THE SHIPPED SAMPLE TABLE IS GONE WITH THE STRIP. The basis rows are drawn
-       from the feed or they are not there at all, so the question this answers
-       is now "did the read land", not "is that filler". */
-    if (!boardDrawn) {
-      gwarn("Big River's board has not been read yet, so the months below are " +
-            "empty. Nothing here is a price.", "strip:filler");
+    var tb = STRIP ? STRIP.querySelector("tbody") : null;
+    if (tb && tb.hasAttribute("data-sample")) {
+      gwarn("The price board below is the sample this screen ships with, not a " +
+            "reading from Big River. Do not quote it.", "strip:filler");
     } else {
       gunwarn("strip:filler");
       var srn = document.querySelector(".board-sr");
@@ -1638,14 +993,105 @@
     }
   }
 
-  /* drawBoard() and fillPosts() are defined with the rest of the sheet. */
+  function drawBoard(j) {
+    var tb = STRIP && STRIP.querySelector(".bd tbody");
+    if (!tb) return;
+    var rows = (j.bids || []).filter(function (r) { return r.commodity === "Corn"; });
+    if (!rows.length) return;
+
+    /* PRINTED AS THEY POSTED IT, to the last quarter cent. toFixed(2) turned
+       their 4.2825 into $4.28. The note under this table says "This table is
+       the check... Open their page beside this; the two should agree line for
+       line." A rounded copy cannot be compared line for line, so the one job
+       the table has was broken by formatting it nicely. */
+    var money = function (v) {
+      if (typeof v !== "number") return "\u2014";
+      var t = String(v), dp = t.indexOf(".") === -1 ? 0 : t.length - t.indexOf(".") - 1;
+      return "$" + v.toFixed(Math.max(2, dp));
+    };
+    var signed = function (v) {
+      if (typeof v !== "number") return "\u2014";
+      return (v < 0 ? "\u2212" : "") + Math.abs(v).toFixed(2);
+    };
+    tb.textContent = "";
+    rows.forEach(function (r, i) {
+      var tr = document.createElement("tr");
+      /* TWO MARKS, BECAUSE THERE ARE TWO BASIS BOXES.
+         `is-ref` is the nearest delivery, which the cash basis governs.
+         `is-new` is October and November, which the new-crop basis governs --
+         the SAME definition the sites use, HARVEST_MONTHS in
+         update-prices.mjs, not a second list that can drift from it. Without
+         this the screen asked for two figures and showed no sign of which
+         rows on the board each one moved. */
+      var cls = [];
+      if (i === 0) cls.push("is-ref");
+      if (NEW_CROP.indexOf(r.delivery) !== -1) cls.push("is-new");
+      if (cls.length) tr.className = cls.join(" ");
+      /* The contract quote, carried on the row so the basis readout can name
+         it. It is not a column: the board is a line-for-line check against
+         what Big River publishes, and they do not publish this. It came from
+         their feed all the same, so it is a figure from a file. */
+      if (typeof r.futuresPriceCents === "number")
+        tr.setAttribute("data-quote", (r.futuresPriceCents / 100).toFixed(4));
+      [[r.delivery, ""], [r.futuresMonth, ""], [signed(r.basisDollars), "r basis-cell"],
+       [money(r.cash), "r cash-cell"]].forEach(function (pair) {
+        var td = document.createElement("td");
+        if (pair[1]) td.className = pair[1];
+        td.textContent = pair[0] == null ? "\u2014" : String(pair[0]);
+        tr.appendChild(td);
+      });
+      Object.keys(SITES).forEach(function (site) {
+        var td = document.createElement("td");
+        td.className = "r pay";
+        td.setAttribute("data-elev", site);
+        td.setAttribute("data-delivery", r.delivery);
+        td.textContent = "\u2026";
+        tr.appendChild(td);
+      });
+      tb.appendChild(tr);
+    });
+    /* The marker comes off only now, and only because real rows went in. */
+    tb.removeAttribute("data-sample");
+    tb.classList.remove("sample");
+
+    /* Everything that quoted the old first row has to re-read it. */
+    boardHooks.forEach(function (f) { try { f(); } catch (_) {} });
+    Object.keys(SITES).forEach(fillPosts);
+  }
+
+  function fillPosts(site) {
+    var cells = STRIP ? STRIP.querySelectorAll('td.pay[data-elev="' + site + '"]') : [];
+    if (!cells.length) return;
+    fetch(LIVE_BASE + REPO_OF[site] + "/main/bids.json?t=" + Date.now(),
+          { cache: "no-store" })
+      .then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function (bj) {
+        var by = {};
+        ((bj && bj.bids) || []).forEach(function (r) { by[r.delivery] = r.cashPrice; });
+        cells.forEach(function (td) {
+          var v = by[td.getAttribute("data-delivery")];
+          /* Same rule as the board above: printed as published, to the last
+             quarter cent. toFixed(2) here put $4.2825 and its own $4.28
+             rendering of the same figure side by side. */
+          td.textContent = typeof v === "number" ? "$" + moneyQ(v) : "\u2014";
+          td.removeAttribute("title");
+        });
+      })
+      .catch(function () {
+        /* A dash here would read as "this elevator does not post that month",
+           which is a different and much more alarming thing than "this screen
+           could not read the file". Say which one it is. */
+        cells.forEach(function (td) {
+          td.textContent = "?";
+          td.setAttribute("title", "Could not read what " + SITES[site] +
+            " is publishing. This is not a price of theirs.");
+        });
+      });
+  }
 
   if (fl) {
     if (flGo) flGo.addEventListener("click", checkFeed);
-    /* The settles first, so the Futures column is filled on the first draw
-       rather than on a redraw nobody triggers. A failure to read them is not a
-       reason to hold up the board: SETTLES stays null and the column says so. */
-    loadSettles().then(checkFeed, checkFeed);
+    checkFeed();
   }
 
   (function wireRare() {
@@ -1762,10 +1208,7 @@
 
     var qs   = function (s) { return root.querySelector(s); };
     var qsa  = function (s) { return root.querySelectorAll(s); };
-    var byId = function (id) {
-      return root.querySelector('[data-id="' + id + '"]') ||
-             document.getElementById(site + "-" + id);
-    };
+    var byId = function (id) { return root.querySelector('[data-id="' + id + '"]'); };
     var byName = function (n) { return form ? form.querySelector('[name="' + n + '"]') : null; };
 
     /* A warning has to say WHICH elevator it is about, or it is worse than
@@ -1866,12 +1309,23 @@
     var WEEK_LABELS = [["Mon to Fri", "wk_open", "wk_close", "wk_closed"],
                        ["Saturday", "sat_open", "sat_close", "sat_closed"],
                        ["Sunday", "sun_open", "sun_close", "sun_closed"]];
+    var prevWeek = byId("prevWeek");
     var usualSummary = byId("usualSummary");
 
-    /* What is left of the function that drew the week preview column: the
-       sentence beside "Open, usual hours", which is on the screen and has to
-       follow the boxes under it. The column itself is gone; see col.html. */
     function syncWeekPreview() {
+      if (!prevWeek) return;
+      prevWeek.innerHTML = "";
+      WEEK_LABELS.forEach(function (r) {
+        var v = spanOf(r[1], r[2], r[3]);
+        var row = document.createElement("div");
+        row.className = "prev-wrow" + (v ? "" : " is-shut");
+        var a = document.createElement("span"); a.textContent = r[0];
+        var b = document.createElement("span");
+        b.className = v ? "num" : "";
+        b.textContent = v || "Closed";
+        row.appendChild(a); row.appendChild(b);
+        prevWeek.appendChild(row);
+      });
       /* The summary beside "Open, usual hours" was hand-typed, identical on both
          elevators, and described hours the table under it could contradict. It
          is the option staff are told to leave selected, so it is the sentence
@@ -1904,11 +1358,13 @@
      * person reading it. The site decides the day in Central time when it
      * rebuilds; near midnight those can differ by one day, which is why the
      * note underneath says "today" rather than naming a date. */
+    var prevToday = byId("prevToday");
     var prevTodayNote = byId("prevTodayNote");
     var DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
     var harvestEl = qs(".who-harvest");
 
     function syncTodayPreview() {
+      if (!prevToday) return;
       var dow = new Date().getDay();
       var dayName = DAYS[dow];
       var picked = qs('input[name="today"]:checked');
@@ -1927,7 +1383,11 @@
         label = hours ? "Open today, " + dayName : "Closed today, " + dayName;
         if (!hours) hours = "Closed";
       }
-      void label;   /* the line itself is no longer drawn */
+      prevToday.innerHTML = "";
+      var l = document.createElement("div"); l.className = "l"; l.textContent = label;
+      var h = document.createElement("div"); h.className = "h"; h.textContent = hours;
+      prevToday.appendChild(l); prevToday.appendChild(h);
+      prevToday.classList.toggle("is-shut", hours === "Closed");
       if (prevTodayNote) {
         prevTodayNote.textContent = hours === "Closed" ? "" :
           "After closing time the site changes this to “Closed for the day”, by itself.";
@@ -1949,7 +1409,7 @@
 
     /* ---- the banner -------------------------------------------------------- */
     var msg = byId("msg");
-    var prevNotice = null; /* the banner preview column is gone; see col.html */
+    var prevNotice = qs(".prev-notice");
     function syncBanner() {
       var picked = qs('input[name="banner"]:checked');
       var show = !picked || picked.value === "on";
@@ -2035,21 +1495,22 @@
     var refBasis = null;
     var newBasis = null;
     function cellNum(sel) {
-      var cell = floor && floor.querySelector(sel);
-      /* A board that has not been drawn is not a source. Until the feed lands
-         this screen has no idea what their basis is and says nothing, rather
-         than saying something it made up. */
-      if (!cell || !boardDrawn) return null;
+      var cell = STRIP && STRIP.querySelector(sel);
+      var tb = STRIP && STRIP.querySelector(".bd tbody");
+      /* A sample board is not a source. While the marker is still on the
+         table, this screen has no idea what their basis is and says nothing,
+         rather than saying something it made up. */
+      if (!cell || !tb || tb.hasAttribute("data-sample")) return null;
       var n = parseFloat(cell.textContent.replace(/\u2212/, "-").replace(/[$,]/g, ""));
       return isFinite(n) ? n : null;
     }
     function readRefBasis() {
-      refBasis = cellNum(".cell.basis-cell.is-ref");
+      refBasis = cellNum("tr.is-ref td.basis-cell");
       /* The new-crop box governs October and November, so it is measured
          against THEIR row, not the nearest delivery's. Read from the first
          row the board itself marked as new crop -- one definition, drawn
          once, rather than a second month list living down here. */
-      newBasis = cellNum(".cell.basis-cell.is-new");
+      newBasis = cellNum("tr.is-new td.basis-cell");
     }
     readRefBasis();
     boardHooks.push(function () { readRefBasis(); syncBasis(); });
@@ -2085,12 +1546,10 @@
          one that arrived in a file and caught it. That rule is older and
          better than this readout, so the contract MONTH is named instead. */
       function monthOf(row) {
-        var el = floor && floor.querySelector(row);
-        if (!el || !boardDrawn) return null;
-        /* The contract is carried on the basis cell itself rather than read out
-           of the cell beside it: a position in a row is a thing that moves when
-           somebody adds a column, and this has to keep naming the contract. */
-        var t = (el.getAttribute("data-contract") || "").trim();
+        var tb = STRIP && STRIP.querySelector(".bd tbody");
+        var tr = STRIP && STRIP.querySelector(row);
+        if (!tr || !tb || tb.hasAttribute("data-sample")) return null;
+        var t = tr.children[1] ? tr.children[1].textContent.trim() : "";
         return (t && t !== "\u2014") ? t : null;
       }
       function versus(mine, theirs) {
@@ -2102,9 +1561,10 @@
       /* The contract quote for a row, read back off the row that carries it.
          Same rule as cellNum: a sample board is not a source. */
       function quoteOf(row) {
-        var el = floor && floor.querySelector(row);
-        if (!el || !boardDrawn) return null;
-        var q = parseFloat(el.getAttribute("data-quote"));
+        var tb = STRIP && STRIP.querySelector(".bd tbody");
+        var tr = STRIP && STRIP.querySelector(row);
+        if (!tr || !tb || tb.hasAttribute("data-sample")) return null;
+        var q = parseFloat(tr.getAttribute("data-quote"));
         return isFinite(q) ? q : null;
       }
       function line(month, theirBasis, mine, quote) {
@@ -2113,14 +1573,14 @@
            is why the office believed the basis was working off Big River's
            bid. It is read from their feed, not worked out here. */
         return (month || "") +
-               (quote != null ? (month ? " at " : "") + "$" + quote.toFixed(2) : "") +
+               (quote != null ? (month ? " at " : "") + "$" + quote.toFixed(4) : "") +
                (theirBasis != null ? ((month || quote != null) ? " &middot; " : "") +
                                      "Big River " + fmt(theirBasis) : "") +
                versus(mine, theirBasis);
       }
 
       if (readCash) readCash.innerHTML =
-        line(monthOf(".cell.basis-cell.is-ref"), refBasis, c, quoteOf(".cell.basis-cell.is-ref"));
+        line(monthOf("tr.is-ref"), refBasis, c, quoteOf("tr.is-ref"));
 
       /* BLANK AND ZERO STILL MEAN OPPOSITE THINGS AND STILL HAVE TO LOOK IT.
          Blank is "same as the cash basis". Zero is "even with the contract".
@@ -2137,10 +1597,10 @@
           readNew.className = "basis-read";
         } else if (h === 0) {
           readNew.innerHTML = "Zero &mdash; even with the contract" +
-            (monthOf(".cell.basis-cell.is-new") ? " &middot; " + monthOf(".cell.basis-cell.is-new") : "");
+            (monthOf("tr.is-new") ? " &middot; " + monthOf("tr.is-new") : "");
           readNew.className = "basis-read is-zero";
         } else if (isFinite(h)) {
-          readNew.innerHTML = line(monthOf(".cell.basis-cell.is-new"), theirNew, h, quoteOf(".cell.basis-cell.is-new"));
+          readNew.innerHTML = line(monthOf("tr.is-new"), theirNew, h, quoteOf("tr.is-new"));
           readNew.className = "basis-read";
         } else {
           readNew.innerHTML = "";
@@ -2332,9 +1792,8 @@
          somebody told "the cash basis goes in as a positive number" types
          0.65 where the spread 0.13 belongs. The panel's grain-desk reviewer
          caught it. */
-      [].slice.call(qsa(".cell.ctl[data-month] input.mbasis")).map(function (el) {
-        return [el, "basis for " + (el.closest("[data-month]") || {}).getAttribute("data-month")];
-      }).forEach(function (p) {
+      [[cashBox, "Our basis — cash", true],
+       [cropBox, "Our basis — new crop", false]].forEach(function (p) {
         var el = p[0]; if (!el) return;
         var v = el.value.trim();
         /* A BLANK BOX NO LONGER REFUSES THE WHOLE SAVE, and the old version of
@@ -2350,7 +1809,7 @@
            "not setting it", which is the truth, and the bar at the top already
            says no basis is set and what the site is pricing off meanwhile. */
         if (v === "") return;
-        if (bad(el)) { out.push("The " + p[1] + ", “" + v + "”, is not a number."); markBad(el); }
+        if (bad(el)) { out.push("The " + p[1] + " box, “" + v + "”, is not a number."); markBad(el); }
         /* A NEGATIVE NUMBER USED TO BE THE ERROR. IT IS NOW THE NORMAL CASE.
            The old refusal read "the spread goes in as a positive number under
            the board; the minus is already printed beside the box" -- correct
@@ -2390,10 +1849,10 @@
            sentence under the box says what the number will post, every
            keystroke, which is a better guard against a missing minus than a
            refusal that sent the office to a file it cannot edit. */
-        else if (Math.abs(parseFloat(v)) > 1.5) out.push("The " + p[1] + ", “" + v + "”, is $" +
+        else if (Math.abs(parseFloat(v)) > 1.5) out.push("The " + p[1] + " box, “" + v + "”, is $" +
           Math.abs(parseFloat(v)).toFixed(2) + " from zero — past the $1.50 limit the site will " +
           "accept. If that is really the number it has to be changed in pricing.json, " +
-          "so that it takes two people to notice."), markBad(el);
+          "so that it takes two people to notice.");
       });
       MANUAL.forEach(function (n) {
         var el = byName(n);
@@ -2675,10 +2134,6 @@
          a dime OVER the contract. Reusing the old heading for the new number
          would have turned every in-flight issue into a 20-cent error in the
          wrong direction. */
-      /* ONE FIELD FOR ELEVEN MONTHS. Twenty-two headings would not fit the
-         7,500-character cap this screen enforces below, and would mean twenty-two
-         more entries in the map that keeps this screen and the applier level. */
-      months: "Months — what we publish",
       spread: "Our basis — cash",
       spread_harvest: "Our basis — new crop",
       manual_cash: "Price by hand — cash",
@@ -2996,7 +2451,61 @@
          * Those are different claims. The line under the basis boxes already
          * makes the second one; this must not blur into it, so when a basis has
          * been edited it says so instead of implying the figures have moved. */
-        /* The strip's own bids.json read is gone; fillPosts() has it. */
+        fetch(LIVE_BASE + repo + "/main/bids.json" + bust, { cache: "no-store" })
+          .then(function (r) { return r.json(); })
+          .then(function (bj) {
+            var el = byId("prevBid");
+            var noteEl = byId("prevBidNote");
+            var rows = (bj && bj.bids) || [];
+            if (!el || !rows.length) return;
+            var HARVEST = ["October", "November"];
+            var spot = rows[0] || null;
+            var inH = rows.filter(function (r) { return HARVEST.indexOf(r.delivery) !== -1; });
+            var harvest = inH.length ? inH.reduce(function (lo, r) {
+              return r.cashPrice < lo.cashPrice ? r : lo;
+            }) : null;
+            if (harvest && spot && harvest.delivery === spot.delivery) harvest = null;
+
+            var money = function (v) {
+              return typeof v === "number" ? "$" + moneyQ(v) : "\u2014";
+            };
+            function row(label, sub2, r) {
+              var d = document.createElement("div");
+              d.className = "pb-row";
+              d.innerHTML = '<span class="pb-l">' + esc2(label) +
+                '<small>' + esc2(sub2) + '</small></span>' +
+                '<span class="pb-h num">' + money(r.cashPrice) + '</span>';
+              return d;
+            }
+            el.innerHTML = "";
+            el.removeAttribute("data-sample");
+            el.classList.remove("sample");
+            unsay(el);
+            if (typeof recountFiller === "function") recountFiller();
+            el.appendChild(row("Cash, corn", spot.delivery + " delivery", spot));
+            if (harvest)
+              el.appendChild(row("Harvest", inH.map(function (r) { return r.delivery; })
+                .join(" and ") + " delivery", harvest));
+            /* Re-read on every edit, not once on load. Computed once it would go
+               on saying "not worked out again here" after somebody had changed a
+               basis -- true about the figures, and misleading about the moment,
+               which is the same staleness the mismatch list had. */
+            if (noteEl) {
+              var sayNote = function () {
+                var edited = (cashBox && cashBox.value !== savedCash) ||
+                             (cropBox && cropBox.value !== savedCrop);
+                noteEl.textContent = edited
+                  ? "These are the figures on the site right now. You have changed a basis, so " +
+                    "they will not move until you save."
+                  : "The figures on the site right now, read from what it is publishing \u2014 " +
+                    "not worked out again here.";
+              };
+              sayNote();
+              [cashBox, cropBox].forEach(function (el) {
+                if (el) el.addEventListener("input", sayNote);
+              });
+            }
+          }, function () { /* leave whatever the Worker rendered; see rule 3 */ });
 
         /* ══════════════════════════════════════════════════════════════════
            FILL THE FORM FROM THE SITE. Added 2026-08-20 with the Worker's
@@ -3065,7 +2574,7 @@
            moment the box was filled — and the next save would have posted
            the mangled figure back. Minimum two decimals for the eye, every
            decimal the file actually carries for the arithmetic. */
-        var money2 = function (v) { return v == null ? "" : Number(v).toFixed(2); };
+        var money2 = function (v) { return v == null ? "" : moneyQ(Number(v)); };
         /* THE TRANSITION, AND IT IS THE DANGEROUS PART OF THIS CHANGE.
            pricing.json may still carry only the old `spread`. A spread of 0.10
            means ten cents UNDER Big River; the box above it now says "Our basis
@@ -3128,7 +2637,7 @@
           warn("no basis set yet. Still pricing off the old $" +
                Number(pr.spread).toFixed(2) + " spread" +
                (function () {
-                 var el = floor && floor.querySelector(".cell.basis-cell.is-ref");
+                 var el = STRIP && STRIP.querySelector("tr.is-ref td.basis-cell");
                  var n = el ? parseFloat(el.textContent.replace(/\u2212/, "-").replace(/[$,]/g, "")) : NaN;
                  return isFinite(n) ? " (a basis of " + (n - Number(pr.spread)).toFixed(2) + " today)" : "";
                })() + ". Type the basis above.", "nobasis");
@@ -3314,10 +2823,7 @@
      * needs one line on the Worker's side -- drop `data-sample-value` from a box
      * when you fill it -- and then the test below becomes exact. Until then a
      * silent gap beats a daily false alarm. */
-    /* Always. Nothing renders this page with real values before the office
-       sees it, so every box holds its shipped value until a fetch or a person
-       replaces it -- and both of those take the marker off. See patch step 5p2. */
-    var pageUnfilled = true;
+    var pageUnfilled = qs("[data-sample]:not(input):not(textarea):not(select)") !== null;
     qsa("[data-sample-value]").forEach(function (el) {
       if (pageUnfilled && String(el.value) === el.getAttribute("data-sample-value"))
         el.setAttribute("data-sample", "");
@@ -3460,10 +2966,7 @@
       /* The small print moved here when the Settings tab was folded in. Sending
          somebody who was last on Settings to Overview puts them on the one tab
          that does not hold what they were looking at. */
-      /* Two screens now. Anyone whose browser remembers "settings" or
-         "overview" as their last tab lands on the basis screen, which is the
-         one this terminal exists for. */
-      if (tab === "settings" || tab === "overview") tab = "basis";
+      if (tab === "settings") tab = "hours";
       document.body.setAttribute("data-tab", tab);
       btns.forEach(function (b) {
         var on = b.getAttribute("data-go") === tab;
@@ -3472,10 +2975,7 @@
         else b.removeAttribute("aria-current");
       });
       try { localStorage.setItem("emmert-tab", tab); } catch (e) { /* private window */ }
-      /* THE SHEET IS PLACED PER SCREEN, so changing screen is a relayout. The
-         two screens do not have the same columns or the same rows, and a grid
-         still holding the other one's tracks is where dead space comes from. */
-      layout();
+      syncOver();
       /* What is outlined depends on which tab is showing, so the sentence that
          tells the office to look for red has to be rewritten when they move. */
       RECOUNTS.forEach(function (f) { try { f(); } catch (e) { /* one column must not stop the other */ } });
@@ -3483,9 +2983,9 @@
     btns.forEach(function (b) {
       b.addEventListener("click", function () { go(b.getAttribute("data-go")); });
     });
-    var want = "basis";
+    var want = "overview";
     try { want = localStorage.getItem("emmert-tab") || want; } catch (e) { /* ignore */ }
-    if (!btns.some(function (b) { return b.getAttribute("data-go") === want; })) want = "basis";
+    if (!btns.some(function (b) { return b.getAttribute("data-go") === want; })) want = "overview";
     go(want);
 
     /* The clock is Central, like every other time on this screen, and not the
@@ -3504,7 +3004,86 @@
 
   /* Copies what the screen has already worked out into the overview card.
      READS, never recomputes -- see the card's own comment. */
-  /* syncOver() is gone with the strip it filled; see col.html. */
+  function syncOver() {
+    if (document.body.getAttribute("data-tab") !== "overview") return;
+    Object.keys(COLS).forEach(function (site) {
+      var root = COLS[site];
+      /* JOIN THE BLOCKS, DO NOT CONCATENATE THEM. textContent of a node whose
+         children are <div>s runs them together -- the today preview came out
+         "Open today, Monday8:00a to 5:00p", which is two true sentences read
+         as one wrong one. Block-level children are separated the way they are
+         separated on screen. */
+      var get = function (id) {
+        var el = root.querySelector('[data-id="' + id + '"]');
+        if (!el) return "";
+        if (el.tagName === "TEXTAREA" || el.tagName === "INPUT") return (el.value || "").trim();
+        var kids = [].slice.call(el.children).filter(function (k) {
+          return getComputedStyle(k).display !== "inline";
+        });
+        if (!kids.length) return (el.textContent || "").trim();
+        return kids.map(function (k) { return (k.textContent || "").trim(); })
+                   .filter(Boolean).join(" \u00b7 ");
+      };
+      /* Two figures with a separator only when there are two figures. */
+      var pair = function (a, b) {
+        return [a, b].filter(Boolean).join("  \u00b7  ");
+      };
+      var put = function (id, txt) {
+        var el = root.querySelector('[data-id="' + id + '"]');
+        if (el) el.textContent = txt || "\u2014";
+      };
+      var off = root.querySelector('[data-id="off"]');
+      /* NO HARDCODED MINUS. The box used to hold a spread, which was always a
+         positive number of cents under, so the sign was printed for it. A basis
+         carries its own. */
+      put("overCash", pair(off && off.value ? "$" + off.value : "", get("basisCash")));
+      put("overNew", get("basisNew"));
+      /* THE SITE POSTS A CASH PRICE AND A HARVEST PRICE, so the overview names
+         both. Flattening the preview into one line ran them together and made
+         the screen look as though there were only ever one price -- which is
+         also why the new-crop basis box looked as if it governed nothing.
+         Read row by row; each row already carries its own delivery window. */
+      var bidRows = [].slice.call(root.querySelectorAll('[data-id="prevBid"] .pb-row'));
+      var rowText = function (r) {
+        var l = r.querySelector(".pb-l"), h = r.querySelector(".pb-h");
+        var sub = l && l.querySelector("small");
+        var when = sub ? (sub.textContent || "").trim() : "";
+        return pair(h ? (h.textContent || "").trim() : "", when);
+      };
+      var isHarvest = function (r) {
+        var l = r.querySelector(".pb-l");
+        return !!l && /harvest/i.test(l.textContent || "");
+      };
+      var cashRow = bidRows.filter(function (r) { return !isHarvest(r); })[0];
+      var harvRow = bidRows.filter(isHarvest)[0];
+      put("overCashPrice", cashRow ? rowText(cashRow) : "");
+      /* Absent is not zero. When the nearest delivery IS harvest the preview
+         renders one row on purpose, and saying so beats printing a dash. */
+      put("overHarvestPrice", harvRow ? rowText(harvRow)
+        : (cashRow ? "Same row \u2014 the nearest delivery is harvest" : ""));
+      put("overToday", get("prevToday").replace(/\s+/g, " "));
+      var on = root.querySelector('[name="banner"]:checked');
+      var msg = get("msg");
+      put("overBanner", on && on.value === "on"
+        ? "Showing \u00b7 " + (msg.length > 64 ? msg.slice(0, 64) + "\u2026" : msg)
+        : "Not showing");
+      /* The heading's hint is the applier's own "last change" stamp, when the
+         file carries one. It is NOT whoNote -- that says which repository this
+         column saves to, which the column header already says two lines above
+         and which is not news. */
+      /* This read [data-id="lastChange"], an element that exists nowhere —
+         the applier's stamp lands in savedNote — so the hint was empty on
+         every screen ever rendered. A dead wire, found by the owner on the
+         2026-08-25 panel. */
+      var when = root.querySelector('[data-id="overWhen"]');
+      var said = root.querySelector('[data-id="savedNote"]');
+      if (when) when.textContent = said ? (said.textContent || "").trim() : "";
+    });
+  }
+  /* Any edit anywhere re-reads it, so switching to Overview never shows a
+     figure the form has since moved past. */
+  document.addEventListener("input", syncOver, true);
+  document.addEventListener("change", syncOver, true);
 })();
 </script>
 </body>

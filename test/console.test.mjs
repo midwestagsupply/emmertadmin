@@ -1,34 +1,36 @@
-/* THE THREE LAYOUT STATES, AT THE BOUNDARIES THAT WERE MEASURED.
+/* THE LAYOUT, AT THE BOUNDARIES THAT WERE MEASURED.
  *
- * The screen has three, and the reason there are three rather than two is a
- * measurement rather than a taste. Driving the real page and focusing every one
- * of its controls in turn:
+ * THIS FILE DESCRIBED A SCREEN THAT NO LONGER EXISTS, and it is rewritten here
+ * rather than repaired. It asserted three states -- a dark console with two
+ * columns above 1440x940, the same console showing ONE elevator when shorter,
+ * and a light "roomy" layout one elevator at a time below 1440 -- driven
+ * through `.bd`, `#boardStrip`, `#elevSwitch` and `#rareBtn`. None of those
+ * elements exist. The redesign Sig asked for on 2026-09-08 ("bring all the
+ * bullshit together into a simple linear tabular view") replaced the console,
+ * the board strip, the elevator switcher and the fold with one sheet.
  *
- *   height >= 915   the whole Big River board is on screen
- *   height <  915   the board runs off the bottom, at EVERY width from 1440 to
- *                   2560 — a height problem, not a width one, and no amount of
- *                   narrowing helps
+ * WHAT IT IS NOW. Two placements of the same markup, from one breakpoint:
  *
- * The shared board is the entire reason to put both elevators on one screen:
- * two columns whose common reference has scrolled off the top is just two forms
- * crammed together. So the floor is a height as well as a width, set at 940 to
- * leave headroom for a longer board than the five rows Big River posts today.
+ *   width >= 1260   twelve grid columns: the market and Big River on the left,
+ *                   then each elevator's own columns. Both elevators, always.
+ *   width <  1260   six columns: each month becomes a small block, and each
+ *                   elevator gets a line inside it. Both elevators, always.
  *
- *   width >= 1440 AND height >= 940   two columns, whole board on screen
- *   width >= 1440, shorter            same dark console, ONE elevator, tabs
- *   width <  1440                     roomy light layout, one at a time
+ * "BOTH ELEVATORS, ALWAYS" IS THE POINT, and it is the claim this file exists
+ * to hold. The old layout hid one of them below its floor, which is the thing
+ * the redesign was for: two columns whose common board has scrolled off, or
+ * whose second column is not on the page, is just two forms crammed together.
  *
- * WHAT THIS FILE IS FOR, AND WHAT IT IS NOT. Behaviour is identical in all
- * three — it is a stylesheet, not a second implementation — and behaviour is
- * tested in screen.test.mjs. What is asserted here is that each state is really
- * the state it claims to be, ON ITS OWN EDGE. A boundary checked only in its
- * comfortable middle is not checked: 1280x700 used to be in the list below and
- * failed by 494px, which was this file being wrong about where the floor was.
+ * WHAT IS ASSERTED HERE AND WHAT IS NOT. Behaviour is identical at every size
+ * -- it is a stylesheet, not a second implementation -- and behaviour is tested
+ * in screen.test.mjs. What is asserted here is that at every size a person
+ * actually uses, both elevators are on the page, nothing is clipped with no way
+ * to reach it, nothing scrolls sideways, and Save can be pressed.
  */
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
-import { getChromium, makeFixture, dropFixture, openScreen, press, LAYOUT, col, ELEVATORS }
-  from "./lib/screen.mjs";
+import { getChromium, makeFixture, dropFixture, openScreen, press, LAYOUT, col, ELEVATORS,
+         feedFull } from "./lib/screen.mjs";
 
 const chromium = await getChromium();
 const SKIP = chromium ? false : "playwright is not installed; console tests skipped";
@@ -36,279 +38,162 @@ const SKIP = chromium ? false : "playwright is not installed; console tests skip
 let dir, browser;
 before(async () => { if (SKIP) return; dir = makeFixture(); browser = await chromium.launch(); });
 after(async () => { if (browser) await browser.close(); dropFixture(dir); });
-const open = (viewport, opts = {}) => openScreen(browser, dir, { viewport, ...opts });
+const open = (viewport, opts = {}) =>
+  openScreen(browser, dir, { viewport, feed: feedFull(), ...opts });
 
-/* One reading of everything the three states differ in. Taken from the page
+/* EVERY SIZE A PERSON ACTUALLY USES, on both screens. The old list stopped at
+   the boundaries of states that no longer exist; this one is the boundary that
+   does (1260) plus the desks and phones the office has. */
+const SIZES = [
+  ["a big monitor",            { width: 2560, height: 1440 }],
+  ["room to spare",            LAYOUT.CONSOLE],
+  ["a desk",                   LAYOUT.CONSOLE_EDGE],
+  ["a wide desk, not a tall one", LAYOUT.SHORT_DESK],
+  ["a laptop",                 LAYOUT.SHORT],
+  ["on the breakpoint",        { width: 1260, height: 900 }],
+  ["one pixel under it",       { width: 1259, height: 900 }],
+  ["a small laptop",           LAYOUT.ROOMY],
+  ["a tablet",                 { width: 820, height: 1180 }],
+  ["a phone",                  LAYOUT.PHONE],
+  ["a small phone",            { width: 360, height: 780 }],
+];
+
+/* One reading of everything a placement can get wrong. Taken from the page
    rather than from the stylesheet: which rules produced it is not the point,
    what the office is looking at is. */
 const survey = (p) => p.evaluate(() => {
-  const vis = (e) => getComputedStyle(e).display !== "none";
+  const vis = (e) => {
+    const s = getComputedStyle(e);
+    return s.display !== "none" && s.visibility !== "hidden";
+  };
   const cols = [...document.querySelectorAll(".col")];
-  const shown = cols.filter(vis);
-  const board = document.querySelector(".bd").getBoundingClientRect();
-  const strip = document.getElementById("boardStrip").getBoundingClientRect();
+  const sheet = document.querySelector(".sheet");
+  const cells = [...sheet.querySelectorAll(".cell")].filter((c) => c.getClientRects().length);
+  const shown = (site) => cells.filter((c) => {
+    const col = c.closest(".col");
+    return col && col.getAttribute("data-elev") === site;
+  }).length;
   return {
-    columnsShown: shown.map((c) => c.getAttribute("data-elev")),
-    columnsHidden: cols.filter((c) => !vis(c)).map((c) => c.getAttribute("data-elev")),
-    switcher: vis(document.getElementById("elevSwitch")),
-    rareKey: vis(document.getElementById("rareBtn")),
-    ink: getComputedStyle(document.body).backgroundColor,
-    boardOnScreen: board.top >= 0 && board.bottom <= innerHeight && board.height > 0,
-    boardAboveColumns: strip.bottom <= (shown[0] ? shown[0].getBoundingClientRect().top + 1 : 0),
-    /* The console pins the page to the window and gives each column its own
-       scrolling pane; the roomy layout lets the document scroll instead. */
-    pageScrolls: getComputedStyle(document.documentElement).overflow !== "hidden",
-    /* WHERE THE SAVE BAR SITS, AND WHY IT IS NO LONGER ALWAYS THE FLOOR.
-       Until 2026-08-31 the pane was flex:1 1 auto, so it swallowed every
-       spare pixel and the bar was pinned to the bottom of the window at every
-       size. That is what left the Hours tab 358px of empty white above its own
-       bar, and Settings 493px. The pane now takes only what it needs.
-
-       So the invariant is no longer "always zero". It is: the bar is FULLY ON
-       SCREEN, and it is on the floor exactly when the pane has more work than
-       window. Both facts are collected here and asserted together. */
-    bars: [...document.querySelectorAll(".col")].filter(vis).map((c) => {
-      const bar = c.querySelector(".col-save").getBoundingClientRect();
-      const pane = c.querySelector(".col-panes");
-      return { fromFloor: Math.round(innerHeight - bar.bottom),
-               onScreen: bar.top >= 0 && bar.bottom <= innerHeight + 1,
-               paneOverflows: pane.scrollHeight > pane.clientHeight + 1 };
-    }),
-    sidewaysScroll: document.documentElement.scrollWidth > document.documentElement.clientWidth,
+    elevators: cols.map((c) => c.getAttribute("data-elev")),
+    cellsPerElevator: { badger: shown("badger"), midwest: shown("midwest") },
+    months: sheet.querySelectorAll(".cell.mo[data-month]").length,
+    saves: [...sheet.querySelectorAll(".col-save .btn-go")].filter(vis).length,
+    sheetScrollsSideways: sheet.scrollWidth > sheet.clientWidth + 1,
+    pageScrollsSideways: document.documentElement.scrollWidth > innerWidth + 1,
+    clippedCells: cells.filter((c) => c.scrollWidth > c.clientWidth + 1 ||
+                                      c.scrollHeight > c.clientHeight + 1)
+      .map((c) => c.className.slice(0, 28)).slice(0, 4),
   };
 });
 
-/* Every save bar must be reachable, and it is on the floor exactly when its
-   pane has more to show than the window can hold. A bar off the bottom is the
-   serious one: the console pins the page (html{overflow:hidden}), so there is
-   no scrolling to it. That is the failure the first attempt at tightening the
-   short tabs produced, and this is what caught it. */
-function assertBars(bars, expected, where) {
-  assert.equal(bars.length, expected, `${where}: ${bars.length} save bars, expected ${expected}`);
-  bars.forEach((b, i) => {
-    assert.ok(b.onScreen, `${where}: save bar ${i} is off the screen (${b.fromFloor}px from the floor)`);
-    if (b.paneOverflows)
-      assert.equal(b.fromFloor, 0,
-        `${where}: save bar ${i} is ${b.fromFloor}px off the floor while its pane is still scrolling`);
-  });
-}
-
-/* ---- state one: two columns -------------------------------------------- */
-
-for (const [what, v] of [["on its own floor", LAYOUT.CONSOLE_EDGE], ["with room to spare", LAYOUT.CONSOLE],
-                         ["on a big monitor", { width: 2560, height: 1440 }]])
-  test(`TWO COLUMNS AND THE WHOLE BOARD — ${what} (${v.width}x${v.height})`, { skip: SKIP }, async () => {
-    const p = await open(v);
-    const r = await survey(p);
-    await p.done();
-    assert.deepEqual(r.columnsShown, ELEVATORS.map((e) => e.site), "both elevators must be on screen");
-    assert.deepEqual(r.columnsHidden, []);
-    assert.equal(r.switcher, false, "there is nothing left to switch between");
-    assert.equal(r.boardOnScreen, true,
-      "the shared board is the whole reason both columns are here and it is off the screen");
-    assert.equal(r.boardAboveColumns, true, "the board must sit above both columns, read once");
-    assert.equal(r.pageScrolls, false, "the console pins the page to the window");
-    assertBars(r.bars, 2, `${what} (${v.width}x${v.height})`);
-    assert.equal(r.sidewaysScroll, false);
-  });
-
-/* ---- state two: a short desk ------------------------------------------- */
-
-for (const [what, v] of [["one pixel under the floor", LAYOUT.SHORT_EDGE],
-                         ["a laptop", LAYOUT.SHORT]])
-  test(`A SHORT DESK KEEPS THE CONSOLE AND THE BOARD, and shows ONE elevator — ${what} (${v.width}x${v.height})`,
+for (const [what, v] of SIZES)
+  test(`BOTH ELEVATORS, THE WHOLE BOARD, AND NOTHING SIDEWAYS — ${what} (${v.width}x${v.height})`,
     { skip: SKIP }, async () => {
-    /* The state that exists because of the measurement. It is still a desk:
-       dark, dense, board on screen, weekly panel folded away. What it gives up
-       is the second column, and it gets tabs in exchange. */
-    const p = await open(v, { query: "?site=badger" });
-    const r = await survey(p);
-    const dark = await open(LAYOUT.CONSOLE);
-    const consoleInk = (await survey(dark)).ink;
-    await dark.done();
-    await p.done();
-    assert.deepEqual(r.columnsShown, ["badger"], "a short desk shows one elevator at a time");
-    assert.deepEqual(r.columnsHidden, ["midwest"]);
-    assert.equal(r.switcher, true, "with nothing to switch with, the second elevator is unreachable");
-    assert.equal(r.rareKey, true, "it is still the console: the rare panels still fold");
-    assert.equal(r.ink, consoleInk, "a short desk is a desk — it must not fall back to the light layout");
-    assert.equal(r.boardOnScreen, true, "the board is kept; that is the point of the state");
-    assert.equal(r.pageScrolls, false);
-    assertBars(r.bars, 1, `${what} (${v.width}x${v.height})`);
-  });
-
-/* ══════════════════════════════════════════════════════════════════════════
-   A SHORT TAB DOES NOT LEAVE HALF THE COLUMN EMPTY
-   ══════════════════════════════════════════════════════════════════════════
-   Measured 2026-08-31 at 1440x940, before: the Hours tab ended 358px above its
-   own save bar and Settings ended 493px above it -- half the column, white,
-   on the tab with the least in it. Not padding: Settings' whole card is 202px
-   of which 188px is heading and body. The pane was taking every remaining
-   pixel because it was flex:1 1 auto.
-
-   The two tabs that overflow are checked the other way in the tests above, and
-   they still put the bar on the floor. This one is about the two that do not.
-   Guarded as a MEASURED GAP rather than as a CSS keyword -- rule 32. */
-for (const tab of ["hours"])
-  test(`the ${tab} tab does not end in a field of white — the bar comes up to meet it`,
-    { skip: SKIP }, async () => {
-    const p = await open(LAYOUT.CONSOLE, { tab });
-    const r = await p.evaluate(() => [...document.querySelectorAll(".col")]
-      .filter((c) => getComputedStyle(c).display !== "none")
-      .map((c) => {
-        const cards = [...c.querySelectorAll(".card")]
-          .filter((x) => getComputedStyle(x).display !== "none");
-        const last = cards[cards.length - 1];
-        const bar = c.querySelector(".col-save");
-        return { elev: c.getAttribute("data-elev"), cards: cards.length,
-                 gap: Math.round(bar.getBoundingClientRect().top - last.getBoundingClientRect().bottom) };
-      }));
-    await p.done();
-    for (const c of r) {
-      assert.ok(c.cards > 0, `${c.elev} shows no cards on the ${tab} tab`);
-      assert.ok(c.gap >= 0 && c.gap <= 40,
-        `${c.elev}'s ${tab} tab leaves ${c.gap}px between its last card and its save bar`);
+    for (const tab of ["basis", "hours"]) {
+      const p = await open(v, { tab });
+      const r = await survey(p);
+      await p.done();
+      const at = `${tab} at ${v.width}x${v.height}`;
+      assert.deepEqual(r.elevators, ELEVATORS.map((e) => e.site),
+        `both elevators must be on the page — ${at}`);
+      for (const E of ELEVATORS)
+        assert.ok(r.cellsPerElevator[E.site] > 3,
+          `${E.name} has ${r.cellsPerElevator[E.site]} cells on screen — ${at}`);
+      assert.equal(r.saves, 2, `${r.saves} Save buttons on screen — ${at}`);
+      if (tab === "basis")
+        assert.equal(r.months, 11, `${r.months} of 11 months drawn — ${at}`);
+      assert.equal(r.sheetScrollsSideways, false, `the sheet scrolls sideways — ${at}`);
+      assert.equal(r.pageScrollsSideways, false, `the page scrolls sideways — ${at}`);
+      assert.deepEqual(r.clippedCells, [],
+        `cells clip their own content with no way to reach it — ${at}`);
     }
   });
 
-/* ---- state three: the roomy light layout ------------------------------- */
-
-for (const [what, v] of [["one pixel under the console", LAYOUT.ROOMY_EDGE],
-                         ["a small laptop", LAYOUT.ROOMY], ["a phone", LAYOUT.PHONE]])
-  test(`UNDER 1440 IT IS THE ROOMY LIGHT LAYOUT, one elevator at a time — ${what} (${v.width}x${v.height})`,
-    { skip: SKIP }, async () => {
-    const p = await open(v, { query: "?site=badger" });
-    const r = await survey(p);
-    const dark = await open(LAYOUT.CONSOLE);
-    const consoleInk = (await survey(dark)).ink;
-    await dark.done();
-    await p.done();
-    assert.deepEqual(r.columnsShown, ["badger"]);
-    assert.deepEqual(r.columnsHidden, ["midwest"]);
-    assert.equal(r.switcher, true);
-    assert.equal(r.rareKey, false,
-      "the panels do not fold here, so the key that folds them must not be offered");
-    assert.notEqual(r.ink, consoleInk, "this layer is deliberately the opposite of the console");
-    assert.equal(r.pageScrolls, true, "the document scrolls here; the panes do not");
-    assert.equal(r.sidewaysScroll, false, "the page must never scroll sideways");
+test("THE WHOLE BOARD IS ON A DESK WITHOUT SCROLLING", { skip: SKIP }, async () => {
+  /* The reason to put both elevators on one screen is a shared board, and a
+     board you have to scroll to is not shared -- you cannot compare a column
+     with a row you cannot see. Asserted at the smallest desk in the list, so it
+     holds everywhere above it. */
+  const p = await open(LAYOUT.SHORT_DESK, { tab: "basis" });
+  const r = await p.evaluate(() => {
+    const rows = [...document.querySelectorAll(".sheet .cell.mo[data-month]")];
+    const on = rows.filter((e) => {
+      const b = e.getBoundingClientRect();
+      return b.top >= 0 && b.bottom <= innerHeight && b.height > 0;
+    });
+    return { rows: rows.length, on: on.length,
+             missing: rows.filter((e) => !on.includes(e)).map((e) => e.textContent.trim()) };
   });
+  await p.done();
+  assert.equal(r.on, r.rows,
+    `${r.on} of ${r.rows} months on screen at 1440x700; off the bottom: ` +
+    JSON.stringify(r.missing));
+});
 
 test("the address only says which elevator opens focused; it no longer chooses one",
   { skip: SKIP }, async () => {
-  /* ?site= used to pick the elevator and an unknown value was a warning. Both
-     are on the page now, so there is nothing left for it to get wrong — an
-     unknown or absent value simply opens on Badger. The case of the KEY was
-     the old bug: ?SITE=midwest came back undefined and fell through. */
-  for (const [q, want] of [["?site=midwest", "midwest"], ["?SITE=MIDWEST", "midwest"],
-                           ["?site=BADGER", "badger"], ["?site=bogus", "badger"], ["", "badger"]]) {
-    const p = await open(LAYOUT.SHORT, { query: q });
-    const shown = await p.$eval(".floor", (e) => e.getAttribute("data-only"));
-    const hidden = await p.$eval(col(want === "badger" ? "midwest" : "badger"),
-      (e) => getComputedStyle(e).display);
+  /* ?site= used to pick which of the two forms was rendered. Both are always
+     rendered now, so the only thing left for it to do is say which one the
+     screen opens looking at -- and it must never take the other one away. */
+  for (const site of ["badger", "midwest"]) {
+    const p = await open(LAYOUT.CONSOLE, { query: `?site=${site}` });
+    const r = await survey(p);
     await p.done();
-    assert.equal(shown, want, `"${q}" opened on the wrong elevator`);
-    assert.equal(hidden, "none");
+    assert.deepEqual(r.elevators, ELEVATORS.map((e) => e.site),
+      `?site=${site} removed the other elevator from the page`);
+    for (const E of ELEVATORS)
+      assert.ok(r.cellsPerElevator[E.site] > 3,
+        `?site=${site} left ${E.name} with ${r.cellsPerElevator[E.site]} cells on screen`);
   }
 });
 
-test("both lockups are in the header, because both elevators are on the page",
-  { skip: SKIP }, async () => {
-  /* This used to assert the opposite — one mark, one colour — from when the
-     screen showed one elevator chosen by the address. A header naming one
-     elevator over a page carrying two is the same mistake wearing the other
-     hat. */
-  const p = await open(LAYOUT.CONSOLE);
-  const r = await p.evaluate(() => [...document.querySelectorAll(".marks .logo")]
-    .filter((e) => e.offsetParent).map((e) => e.textContent.replace(/\s+/g, " ").trim()));
-  await p.done();
-  assert.equal(r.length, 2, "the header shows " + r.length + " lockups over a page with two elevators");
-  for (const E of ELEVATORS)
-    assert.ok(r.some((t) => t.includes(E.name)), `${E.name} is not named in the header`);
-});
+test("THE CHOSEN ANSWER IS READABLE ON ITS OWN CHIP, in BOTH columns", { skip: SKIP }, async () => {
+  /* A chip carrying a solid accent takes ink for every scrap of text in it.
+     White on the Midwest green measured 3.04:1 once and a test caught it, not
+     my eye.
 
-test("the chosen answer is readable on its own chip, in BOTH columns", { skip: SKIP }, async () => {
-  /* A chip carrying a solid accent takes ink for every scrap of text in it,
-     including the small print, which inherits a grey that vanishes on gold.
-     White on the Midwest green measured 3.04:1 and a test caught it, not my
-     eye. Both columns, because the two accents are different colours. */
+     MEASURED ON THE PAINTED ELEMENT, which is the <span> inside the label. This
+     read the <label> itself, which has no background of its own -- so it was
+     comparing dark ink against a transparent box and reporting 1.16:1 on a chip
+     that is actually white on #12161a. A contrast test that measures the wrong
+     box is worse than none: it cries wolf until somebody deletes it.
+     Anything not rendered is skipped rather than measured -- the sub-labels
+     inside these chips are display:none in this layout, and a colour nobody can
+     see is not a contrast failure. */
   const lum = (c) => {
     const [r, g, b] = c.match(/\d+/g).slice(0, 3).map((n) => {
       const v = n / 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
     });
     return 0.2126 * r + 0.7152 * g + 0.0722 * b;
   };
-  const p = await open(LAYOUT.CONSOLE);
+  const p = await open(LAYOUT.CONSOLE, { tab: "hours" });
   const got = await p.evaluate(() => {
     const out = {};
     document.querySelectorAll(".col").forEach((c) => {
-      const chip = c.querySelector(".choice:has(input:checked)");
-      if (!chip) return;
+      const chip = c.querySelector(".choice:has(input:checked) > span");
+      if (!chip || !chip.getClientRects().length) return;
       const s = getComputedStyle(chip);
-      const small = chip.querySelector("small") || chip;
-      out[c.getAttribute("data-elev")] =
-        { bg: s.backgroundColor, ink: s.color, smallInk: getComputedStyle(small).color };
+      const parts = [["its text", s.color]];
+      chip.querySelectorAll("small").forEach((sm) => {
+        if (sm.getClientRects().length) parts.push(["its small print", getComputedStyle(sm).color]);
+      });
+      out[c.getAttribute("data-elev")] = { bg: s.backgroundColor, parts };
     });
     return out;
   });
   await p.done();
   for (const E of ELEVATORS) {
     const r = got[E.site];
-    assert.ok(r, `${E.name}: no chip is selected`);
-    for (const [what, ink] of [["its text", r.ink], ["its small print", r.smallInk]]) {
+    assert.ok(r, `${E.name}: no chip is selected, or none is on screen`);
+    assert.notEqual(r.bg, "rgba(0, 0, 0, 0)",
+      `${E.name}: the chip measured has no background of its own — this is measuring the wrong box`);
+    for (const [what, ink] of r.parts) {
       const [a, b] = [lum(r.bg), lum(ink)].sort((x, y) => y - x);
       const ratio = (a + 0.05) / (b + 0.05);
       assert.ok(ratio >= 4.5,
         `${E.name}: ${what} is ${ratio.toFixed(2)}:1 on the chosen chip, under the 4.5 floor`);
     }
   }
-});
-
-test("NOTHING IS CLIPPED WITH NO WAY TO REACH IT, in any state", { skip: SKIP }, async () => {
-  /* Older than this layout and it stands: `overflow:hidden` on the shell made
-     the page report itself as fitting while amputating the bottom of the bid
-     card. What does not fit gets a pane to move in. */
-  for (const v of [LAYOUT.CONSOLE_EDGE, LAYOUT.CONSOLE, LAYOUT.SHORT_EDGE, LAYOUT.SHORT,
-                   LAYOUT.ROOMY_EDGE, LAYOUT.ROOMY, LAYOUT.PHONE]) {
-    const p = await open(v, { query: "?site=badger" });
-    const r = await p.evaluate(() => {
-      const out = [];
-      document.querySelectorAll(".col").forEach((c) => {
-        if (getComputedStyle(c).display === "none") return;
-        const pane = c.querySelector(".col-panes");
-        const over = pane.scrollHeight - pane.clientHeight;
-        pane.scrollTop = pane.scrollHeight;
-        out.push({ elev: c.getAttribute("data-elev"), over, moved: pane.scrollTop > 0,
-                   docOver: document.documentElement.scrollHeight - document.documentElement.clientHeight,
-                   docScrolls: getComputedStyle(document.documentElement).overflow !== "hidden" });
-      });
-      return out;
-    });
-    await p.done();
-    for (const c of r)
-      assert.ok(c.over === 0 || c.moved || c.docScrolls,
-        `${c.elev} is clipped by ${c.over}px with nothing to scroll at ${v.width}x${v.height}`);
-  }
-});
-
-test("the phone can reach every Closed box and the We pay columns", { skip: SKIP }, async () => {
-  /* Measured at 390px before the fix: the weekly table rendered 590px wide
-     inside a 354px card with overflow:hidden, so all three Closed boxes sat off
-     the right edge with no scrollbar and nothing to pan — the single thing an
-     office is most likely to do from a phone could not be done at all. And the
-     We pay column, the one figure the elevator actually pays, was clipped 40px
-     outside a container whose overflow was hidden. */
-  const p = await open(LAYOUT.PHONE, { query: "?site=badger" });
-  for (const n of ["wk_closed", "sat_closed", "sun_closed"]) {
-    const fits = await p.$eval(`${col("badger")} [name=${n}]`, (e) => {
-      const b = e.getBoundingClientRect();
-      return b.left >= 0 && b.right <= document.documentElement.clientWidth && b.width > 0;
-    });
-    assert.ok(fits, `${n} is off the screen at 390px`);
-  }
-  assert.equal(await p.$eval(".board", (e) => getComputedStyle(e).overflowX), "auto");
-  assert.ok(await p.$eval(".board", (e) => e.scrollWidth <= e.clientWidth
-    || ((e.scrollLeft = e.scrollWidth), e.scrollLeft > 0)), "the board does not really scroll");
-  await p.done();
 });
 
 test("the sticky save bar does not sit on top of the field you are in", { skip: SKIP }, async () => {
@@ -343,6 +228,49 @@ test("a closed row does not grey out the box that reopens it", { skip: SKIP }, a
   await p.done();
 });
 
+test("NOTHING ENDS UP PERMANENTLY BEHIND THE STICKY SAVE BAR", { skip: SKIP }, async () => {
+  /* The save bar is `position: sticky; bottom: 0`, so on a phone content passes
+     UNDER it as you scroll -- which is what a bar under the thumb is supposed
+     to do, and is not a fault. What would be a fault is a row that is behind it
+     at every scroll position there is, because then a tick or a basis box
+     exists on the page and cannot be reached.
+
+     Measured while checking a phone render that looked as though the bar was
+     sitting on the banner controls: up to 46px of live cells sit behind it
+     mid-scroll on a 390px phone, and none of them at the bottom of the page.
+     So the claim is scrolled to the end and asked there. It is a different
+     claim from "the bar does not cover the field you are IN", which is WCAG
+     2.4.11 and has its own test above; this one is about the rows you have not
+     reached yet. */
+  for (const v of [LAYOUT.PHONE, { width: 360, height: 780 }, { width: 1259, height: 900 }]) {
+    for (const tab of ["basis", "hours"]) {
+      const p = await open(v, { tab });
+      await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await p.waitForTimeout(200);
+      const hidden = await p.evaluate(() => {
+        const bars = [...document.querySelectorAll(".sheet .cell.col-save")]
+          .map((b) => b.getBoundingClientRect()).filter((b) => b.height > 0);
+        const out = [];
+        for (const c of document.querySelectorAll(".sheet .cell:not(.col-save)")) {
+          const q = c.getBoundingClientRect();
+          if (!q.height || !/\S/.test(c.textContent) &&
+              !c.querySelector("input,textarea,select,button")) continue;
+          for (const b of bars) {
+            const ov = Math.min(b.bottom, q.bottom) - Math.max(b.top, q.top);
+            const ox = Math.min(b.right, q.right) - Math.max(b.left, q.left);
+            if (ov > 2 && ox > 2 && ov >= q.height - 2) out.push(c.className.slice(0, 24));
+          }
+        }
+        return [...new Set(out)];
+      });
+      await p.done();
+      assert.deepEqual(hidden, [],
+        `cells are wholly behind the save bar at the bottom of the page — ` +
+        `${tab} at ${v.width}x${v.height}`);
+    }
+  }
+});
+
 test("SAVE CAN BE PRESSED IN EVERY STATE, by mouse and by keyboard", { skip: SKIP }, async () => {
   /* The command bar is positioned three different ways across the three states
      — static on the console, sticky to the thumb below it — and in the console
@@ -353,8 +281,8 @@ test("SAVE CAN BE PRESSED IN EVERY STATE, by mouse and by keyboard", { skip: SKI
      A person's click does not scroll first and is unaffected, and this asserts
      that — the button is where it appears to be, a press there lands, and Enter
      on it lands too. */
-  for (const v of [LAYOUT.CONSOLE_EDGE, LAYOUT.SHORT_EDGE, LAYOUT.SHORT,
-                   LAYOUT.ROOMY, LAYOUT.PHONE]) {
+  for (const v of [LAYOUT.CONSOLE_EDGE, LAYOUT.SHORT_DESK, LAYOUT.SHORT,
+                   { width: 1259, height: 900 }, LAYOUT.ROOMY, LAYOUT.PHONE]) {
     const p = await openScreen(browser, dir, { viewport: v, query: "?site=badger" });
     await p.evaluate(() => {
       window.__sub = 0;
@@ -365,7 +293,7 @@ test("SAVE CAN BE PRESSED IN EVERY STATE, by mouse and by keyboard", { skip: SKI
     /* Below the console the form is several screens long and the bar follows
        the thumb, so the button has to be brought into view the way a person
        scrolls to it. */
-    if (v.width < 1440) await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
+    if (v.width < 1260) await p.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await p.waitForTimeout(120);
     await press(p, `${col("badger")} .btn-go`);
     const byMouse = await p.evaluate(() => window.__sub);

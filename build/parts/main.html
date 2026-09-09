@@ -1,0 +1,84 @@
+<!-- ══════════════ THE SHEET ══════════════
+     One grid, twelve columns, both elevators. The left six are the market and
+     Big River's board -- facts, not fields. Columns 7-9 are Badger's and 10-12
+     are Midwest's, on BOTH screens, so the elevator a cell belongs to is the
+     same place on the page whichever screen you are on.
+
+     WHY A GRID AND NOT A TABLE. Each elevator's controls have to sit inside
+     that elevator's own <form>, or one Save carries the other's work -- and a
+     <form> cannot wrap cells across the rows of a table. `display:contents` on
+     the column and its form lifts their cells into this grid, so the DOM keeps
+     the shape the forms need and the screen keeps the shape a person reads.
+     The roles below carry the table semantics the layout gave up. -->
+<div class="sheet" id="floor" role="table" aria-label="Both elevators">
+
+  <div class="cell hd grp" data-row="1" data-tab="basis" style="grid-column:1/7" role="columnheader">Market &amp; Big River &middot; Boyceville</div>
+  <div class="cell hd grp" data-row="1" data-tab="hours" style="grid-column:1/7" role="columnheader">What you are setting</div>
+  <div class="cell hd grp gb" data-row="1" style="grid-column:7/10" role="columnheader">Badger Grain Supply &middot; Wheeler</div>
+  <div class="cell hd grp gm" data-row="1" style="grid-column:10/13" role="columnheader">Midwest Commodity Service &middot; Baldwin</div>
+
+  <!-- Column headings. One set per screen, because the columns under them are
+       different things; the group row above is shared and never moves. -->
+  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:1">Month</div>
+  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:2">Contract</div>
+  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:3">Futures</div>
+  <!-- "Their quote" was column 4 and is gone; see drawBoard. Column 6 is now an
+       empty gutter between the board and the first elevator, sized 0px in the
+       template rather than renumbered, because the elevator groups, the save
+       bars and every `bc`/`abc` span on the hours screen are placed against
+       these numbers and renumbering one screen is how a heading ends up over
+       the wrong column. -->
+  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:4">Their basis</div>
+  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:5">Their bid</div>
+  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:7">Show</div>
+  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:8">Our basis</div>
+  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:9">On the site</div>
+  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:10">Show</div>
+  <div class="cell hd" data-row="2" data-tab="basis" style="grid-column:11">Our basis</div>
+  <div class="cell hd r" data-row="2" data-tab="basis" style="grid-column:12">On the site</div>
+
+  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:1/7">Setting</div>
+  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:7">Set</div>
+  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:8">Times or text</div>
+  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:10">Set</div>
+  <div class="cell hd" data-row="2" data-tab="hours" style="grid-column:11">Times or text</div>
+
+  <!-- The basis screen's own rows are drawn from the feed by drawBoard(); the
+       month cells on the left land here and each elevator's three cells land
+       inside its own form. The two static rows below sit above them: the
+       bucket basis a month falls back to when its own box is empty. -->
+  <div class="cell lab" data-row="91" data-tab="basis" style="grid-column:1/7">
+    <b>Post a price by hand</b>
+    <span class="sub">Break glass. Anything typed here overrides the feed until it is cleared.</span>
+  </div>
+
+
+  <!-- The hours screen's rows. Static: these are the same seven settings
+       whatever their board is doing today. -->
+  <div class="cell lab" data-row="3" data-tab="hours" style="grid-column:1/7">
+    <b>Today</b><span class="sub">The big box at the top of the site. <span class="who-day"></span></span>
+  </div>
+  <div class="cell lab" data-row="4" data-tab="hours" style="grid-column:1/7">
+    <b>Notice banner</b><span class="sub">The yellow bar under the logo. 160 characters.</span>
+  </div>
+  <div class="cell lab" data-row="5" data-tab="hours" style="grid-column:1/7">
+    <b>Monday to Friday</b><span class="sub">The regular week. Changes rarely.</span>
+  </div>
+  <div class="cell lab" data-row="6" data-tab="hours" style="grid-column:1/7"><b>Saturday</b></div>
+  <div class="cell lab" data-row="7" data-tab="hours" style="grid-column:1/7"><b>Sunday</b></div>
+  <!-- Said once, under the market columns, instead of twice under two Save
+       buttons. It was the same sentence in both elevators' save bars and it
+       was what made that row 131px tall. -->
+  <div class="cell foot-note" data-row="99" style="grid-column:1/7">
+    Save opens a GitHub page with this form already filled in.
+    <b>It is not saved until you press the green &ldquo;Submit new issue&rdquo; button there.</b>
+  </div>
+
+  <div class="cell lab" data-row="8" data-tab="hours" style="grid-column:1/7">
+    <b>Small print under the hours</b><span class="sub">Prints under the hours. 200 characters.</span>
+  </div>
+  <div class="cell lab" data-row="9" data-tab="hours" style="grid-column:1/7">
+    <b>Price note</b><span class="sub">Prints under the bid table. 240 characters. Keep the
+    last sentence: it ties a posted price to the drying schedule.</span>
+  </div>
+</div>
