@@ -87,7 +87,15 @@ test(`the chain, from the screen to the page a ${SITE_NAME} grower reads`,
     "the issue the screen built carries no months table:\n" + body.slice(0, 400));
   const applied = applyUpdate(form, {
     hours: { weekday: "8:00a to 5:00p" },
-    pricing: { basis: -0.75, basisHarvest: 0, spread: 0, contact: "x@example.com" },
+    /* THE SITE AS IT REALLY WAS BEFORE ITS FIRST MONTHS SAVE: on the spread
+       path, with NO site-wide basis. That is where both elevators started and
+       it is what badgergrain's file still looked like on 2026-09-09 -- spread
+       0, no `basis`, and a months table written over the top of it.
+       This carried `basis: -0.75` and that is why this test passed through the
+       ten hours badgergrain spent dark: applyUpdate merges into what it is
+       given, so a before-state WITH a basis produces an after-state with one,
+       and the combination that actually broke the site was never built here. */
+    pricing: { spread: 0, spreadHarvest: 0, contact: "x@example.com" },
     todayISO: "2026-09-08",
   });
   const months = applied.pricing.months;
@@ -107,12 +115,25 @@ test(`the chain, from the screen to the page a ${SITE_NAME} grower reads`,
     /* THE SITE'S OWN pricing.json, with only the fields this trip changed
        written over it. Typing the company and town here would prove the chain
        against a site that does not exist. */
-    writeFileSync(join(run, "pricing.json"), JSON.stringify({
-      ...JSON.parse(readFileSync(join(SITE, "pricing.json"), "utf8")),
-      basis: -0.75, basisHarvest: 0, spread: 0,
-      months: applied.pricing.months,
-      price_note: null, manual: null,
-    }));
+    /* WHAT THE APPLIER ACTUALLY PRODUCED, not a tidied version of it.
+       This used to write `basis: -0.75, basisHarvest: 0` into the file
+       alongside the months, and that one line is why this test passed while
+       badgergrain sat dark for ten hours on 2026-09-09. The applier does NOT
+       write a site-wide basis -- the fallback basis was removed from the screen
+       on 09-08 -- so the file it really produces has `months` and no `basis`,
+       which is the exact combination the site then refused to publish.
+       A chain test that improves the artefact between two links is not testing
+       the chain. Whatever `applyUpdate` returned for pricing is what goes on
+       disk, and the site is handed that. */
+    const onDisk = JSON.parse(readFileSync(join(SITE, "pricing.json"), "utf8"));
+    delete onDisk.basis; delete onDisk.basisHarvest;      // the spread-path site
+    const produced = { ...onDisk, ...applied.pricing,
+                       spread: 0, price_note: null, manual: null };
+    assert.ok(produced.months, "the applier produced no months table to hand the site");
+    assert.equal(produced.basis, undefined,
+      "the applier wrote a site-wide basis; this test is no longer modelling the " +
+      "file the office actually gets, which is the whole point of it");
+    writeFileSync(join(run, "pricing.json"), JSON.stringify(produced));
     process.chdir(run);
     const feed = feedFull();
     feed.checkedAt = new Date().toISOString();
