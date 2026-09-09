@@ -1,9 +1,15 @@
 {
  "schema": "emmert-admin-status/1",
- "generated": "2026-09-09T17:29:32.434Z",
- "ok": true,
- "blocking": 0,
- "findings": [],
+ "generated": "2026-09-09T19:28:00.945Z",
+ "ok": false,
+ "blocking": 1,
+ "findings": [
+  {
+   "site": "midwest",
+   "severity": "high",
+   "what": "the reading is only 0.2h old but the site is showing \"Call for today's price\" -- it is refusing a price it should be able to post"
+  }
+ ],
  "sites": [
   {
    "host": "badgergrain.com",
@@ -11,11 +17,11 @@
    "reached": true,
    "httpStatus": 200,
    "stampField": "observed",
-   "observedAt": "2026-09-09T16:54:39.256Z",
+   "observedAt": "2026-09-09T19:10:34.752Z",
    "rows": 11,
    "showsPrice": true,
    "callForPrice": true,
-   "ageMinutes": 35,
+   "ageMinutes": 17,
    "maxAgeH": 14,
    "hasWeekdayHours": true,
    "spread": 0,
@@ -26,18 +32,18 @@
    "name": "Midwest Commodity Service",
    "reached": true,
    "httpStatus": 200,
-   "stampField": "observed",
-   "observedAt": "2026-09-09T16:54:39.256Z",
-   "rows": 11,
-   "showsPrice": true,
+   "stampField": "generated",
+   "observedAt": "2026-09-09T19:17:33.322Z",
+   "rows": 0,
+   "showsPrice": false,
    "callForPrice": true,
-   "ageMinutes": 35,
+   "ageMinutes": 10,
    "maxAgeH": 14,
    "hasWeekdayHours": true,
    "spread": 0.1,
    "manualPrice": null
   }
  ],
- "run": "https://github.com/midwestagsupply/emmertadmin/actions/runs/34383213362",
+ "run": "https://github.com/midwestagsupply/emmertadmin/actions/runs/34395206700",
  "note": "Written by tools/watch-live.mjs on every run of watch-live.yml, whether it passed or failed. `generated` moves every run on purpose: a stamp that only advances when something is wrong cannot tell a quiet week from a watchdog that has stopped."
 }
