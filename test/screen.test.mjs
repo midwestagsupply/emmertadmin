@@ -947,6 +947,46 @@ const THEIRS = (m) => BOARD_ROWS_FULL.find((b) => b.delivery === m).basisDollars
    printing money here. And the figures the note was measured against are the
    board's own, which THE BOARD IS DRAWN FROM THE FEED checks row by row. */
 
+each("“NO BASIS SET YET” UNDERSTANDS THE MODEL THE SITE IS ACTUALLY ON", async (E) => {
+  /* THE FAULT, on Sig's own screen, 2026-09-09. He set Badger's basis, saved
+     it, the applier wrote it, the site published $4.54 off it -- and the red
+     warning went on saying "no basis set yet. Still pricing off the old $0.00
+     spread." He saved again. It stayed. It would have stayed forever.
+
+     The check read pricing.json's TOP-LEVEL `basis`, which is what the old
+     one-figure-per-site model wrote. The months model never writes it: it
+     writes months.<Month>.basis, one per delivery. So on any site that has
+     moved over, the condition was permanently true -- a red warning sitting
+     above boxes showing the right figures, on a site posting the right price.
+
+     Both directions are checked, because deleting the warning would also make
+     the first half pass. It has to stay silent on a site that IS priced and
+     stay loud on one that is not. */
+  const table = (pub) => Object.fromEntries(BOARD_ROWS_FULL.map((r) =>
+    [r.delivery, { basis: r.basisDollars, publish: pub.includes(r.delivery) }]));
+  const nobasis = (p) => warnings(p).then((w) => w.filter((t) => /no basis set yet/.test(t)));
+
+  for (const [what, pricing, shouldWarn] of [
+    ["a site still on the old spread", only({ spread: 0.1, spreadHarvest: 0 }), true],
+    ["a months table with nothing published", only({ spread: 0, months: table([]) }), true],
+    ["a published month whose basis is null",
+      only({ spread: 0, months: { September: { basis: null, publish: true } } }), true],
+    ["a site priced by its months table",
+      only({ spread: 0, months: table(["September", "October"]) }), false],
+    ["a site still carrying the single basis", only({ spread: 0, basis: -0.7 }), false],
+  ]) {
+    const p = await open({ tab: "basis", feed: feedFull(),
+                           sites: files({ [E.site]: { pricing } }) });
+    await p.waitForTimeout(700);
+    const w = await nobasis(p);
+    await p.done();
+    assert.equal(w.length > 0, shouldWarn,
+      shouldWarn
+        ? `${what}: the warning is silent on a site that cannot price a month`
+        : `${what}: the warning fires on a site that IS priced — ${JSON.stringify(w)}`);
+  }
+});
+
 each("BLANK AND A FIGURE MEAN OPPOSITE THINGS, and a typo is neither", async (E) => {
   /* WAS blank-versus-zero on the new-crop box, where blank meant "same as the
      cash basis" and zero meant "even with the contract" -- two states that had
@@ -1928,7 +1968,18 @@ for (const e of ELEVATORS) {
   });
 
   test(`A FILE WITH NO STAMP CLAIMS NOTHING — ${e.name}`, { skip: NO_BROWSER }, async () => {
-    const p = await open({ sites: files() });
+    /* THE STAMP IS STRIPPED HERE ON PURPOSE. This used to pass `files()` and
+       lean on the default fixture happening to carry no stamp -- so the day
+       the fixture gained one (2026-09-09, because the save bar's real width
+       turned out to matter for layout) this test started asserting that a
+       stamped file shows nothing, which is the opposite of what it means.
+       A test about the absence of a field says which field it removed. */
+    const bare = files();
+    for (const E of ELEVATORS) {
+      delete bare[E.site].pricing.updated_at; delete bare[E.site].pricing.updated_by;
+      delete bare[E.site].hours.updated_at;   delete bare[E.site].hours.updated_by;
+    }
+    const p = await open({ sites: bare });
     const line = (await p.textContent(`${col(e.site)} .saved`)) || "";
     assert.equal(line.trim(), "",
       `with no updated_at in the file the screen invented a last-changed line: ${JSON.stringify(line)}`);

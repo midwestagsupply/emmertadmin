@@ -261,9 +261,23 @@
              rather than eleven gaps. Track 6 is the gutter the "Their quote"
              cut left; it is the one place a deliberate space is wanted, so it
              is the one fixed non-zero gap. */
-          ? "max-content max-content max-content max-content max-content 26px " +
-            "max-content 112px max-content " +
-            "max-content 112px max-content minmax(0, 1fr)"
+          /* fit-content(), NOT max-content. THE FAULT, live 2026-09-09: Sig's
+             own screen scrolling sideways with a checkbox column 226px wide.
+             `max-content` lets ANY cell in a track set that track's width, and
+             the widest thing in these columns is not a figure -- it is the save
+             bar's own "Live on the site - last change Sep 4 7:52 AM by
+             midwestagsupply", which only exists once a site has been saved.
+             The test fixture never carried that line, so eleven window sizes
+             passed here and the real screen needed 1792px and cut Midwest off.
+             Measured both ways: with the line, SHOW resolved to 226px and the
+             sheet to 1792; without it, 58px and 1418.
+             fit-content(N) caps a track at N however wide its contents are, so
+             a long sentence in the save row wraps instead of shoving the board
+             sideways. The caps are each column's real content plus a little. */
+          ? "fit-content(190px) fit-content(96px) fit-content(122px) " +
+            "fit-content(98px) fit-content(98px) 26px " +
+            "fit-content(64px) 112px fit-content(112px) " +
+            "fit-content(64px) 112px fit-content(112px) minmax(0, 1fr)"
           /* The minimums add up to what the screen actually needs: two time
              boxes wide enough to show AM/PM is 256, and 130 + (100+256+120)*2
              is 1082, which fits the 1200px this layout starts at. The first

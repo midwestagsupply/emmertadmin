@@ -916,3 +916,11 @@ body[data-board="off"] .sheet [data-row="91"] .lab-when-down { display: block; }
    that its rows have a ceiling. The spare height lands under the last month,
    as one margin -- the same move the columns made sideways. */
 .sheet { align-content: start; }
+
+/* ---- the save bar may not size the board ------------------------------- */
+/* Its "Live on the site - last change ..." line is the widest thing in the
+   sheet, and it sits in the elevator's own columns. With max-content tracks it
+   set their width; the tracks are fit-content() now, which caps them, and this
+   lets the line wrap inside the bar rather than overflow it. */
+.sheet .cell.col-save { min-width: 0; }
+.sheet .cell.col-save .saved { min-width: 0; overflow-wrap: anywhere; }

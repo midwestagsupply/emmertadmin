@@ -214,8 +214,19 @@ export const SITE_FILES = {
        above it: it keeps the zero state under test on every load, and under
        the new model zero means "even with the contract" rather than "no
        spread", which is a different sentence for the same box. */
+    /* updated_at / updated_by ARE NOT DECORATION. The applier stamps every
+       file it writes, and the save bar prints "Live on the site - last change
+       Sep 4 7:52 AM by midwestagsupply" from them. That sentence is the widest
+       thing in the sheet, it sits in the elevator's own grid columns, and with
+       max-content tracks it was setting their width -- a 226px checkbox column
+       and a board that scrolled sideways on Sig's own screen.
+       This fixture carried neither field, so the save bar was three words long
+       in every test and eleven window sizes passed against a screen shape that
+       does not exist once a site has been saved once. Every site here has been
+       saved; the fixture says so now. */
     pricing: { basis: -0.75, basisHarvest: 0, spread: 0.10, spreadHarvest: 0,
-               price_note: PRICE_NOTE },
+               price_note: PRICE_NOTE,
+               updated_at: "2026-09-04T12:52:00.000Z", updated_by: "midwestagsupply" },
     bids: { bids: [{ delivery: "August", cashPrice: 4.03 }, { delivery: "September", cashPrice: 4.09 },
                    { delivery: "October", cashPrice: 4.18 }, { delivery: "November", cashPrice: 4.16 }] },
   },
@@ -225,7 +236,8 @@ export const SITE_FILES = {
              today_override: null, banner: null, hoursnote: HOURS_NOTE },
     /* No basisHarvest: absent means "same as the cash basis", which is the
        other half of the pair badger's zero covers. */
-    pricing: { basis: -0.87, spread: 0.12, price_note: PRICE_NOTE },
+    pricing: { basis: -0.87, spread: 0.12, price_note: PRICE_NOTE,
+               updated_at: "2026-09-08T17:38:49.726Z", updated_by: "midwestagsupply" },
     bids: { bids: [{ delivery: "August", cashPrice: 4.01 }, { delivery: "October", cashPrice: 4.15 }] },
   },
 };

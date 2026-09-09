@@ -594,6 +594,46 @@ js = sub(js,
     'var prevNotice = null; /* the banner preview column is gone; see col.html */',
     "banner preview: no element")
 
+# ── 5u4. "no basis set yet" was asking a question the months model answers ──
+# THE FAULT, live, 2026-09-09. Sig set Badger's basis, saved it, the applier
+# wrote it and the site published $4.54 off it -- and the red warning went on
+# saying "no basis set yet. Still pricing off the old $0.00 spread." He saved
+# again and it stayed. It would have stayed forever.
+#
+# The check reads pricing.json's TOP-LEVEL `basis`, which is the field the old
+# one-basis-per-site model wrote. The months model never writes it: it writes
+# `months.<Month>.basis`, one per delivery. So on any site that has moved over,
+# the condition is permanently true and the warning is permanently wrong --
+# while the boxes beside it show the right figures and the site posts the right
+# price. Verified against the live file: badgergrain's pricing.json carries a
+# full months table stamped 03:17 and no `basis` at all.
+#
+# The question the warning is FOR is "can this site price a month at all, or is
+# it still on the old spread?" So ask that: a months table with at least one
+# published month carrying a number is a site that is priced.
+js = sub(js,
+    """        if (pr.basis != null) {
+          if (pr.basisHarvest != null) put("spread_harvest", money2(pr.basisHarvest));
+          else put("spread_harvest", "");
+        } else {""",
+    """        /* PRICED, BY EITHER MODEL. The months table is how a site prices a
+           month now; `basis` is what the single-figure model wrote and is
+           absent on every site that has moved over. Asking only about `basis`
+           made this warning permanent -- see patch step 5u4. */
+        var pricedByMonth = (function () {
+          var t = pr.months;
+          if (!t || typeof t !== "object") return false;
+          for (var k in t)
+            if (Object.prototype.hasOwnProperty.call(t, k) && t[k] &&
+                t[k].publish === true && typeof t[k].basis === "number") return true;
+          return false;
+        })();
+        if (pr.basis != null || pricedByMonth) {
+          if (pr.basisHarvest != null) put("spread_harvest", money2(pr.basisHarvest));
+          else put("spread_harvest", "");
+        } else {""",
+    "the basis warning understands the months model")
+
 # ── 5v. the refusal no longer calls a month a box ──────────────────────────
 # The label reaching this sentence used to be a card's name ("Our basis — cash"),
 # so "the ... box" read correctly. Every box that reaches it now is one month in
