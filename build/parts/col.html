@@ -97,7 +97,7 @@
           <legend class="sr-only">Are you open today?</legend>
           <div class="choices">
             <label class="choice"><input type="radio" name="today" value="usual" checked>
-              <span>Usual<small data-id="usualSummary">8:00a to 5:00p weekdays, 8:00a to 12:00p Saturday</small></span></label>
+              <span>Usual<small data-id="usualSummary">8:00a to 4:30p weekdays, closed Saturday</small></span></label>
             <label class="choice"><input type="radio" name="today" value="custom">
               <span>Different<small>Set the times beside this</small></span></label>
             <label class="choice"><input type="radio" name="today" value="closed">
@@ -116,7 +116,7 @@
       <div class="cell ctl" data-row="3" data-tab="hours" data-col="b">
         <div class="times" data-id="todayTimes">
           <label class="fl sr-only" data-for="o">Opens</label><input data-id="o" type="time" name="open" value="08:00" data-sample-value="08:00">
-          <label class="fl sr-only" data-for="c">Closes</label><input data-id="c" type="time" name="close" value="17:00" data-sample-value="17:00">
+          <label class="fl sr-only" data-for="c">Closes</label><input data-id="c" type="time" name="close" value="16:30" data-sample-value="16:30">
         </div>
       </div>
 
@@ -141,11 +141,11 @@
       </div>
       <div class="cell ctl" data-row="5" data-tab="hours" data-col="b">
         <input type="time" name="wk_open" value="08:00" aria-label="Monday to Friday, opening time" data-sample-value="08:00">
-        <input type="time" name="wk_close" value="17:00" aria-label="Monday to Friday, closing time" data-sample-value="17:00">
+        <input type="time" name="wk_close" value="16:30" aria-label="Monday to Friday, closing time" data-sample-value="16:30">
       </div>
 
       <div class="cell ctl" data-row="6" data-tab="hours" data-col="a">
-        <label class="cl"><input type="checkbox" name="sat_closed" value="1" aria-label="Saturday, closed all day"> Closed</label>
+        <label class="cl"><input type="checkbox" name="sat_closed" value="1" aria-label="Saturday, closed all day" checked> Closed</label>
       </div>
       <div class="cell ctl" data-row="6" data-tab="hours" data-col="b">
         <input type="time" name="sat_open" value="08:00" aria-label="Saturday, opening time" data-sample-value="08:00">
