@@ -219,16 +219,78 @@ test("the alarm fires on the clock, because GitHub drops crons", () => {
   assert.match(say, /Call for today's price/, "it says what a customer will see");
 });
 
+/* THE GUARD WENT AFTER THE THING IT GUARDED -- 2026-09-12, live.
+ *
+ * This read badgergrain's file and THEN checked whether it had found anything:
+ *
+ *     const site = readFileSync(join(ROOT, "..", "badgergrain", ...));
+ *     const m = site.match(...);
+ *     if (!m) { assert.ok(true, "sibling site not checked out; skipped"); return; }
+ *
+ * readFileSync throws ENOENT before that line is ever reached. It passed here
+ * because the two sites happened to be sitting beside this repository; on a
+ * GitHub runner they are not. read.yml runs this file as its first step, so the
+ * FIRST live pass of the new reader failed at the gate, never read their board,
+ * and the feed sat at the seeded timestamp until it went cold.
+ *
+ * Exactly the same shape as the WASDE selftest earlier the same day: a check
+ * placed after the return it was meant to precede. Look for it.
+ *
+ * WHERE THE SITES ACTUALLY ARE. test.yml checks them out into `.sites/` and
+ * passes SITE_REPOS, which is where this comparison genuinely runs. read.yml
+ * checks out nothing but this repository -- deliberately, because the whole
+ * point of the mirror is that reading Boyceville depends on no other repo. So
+ * this looks in both places and skips, loudly and without throwing, when
+ * neither is there. */
+function siteMaxAgeH() {
+  const roots = [
+    ...(process.env.SITE_REPOS ? [join(process.env.SITE_REPOS, "badgergrain")] : []),
+    join(ROOT, "..", "badgergrain"),
+  ];
+  for (const r of roots) {
+    let src;
+    try { src = readFileSync(join(r, "tools", "update-prices.mjs"), "utf8"); }
+    catch { continue; }
+    const m = src.match(/const FEED_MAX_AGE_H\s*=\s*(\d+)/);
+    if (m) return Number(m[1]);
+    return null;   // found the file and not the constant -- that IS a failure
+  }
+  return undefined; // not checked out beside us; nothing to compare
+}
+
 test("the alarm threshold is the sites' withdrawal threshold", () => {
   /* If these two ever drift, either the sites go dark with nobody told, or an
      issue is opened about a price that is still on the page. */
   assert.equal(ALARM_AFTER_H, 4);
-  const site = readFileSync(join(ROOT, "..", "badgergrain", "tools", "update-prices.mjs"), "utf8");
-  const m = site.match(/const FEED_MAX_AGE_H\s*=\s*(\d+)/);
-  if (!m) { assert.ok(true, "sibling site not checked out; skipped"); return; }
-  assert.equal(Number(m[1]), ALARM_AFTER_H,
+  const h = siteMaxAgeH();
+  if (h === undefined) {
+    console.log("    (skipped: no badgergrain beside this repo and no SITE_REPOS. " +
+                "test.yml checks the sites out and runs this for real.)");
+    return;
+  }
+  assert.notEqual(h, null, "badgergrain/tools/update-prices.mjs no longer declares FEED_MAX_AGE_H");
+  assert.equal(h, ALARM_AFTER_H,
     "read.mjs alarms at ALARM_AFTER_H and the site withdraws at FEED_MAX_AGE_H; " +
     "they are the same fact and must be the same number");
+});
+
+test("AND IT DOES NOT THROW WHEN THEY ARE NOT THERE", () => {
+  /* The fix, tested directly rather than by inspection. Point the lookup at a
+     directory that does not exist and it must come back "nothing to compare",
+     not ENOENT. This is the whole difference between the gate skipping a
+     cross-repo check on a runner and the price read failing. */
+  const saved = process.env.SITE_REPOS;
+  process.env.SITE_REPOS = join(ROOT, "no-such-directory-anywhere");
+  try {
+    let out, threw = null;
+    try { out = siteMaxAgeH(); } catch (e) { threw = e; }
+    assert.equal(threw, null, "the gate threw instead of skipping: " + (threw && threw.message));
+    /* undefined when nothing is beside us either; a number when it is. Both are
+       fine. Throwing is not. */
+    assert.ok(out === undefined || typeof out === "number", String(out));
+  } finally {
+    if (saved === undefined) delete process.env.SITE_REPOS; else process.env.SITE_REPOS = saved;
+  }
 });
 
 /* ── timestamps are one type ───────────────────────────────────────────── */
