@@ -14,7 +14,7 @@
   <b class="brand">EMMERT</b>
   <nav class="tabs" id="rail" aria-label="Screens">
     <button type="button" class="rail-b" data-go="basis" aria-current="true">
-      <span class="rail-t">Basis</span><span class="rail-s">What we post under Big River</span>
+      <span class="rail-t">Basis</span><span class="rail-s">What we post under Bids</span>
     </button>
     <button type="button" class="rail-b" data-go="hours">
       <span class="rail-t">Hours &amp; notices</span><span class="rail-s">Today, the banner, the week</span>
@@ -90,7 +90,7 @@
      of them side by side under their common board is the whole reason this
      screen shows both elevators at once: a figure that has stopped tracking
      is visible at a glance instead of needing two tabs and arithmetic. -->
-<section class="strip" id="boardStrip" aria-label="Big River board">
+<section class="strip" id="boardStrip" aria-label="Bids board">
         <div class="feed is-ok" data-sample>
           <span class="feed-dot" aria-hidden="true"></span>
           <div class="feed-t">
@@ -138,7 +138,7 @@
      The roles below carry the table semantics the layout gave up. -->
 <div class="sheet" id="floor" role="table" aria-label="Both elevators">
 
-  <div class="cell hd grp" data-row="1" data-tab="basis" style="grid-column:1/7" role="columnheader">Market &amp; Big River &middot; Boyceville</div>
+  <div class="cell hd grp" data-row="1" data-tab="basis" style="grid-column:1/7" role="columnheader">Market &amp; Bids &middot; Boyceville</div>
   <div class="cell hd grp" data-row="1" data-tab="hours" style="grid-column:1/7" role="columnheader">What you are setting</div>
   <div class="cell hd grp gb" data-row="1" style="grid-column:7/10" role="columnheader">Badger Grain Supply &middot; Wheeler</div>
   <div class="cell hd grp gm" data-row="1" style="grid-column:10/13" role="columnheader">Midwest Commodity Service &middot; Baldwin</div>
@@ -1178,7 +1178,7 @@
         if (lagC) {
           var lg = document.createElement("span");
           lg.className = "lag";
-          lg.title = "Big River quote this contract at $" + quote.toFixed(4).replace(/0+$/, "") +
+          lg.title = "Bids quote this contract at $" + quote.toFixed(4).replace(/0+$/, "") +
                      ". The CBOT settle is $" + settle.toFixed(4).replace(/0+$/, "") +
                      ". The price is made from theirs.";
           lg.textContent = (lagC > 0 ? "+" : "") + lagC.toFixed(2) + "c";
@@ -1452,7 +1452,7 @@
       if (!w || w < 900) return;
       var half = Math.floor(w / 2), win;
       try {
-        win = window.open("", "bigriver", "popup=yes,width=" + (half - 8) + ",height=" + h +
+        win = window.open("", "bids", "popup=yes,width=" + (half - 8) + ",height=" + h +
           ",left=" + (availL + half) + ",top=" + availT);
       } catch (_) { return; }
       if (!win || win.closed) return;
@@ -1488,17 +1488,40 @@
    * tells the truth, because it went and looked.
    *
    * THE THRESHOLDS ARE THE CONSUMERS' OWN, not new ones invented here:
-   *   6h   the reader's heartbeat. Past this nothing has looked, and that is
-   *        worth knowing before it becomes a customer's problem.
-   *   14h  FEED_MAX_AGE_H in update-prices.mjs. Past this both sites have
+   *   1h   six consecutive failed passes. The reader runs every ten minutes
+   *        and rewrites data/index.json on every one of them, so an hour of
+   *        silence is a reader that has stopped, not a quiet market. Worth
+   *        knowing before it becomes a customer's problem.
+   *   4h   FEED_MAX_AGE_H in update-prices.mjs. Past this both sites have
    *        ALREADY withdrawn the price and are saying "call for today's
    *        price". By then it is not a warning, it is a report.
    *
+   * IT WAS 14h UNTIL 2026-09-12, and that was right while the feed came from
+   * dnilgis/bids: that reader heartbeats every six hours, so 14 meant it had
+   * missed two heartbeats in a row. This repository's reader rewrites
+   * data/index.json on EVERY pass, ten minutes apart, so four hours is
+   * twenty-four consecutive missed passes -- a far stronger statement than
+   * fourteen hours ever was, arrived at sooner.
+   *
    * The file is served with access-control-allow-origin:* so the browser is
    * allowed to ask, and with max-age=300, so an answer can be up to five
-   * minutes behind. Against a fourteen-hour threshold that does not matter,
-   * and saying so here stops somebody chasing it later. */
-  var FEED_URL = "https://raw.githubusercontent.com/dnilgis/bids/main/data/boyceville.json";
+   * minutes behind. Five minutes against four hours is still noise, and saying
+   * so here stops somebody chasing it later. */
+  /* OURS NOW. Both sites and this screen used to read dnilgis/bids, a
+     repository that reads 935 boards through a headless browser; its failures
+     were nothing to do with these two elevators and took their prices down
+     twice in two days. scripts/read.mjs in THIS repository reads Boyceville
+     directly and commits these two files. */
+  var FEED_URL = "https://raw.githubusercontent.com/midwestagsupply/emmertadmin/main/data/boyceville.json";
+  /* AND THE AGE IS MEASURED OFF THE INDEX, NOT OFF THE FEED FILE.
+     data/boyceville.json is rewritten when the price MOVES, or on a six-hour
+     heartbeat, so on a quiet afternoon its own checkedAt can be hours behind a
+     reader that has looked every ten minutes. data/index.json is rewritten on
+     every pass and carries the true time. Reading the feed file's timestamp
+     against a four-hour threshold would put this screen in the red over a
+     quiet market -- which is the same mistake the sites made until 2026-08-20,
+     and is why they read both. */
+  var INDEX_URL = "https://raw.githubusercontent.com/midwestagsupply/emmertadmin/main/data/index.json";
   /* Declared ONCE, here, beside FEED_URL. It used to live inside wire(),
      which meant the shared board strip -- which is not inside a column --
      could not reach it, and I wrote the address out again by hand. The
@@ -1506,7 +1529,16 @@
      only one of them will be changed". Exactly the fault the constant
      exists to prevent, reintroduced by the person who reads the rule. */
   var LIVE_BASE = "https://raw.githubusercontent.com/midwestagsupply/";
-  var HEARTBEAT_H = 6, CONSUMER_MAX_H = 14;
+  /* SIX HOURS OVER A FOUR-HOUR LIMIT IS A RUNG NOBODY CAN STAND ON.
+     HEARTBEAT_H was 6 because the old feed file was rewritten on a six-hour
+     heartbeat, so "nothing has looked for six hours" was the earliest honest
+     warning. With CONSUMER_MAX_H at 4, every age past 6 is also past 4, so the
+     warn band was unreachable: the panel went from green straight to "the
+     sites have already withdrawn", with no state in between and no chance for
+     the office to notice it coming. Caught by test/screen.test.mjs, which
+     asked for a warning at 7 hours and got a red one.
+     One hour is six consecutive failed passes of a ten-minute reader. */
+  var HEARTBEAT_H = 1, CONSUMER_MAX_H = 4;
   var fl = document.getElementById("feedLive");
   var flText = document.getElementById("feedLiveText");
   var flGo = document.getElementById("feedLiveGo");
@@ -1575,6 +1607,25 @@
         return r.json();
       })
       .then(function (j) {
+        /* THE DIRECTORY IS A NICETY, NOT A DEPENDENCY -- the same rule the two
+           sites follow. If it cannot be read, this falls back to the feed
+           file's own timestamp and behaves exactly as it did before the index
+           existed. A better clock is not worth a second thing that can turn
+           this panel red. */
+        return fetch(INDEX_URL + "?t=" + Date.now(), { cache: "no-store" })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .catch(function () { return null; })
+          .then(function (ix) {
+            var row = ix && (ix.sources || []).filter(function (x) {
+              return x && x.id === "boyceville"; })[0];
+            var t = row && Date.parse(row.checkedAt);
+            /* Never go backwards: if the directory somehow carries an older
+               time than the feed file, the feed file is the better answer. */
+            if (t && !(Date.parse(j.checkedAt) > t)) j.checkedAt = row.checkedAt;
+            return j;
+          });
+      })
+      .then(function (j) {
         var checked = Date.parse(j.checkedAt);
         if (!checked) throw new Error("the feed carried no readable timestamp");
         var h = (Date.now() - checked) / 36e5;
@@ -1593,8 +1644,11 @@
           setFeed("warn", "<strong>The feed was read " + hoursAgo(h) +
             " but is posting no rows.</strong> The sites will be showing no price.");
         else if (h > HEARTBEAT_H)
-          setFeed("warn", "<strong>Nothing has read the board for " + Math.round(h) +
-            " hours.</strong> The sites still trust it until " + CONSUMER_MAX_H +
+          /* hoursAgo() already ends in "ago" -- "for 2 hours ago" is what the
+             first draft of this line said, and it took a render to see it. */
+          setFeed("warn", "<strong>The board has not been read for a while.</strong> Last " +
+            "read " + hoursAgo(h) + ". It is read every ten minutes, so that is several " +
+            "readings in a row missed. The sites still trust it until " + CONSUMER_MAX_H +
             " hours, so nothing is wrong on the page yet. Worth a look if it climbs.");
         else
           setFeed("ok", "<strong>The price feed is live.</strong> Last read " + hoursAgo(h) +
@@ -1647,7 +1701,7 @@
        from the feed or they are not there at all, so the question this answers
        is now "did the read land", not "is that filler". */
     if (!boardDrawn) {
-      gwarn("Big River's board has not been read yet, so the months below are " +
+      gwarn("Bids' board has not been read yet, so the months below are " +
             "empty. Nothing here is a price.", "strip:filler");
     } else {
       gunwarn("strip:filler");
@@ -2133,7 +2187,7 @@
         return (month || "") +
                (quote != null ? (month ? " at " : "") + "$" + quote.toFixed(2) : "") +
                (theirBasis != null ? ((month || quote != null) ? " &middot; " : "") +
-                                     "Big River " + fmt(theirBasis) : "") +
+                                     "Bids " + fmt(theirBasis) : "") +
                versus(mine, theirBasis);
       }
 
