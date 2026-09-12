@@ -101,11 +101,29 @@ jobs:
       - name: Test the reader this pass is about to use
         run: node --test test/mirror.test.mjs test/fork.test.mjs
 
+      # continue-on-error, so the two steps below still run when the reader
+      # exits 1. It exits 1 only at the four-hour alarm -- which is precisely
+      # when data/index.json carrying `fails`, `failingSince` and `detail` most
+      # needs to reach the repository. It was being written in the workspace
+      # and thrown away with the runner, because the commit step is skipped
+      # after a failed step. The health file went silent at the one moment it
+      # was the whole point.
+      #
+      # `pipefail` so the reader's own exit code survives the pipe into tee;
+      # without it the step reports the exit code of tee, which is always 0.
       - name: Read their board
         id: read
-        run: node scripts/read.mjs | tee /tmp/read.log
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/read.mjs | tee /tmp/read.log
 
+      # always(), so a reader that exited 1 still gets its health file pushed --
+      # but not when the gate failed and the reader never ran, where there is
+      # nothing to commit and "Nothing changed." is just noise.
       - name: Commit what changed
+        if: always() && steps.read.outcome != 'skipped'
         run: |
           set -e
           git config user.name "Emmert Admin Bot"
@@ -147,7 +165,7 @@ jobs:
       # once worked and the four-minute cron lag had been the real mechanism
       # all along.
       - name: Nudge both sites
-        if: success()
+        if: steps.read.outcome == 'success'
         env:
           TOK: ${{ secrets.SITE_DISPATCH_TOKEN }}
         run: |
@@ -183,8 +201,19 @@ jobs:
       # about to go dark -- four hours with no successful read. A single failed
       # pass is ordinary and exits 0 with the reason in the log, because a red
       # run every time their site hiccups is a red run nobody looks at.
+      # ON THE ALARM ITSELF, NOT ON "SOMETHING WENT RED".
+      #
+      # This was `if: failure()`, which fires when any step fails. On
+      # 2026-09-12 the gate failed -- a test reading a sibling repository that
+      # is not checked out on a runner -- and this filed an issue saying both
+      # sites had withdrawn the price. They had not. The feed was fine.
+      #
+      # `steps.read.outputs.alarm` is written by read.mjs and is only ever "1"
+      # when the clock says four hours have passed with no successful read. A
+      # crash in the reader writes "0", because a crash is not evidence about
+      # the feed.
       - name: Say so, once, if the sites are about to go dark
-        if: failure()
+        if: steps.read.outputs.alarm == '1'
         uses: actions/github-script@v7
         with:
           script: |
@@ -226,3 +255,16 @@ jobs:
           { echo "### Boyceville"; echo ""; echo '```';
             cat /tmp/read.log 2>/dev/null || echo "the reader did not run";
             echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+
+      # THE RUN GOES RED LAST, AFTER THE HEALTH FILE IS SAFELY COMMITTED AND
+      # THE ISSUE IS FILED. Two different reasons, said apart, because "this
+      # run is red" is not a diagnosis.
+      - name: Fail the run, and say which kind of failure it was
+        if: steps.read.outcome == 'failure'
+        run: |
+          if [ "${{ steps.read.outputs.alarm }}" = "1" ]; then
+            echo "::error::Boyceville has been unreadable for over four hours. Both sites have withdrawn the price and are showing 'Call for today's price'. An issue is open."
+          else
+            echo "::error::scripts/read.mjs itself failed. This says nothing about their board -- the feed may be perfectly warm. See the log above."
+          fi
+          exit 1
