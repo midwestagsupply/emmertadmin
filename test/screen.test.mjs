@@ -1762,13 +1762,73 @@ test("A LIVE FEED SAYS SO, AND SAYS NOTHING NEEDS DOING", { skip: NO_BROWSER }, 
 });
 
 test("past the heartbeat it warns without crying wolf", { skip: NO_BROWSER }, async () => {
-  const r = await feedState(feedNow({ checkedAt: agoHours(7) }));
+  /* SEVEN HOURS USED TO BE THE WARNING BAND. It was, while the sites accepted
+     a feed up to fourteen hours old and the reader heartbeated every six. On
+     2026-09-12 the limit became four hours, so seven is past it -- the panel
+     correctly went red and this test correctly failed. The band is now one
+     hour to four: six or more consecutive failed passes of a ten-minute
+     reader, with the sites still publishing. */
+  const r = await feedState(feedNow({ checkedAt: agoHours(2) }));
   assert.match(r.cls, /is-warn/);
   assert.match(r.text, /nothing is wrong on the page yet/);
+  assert.match(r.text, /read every ten minutes/, "and it says why two hours is a lot");
 });
 
-test("PAST FOURTEEN HOURS IT REPORTS WHAT HAS ALREADY HAPPENED", { skip: NO_BROWSER }, async () => {
-  const r = await feedState(feedNow({ checkedAt: agoHours(16) }));
+test("AND THE BAND EXISTS AT ALL -- green to red with nothing between is not a ladder",
+     { skip: NO_BROWSER }, async () => {
+  /* The fault this catches: HEARTBEAT_H over CONSUMER_MAX_H. Then every age
+     past the heartbeat is also past the limit, the warn arm is dead code, and
+     the office gets no notice before customers do. It shipped that way for the
+     length of one test run. */
+  const hb = Number((await import("node:fs")).readFileSync(
+    new URL("../index.html", import.meta.url), "utf8").match(/HEARTBEAT_H\s*=\s*(\d+)/)[1]);
+  const max = Number((await import("node:fs")).readFileSync(
+    new URL("../index.html", import.meta.url), "utf8").match(/CONSUMER_MAX_H\s*=\s*(\d+)/)[1]);
+  assert.ok(hb < max,
+    `HEARTBEAT_H is ${hb} and CONSUMER_MAX_H is ${max}; there is no age that warns`);
+});
+
+test("the directory is a nicety, not a dependency", { skip: NO_BROWSER }, async () => {
+  /* If data/index.json cannot be read, the screen falls back to the feed
+     file's own checkedAt and behaves exactly as it did before the index
+     existed. A better clock must never be a second thing that can turn this
+     panel red. */
+  const p = await open({ feed: feedNow({ checkedAt: agoHours(0.1) }), index: null, settle: 0 });
+  await p.waitForFunction(() => {
+    const t = document.getElementById("feedLiveText");
+    return t && t.textContent && !/Asking the feed/.test(t.textContent);
+  });
+  const cls = await p.$eval("#feedLive", (e) => e.className);
+  const text = await p.$eval("#feedLiveText", (e) => e.textContent.replace(/\s+/g, " "));
+  await p.done();
+  assert.match(cls, /is-ok/, "an unreadable directory must not take the panel out of green");
+  assert.match(text, /price feed is live/);
+});
+
+test("and when the directory is FRESHER than the feed file, it is believed",
+     { skip: NO_BROWSER }, async () => {
+  /* The whole reason it is read. On a quiet afternoon the feed file's own
+     checkedAt is hours behind a reader that has looked every ten minutes; the
+     screen must report the reader, not the market. */
+  const stale = agoHours(5);              // past CONSUMER_MAX_H on its own
+  const p = await open({
+    feed: feedNow({ checkedAt: stale }),
+    index: { sources: [{ id: "boyceville", checkedAt: agoHours(0.1), health: "live" }] },
+    settle: 0,
+  });
+  await p.waitForFunction(() => {
+    const t = document.getElementById("feedLiveText");
+    return t && t.textContent && !/Asking the feed/.test(t.textContent);
+  });
+  const cls = await p.$eval("#feedLive", (e) => e.className);
+  await p.done();
+  assert.match(cls, /is-ok/,
+    "the feed file said five hours and the directory said six minutes; the panel " +
+    "reported five, so a quiet market reads as a dead reader");
+});
+
+test("PAST FOUR HOURS IT REPORTS WHAT HAS ALREADY HAPPENED", { skip: NO_BROWSER }, async () => {
+  const r = await feedState(feedNow({ checkedAt: agoHours(5) }));
   assert.match(r.cls, /is-bad/);
   assert.match(r.text, /showing .Call for today.s price. right now/);
   assert.match(r.text, /Post a price by hand/, "and it says what to do about it");

@@ -300,6 +300,9 @@ const json = (body) => ({
                it only says which column opens focused
      viewport  one of LAYOUT
      feed      the boyceville.json body, or null to make the read fail
+     index     the data/index.json body. Omitted, one is derived from `feed` so
+               the two agree; null makes the directory unreadable, which is the
+               case the screen must survive by falling back to `feed`
      sites     per-elevator { hours, pricing, bids }; a null value makes that
                file's read fail, which is a different thing from an empty one
      tab       name a rail section to open it for real; omitted, every card
@@ -334,6 +337,38 @@ export async function openScreen(browser, dir, opts = {}) {
   await context.route("**/agsist/main/data/prices.json*", (r) =>
     r.fulfill(json(opts.settles === undefined ? SETTLES : opts.settles)));
   await context.route("**/boyceville.json*", (r) => feed == null ? r.abort() : r.fulfill(json(feed)));
+  /* THE DIRECTORY, WHICH THE SCREEN NOW READS TOO.
+   *
+   * data/boyceville.json is rewritten when the price MOVES or on a six-hour
+   * heartbeat; data/index.json is rewritten on EVERY pass, so it is where the
+   * screen measures the feed's age. Without a handler here the catch-all above
+   * aborts it, which is not "the directory was unreadable" -- it is a failed
+   * request, and the browser logs one to the console, so "the screen loads
+   * clean" failed for a request the fixture had simply not planned for.
+   *
+   * ITS checkedAt IS DERIVED FROM THE FEED, never invented. The screen takes
+   * the FRESHER of the two, so an index with a clock of its own would quietly
+   * override the age every liveness test sets up through `feed` -- a fixture
+   * contradicting the scenario it was handed. Same value means the tests keep
+   * asking exactly what they asked before. Pass `index: null` to make the
+   * directory unreadable and prove the fallback, or `index: {...}` to make the
+   * two disagree on purpose. */
+  await context.route("**/data/index.json*", (r) => {
+    if (opts.index === null) return r.abort();
+    if (opts.index !== undefined) return r.fulfill(json(opts.index));
+    if (feed == null) return r.abort();
+    return r.fulfill(json({
+      generated: feed.checkedAt,
+      counts: { total: 1, live: 1, refused: 0, broken: 0, skipped: 0 },
+      sources: [{
+        id: "boyceville", operator: "Big River Resources", location: "Boyceville",
+        usState: "WI", checkedAt: feed.checkedAt, attemptedAt: feed.checkedAt,
+        pricedAt: feed.pricedAt ?? feed.checkedAt,
+        rows: (feed.bids || []).length, health: "live", status: feed.status ?? "ok",
+        fails: 0, failingSince: null, coldHours: 0, detail: null, commodities: ["Corn"],
+      }],
+    }));
+  });
   for (const e of ELEVATORS) {
     const f = sites[e.site] || {};
     for (const [file, body] of [["hours", f.hours], ["pricing", f.pricing], ["bids", f.bids]])

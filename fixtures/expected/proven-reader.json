@@ -1,0 +1,336 @@
+{
+  "bigriver-2121": {
+    "ok": true,
+    "file": {
+      "schema": "bigriver-boyceville/2",
+      "currency": "USD",
+      "currencyVia": "declared",
+      "source": {
+        "name": "Big River Resources",
+        "location": "Boyceville",
+        "locationId": "2121",
+        "zip": "54725",
+        "lat": 45.0494,
+        "lon": -91.97755,
+        "contact": {
+          "phone": "715-643-3133",
+          "email": null,
+          "website": "https://bigriverbids.com/cashbidssingle-2121"
+        },
+        "url": "https://bigriverbids.com/cashbidssingle-2121",
+        "note": "Their posted cash board, read by arrangement. Cash and basis are their own commercial numbers. The futures quote is carried only so a consumer can re-check cash minus basis; it is not redistributed as a price feed."
+      },
+      "checkedAt": "2026-09-12T14:00:00.000Z",
+      "pricedAt": "2026-09-12T14:00:00.000Z",
+      "status": "ok",
+      "count": 7,
+      "otherLocationsOnPage": [
+        "Dyersville (2162)",
+        "Monmouth (2165)"
+      ],
+      "bids": [
+        {
+          "seq": 0,
+          "commodity": "Corn",
+          "delivery": "August",
+          "futuresMonth": "Sep 26",
+          "cash": 4.075,
+          "basisDollars": -0.52,
+          "basisCents": -52,
+          "futuresPriceCents": 459.5
+        },
+        {
+          "seq": 1,
+          "commodity": "Corn",
+          "delivery": "September",
+          "futuresMonth": "Sep 26",
+          "cash": 4.135,
+          "basisDollars": -0.46,
+          "basisCents": -46,
+          "futuresPriceCents": 459.5
+        },
+        {
+          "seq": 2,
+          "commodity": "Corn",
+          "delivery": "October",
+          "futuresMonth": "Dec 26",
+          "cash": 4.29,
+          "basisDollars": -0.55,
+          "basisCents": -55,
+          "futuresPriceCents": 484
+        },
+        {
+          "seq": 3,
+          "commodity": "Corn",
+          "delivery": "November",
+          "futuresMonth": "Dec 26",
+          "cash": 4.29,
+          "basisDollars": -0.55,
+          "basisCents": -55,
+          "futuresPriceCents": 484
+        },
+        {
+          "seq": 4,
+          "commodity": "Corn",
+          "delivery": "December",
+          "futuresMonth": "Dec 26",
+          "cash": 4.34,
+          "basisDollars": -0.5,
+          "basisCents": -50,
+          "futuresPriceCents": 484
+        },
+        {
+          "seq": 5,
+          "commodity": "Corn",
+          "delivery": "January",
+          "futuresMonth": "Mar 27",
+          "cash": 4.3975,
+          "basisDollars": -0.6,
+          "basisCents": -60,
+          "futuresPriceCents": 499.75
+        },
+        {
+          "seq": 6,
+          "commodity": "Corn",
+          "delivery": "February",
+          "futuresMonth": "Mar 27",
+          "cash": 4.4175,
+          "basisDollars": -0.58,
+          "basisCents": -58,
+          "futuresPriceCents": 499.75
+        }
+      ]
+    },
+    "verified": 7,
+    "boardAt": [],
+    "dropped": 7,
+    "locations": [
+      "Boyceville (2121)",
+      "Dyersville (2162)",
+      "Monmouth (2165)"
+    ],
+    "withheld": [],
+    "unreconciled": []
+  },
+  "bigriver-2121-settled": {
+    "ok": true,
+    "file": {
+      "schema": "bigriver-boyceville/2",
+      "currency": "USD",
+      "currencyVia": "declared",
+      "source": {
+        "name": "Big River Resources",
+        "location": "Boyceville",
+        "locationId": "2121",
+        "zip": "54725",
+        "lat": 45.0494,
+        "lon": -91.97755,
+        "contact": {
+          "phone": "715-643-3133",
+          "email": null,
+          "website": "https://bigriverbids.com/cashbidssingle-2121"
+        },
+        "url": "https://bigriverbids.com/cashbidssingle-2121",
+        "note": "Their posted cash board, read by arrangement. Cash and basis are their own commercial numbers. The futures quote is carried only so a consumer can re-check cash minus basis; it is not redistributed as a price feed."
+      },
+      "checkedAt": "2026-09-12T14:00:00.000Z",
+      "pricedAt": "2026-09-12T14:00:00.000Z",
+      "status": "ok",
+      "count": 7,
+      "otherLocationsOnPage": [],
+      "bids": [
+        {
+          "seq": 0,
+          "commodity": "Corn",
+          "delivery": "August",
+          "futuresMonth": "Sep 26",
+          "cash": 4.21,
+          "basisDollars": -0.52,
+          "basisCents": -52,
+          "futuresPriceCents": 473
+        },
+        {
+          "seq": 1,
+          "commodity": "Corn",
+          "delivery": "September",
+          "futuresMonth": "Sep 26",
+          "cash": 4.27,
+          "basisDollars": -0.46,
+          "basisCents": -46,
+          "futuresPriceCents": 473
+        },
+        {
+          "seq": 2,
+          "commodity": "Corn",
+          "delivery": "October",
+          "futuresMonth": "Dec 26",
+          "cash": 4.43,
+          "basisDollars": -0.55,
+          "basisCents": -55,
+          "futuresPriceCents": 498
+        },
+        {
+          "seq": 3,
+          "commodity": "Corn",
+          "delivery": "November",
+          "futuresMonth": "Dec 26",
+          "cash": 4.43,
+          "basisDollars": -0.55,
+          "basisCents": -55,
+          "futuresPriceCents": 498
+        },
+        {
+          "seq": 4,
+          "commodity": "Corn",
+          "delivery": "December",
+          "futuresMonth": "Dec 26",
+          "cash": 4.48,
+          "basisDollars": -0.5,
+          "basisCents": -50,
+          "futuresPriceCents": 498
+        },
+        {
+          "seq": 5,
+          "commodity": "Corn",
+          "delivery": "January",
+          "futuresMonth": "Mar 27",
+          "cash": 4.5375,
+          "basisDollars": -0.6,
+          "basisCents": -60,
+          "futuresPriceCents": 513.75
+        },
+        {
+          "seq": 6,
+          "commodity": "Corn",
+          "delivery": "February",
+          "futuresMonth": "Mar 27",
+          "cash": 4.5575,
+          "basisDollars": -0.58,
+          "basisCents": -58,
+          "futuresPriceCents": 513.75
+        }
+      ]
+    },
+    "verified": 7,
+    "boardAt": [
+      "01:20 PM"
+    ],
+    "dropped": 0,
+    "locations": [
+      "Boyceville (2121)"
+    ],
+    "withheld": [],
+    "unreconciled": []
+  },
+  "bigriver-2121-lasttrade": {
+    "ok": true,
+    "file": {
+      "schema": "bigriver-boyceville/2",
+      "currency": "USD",
+      "currencyVia": "declared",
+      "source": {
+        "name": "Big River Resources",
+        "location": "Boyceville",
+        "locationId": "2121",
+        "zip": "54725",
+        "lat": 45.0494,
+        "lon": -91.97755,
+        "contact": {
+          "phone": "715-643-3133",
+          "email": null,
+          "website": "https://bigriverbids.com/cashbidssingle-2121"
+        },
+        "url": "https://bigriverbids.com/cashbidssingle-2121",
+        "note": "Their posted cash board, read by arrangement. Cash and basis are their own commercial numbers. The futures quote is carried only so a consumer can re-check cash minus basis; it is not redistributed as a price feed."
+      },
+      "checkedAt": "2026-09-12T14:00:00.000Z",
+      "pricedAt": "2026-09-12T14:00:00.000Z",
+      "status": "ok",
+      "count": 7,
+      "otherLocationsOnPage": [],
+      "bids": [
+        {
+          "seq": 0,
+          "commodity": "Corn",
+          "delivery": "August",
+          "futuresMonth": "Sep 26",
+          "cash": 4.1525,
+          "basisDollars": -0.52,
+          "basisCents": -52,
+          "futuresPriceCents": 467.25
+        },
+        {
+          "seq": 1,
+          "commodity": "Corn",
+          "delivery": "September",
+          "futuresMonth": "Sep 26",
+          "cash": 4.2125,
+          "basisDollars": -0.46,
+          "basisCents": -46,
+          "futuresPriceCents": 467.25
+        },
+        {
+          "seq": 2,
+          "commodity": "Corn",
+          "delivery": "October",
+          "futuresMonth": "Dec 26",
+          "cash": 4.3675,
+          "basisDollars": -0.55,
+          "basisCents": -55,
+          "futuresPriceCents": 491.75
+        },
+        {
+          "seq": 3,
+          "commodity": "Corn",
+          "delivery": "November",
+          "futuresMonth": "Dec 26",
+          "cash": 4.3675,
+          "basisDollars": -0.55,
+          "basisCents": -55,
+          "futuresPriceCents": 491.75
+        },
+        {
+          "seq": 4,
+          "commodity": "Corn",
+          "delivery": "December",
+          "futuresMonth": "Dec 26",
+          "cash": 4.4175,
+          "basisDollars": -0.5,
+          "basisCents": -50,
+          "futuresPriceCents": 491.75
+        },
+        {
+          "seq": 5,
+          "commodity": "Corn",
+          "delivery": "January",
+          "futuresMonth": "Mar 27",
+          "cash": 4.475,
+          "basisDollars": -0.6,
+          "basisCents": -60,
+          "futuresPriceCents": 507.5
+        },
+        {
+          "seq": 6,
+          "commodity": "Corn",
+          "delivery": "February",
+          "futuresMonth": "Mar 27",
+          "cash": 4.495,
+          "basisDollars": -0.58,
+          "basisCents": -58,
+          "futuresPriceCents": 507.5
+        }
+      ]
+    },
+    "verified": 7,
+    "boardAt": [
+      "08:36 AM",
+      "08:35 AM"
+    ],
+    "dropped": 0,
+    "locations": [
+      "Boyceville (2121)"
+    ],
+    "withheld": [],
+    "unreconciled": []
+  }
+}

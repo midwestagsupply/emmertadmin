@@ -1,0 +1,21 @@
+{
+  "note": "These three files are a FORK, copied byte for byte from dnilgis/bids. They are not a re-implementation. Every rule in them was written against a real incident on this board or another on the same platform, and re-deriving them by hand is how the nuance gets lost. The fork is the point: this repo must keep reading Boyceville when dnilgis/bids is down, being rewritten, or gone.",
+  "cost": "A fork does not receive later fixes. test/fork.test.mjs records what was copied so a future session can diff against dnilgis/bids and decide, rather than wonder.",
+  "repo": "https://github.com/dnilgis/bids",
+  "commit": "1ec1e55a420f516798d81517b6c332c901617d7c",
+  "copiedAt": "2026-09-12",
+  "files": {
+    "lib/board.mjs": {
+      "sha256": "45f553fe6c276adea8bd7db51c7e83e37ec91e79344c317afba0f676d9be14d3",
+      "bytes": 85790
+    },
+    "lib/parse.mjs": {
+      "sha256": "9dff1cb26c5efa92b0fd02b7dbf00833afb5802264899f093dffaf4a9392a94a",
+      "bytes": 34439
+    },
+    "lib/currency.mjs": {
+      "sha256": "7c65608d539615b7d572ec4d3ae2af5f9b1f210aff1eeb512f9805365cf041c8",
+      "bytes": 6651
+    }
+  }
+}

@@ -1,0 +1,32 @@
+{
+ "generated": "2026-09-12T14:20:19.242Z",
+ "note": "One source. This file is rewritten on EVERY pass, pass or fail, which is why the sites measure the feed's age against it rather than against data/boyceville.json -- that one is only rewritten when the price moves. SEEDED from the last read dnilgis/bids committed before the handover, so neither site sees an empty file or a withdrawal on the way in. The first pass of .github/workflows/read.yml replaces it.",
+ "counts": {
+  "total": 1,
+  "live": 1,
+  "refused": 0,
+  "broken": 0,
+  "skipped": 0
+ },
+ "sources": [
+  {
+   "id": "boyceville",
+   "operator": "Big River Resources",
+   "location": "Boyceville",
+   "usState": "WI",
+   "checkedAt": "2026-09-12T14:20:19.242Z",
+   "attemptedAt": "2026-09-12T14:20:19.242Z",
+   "pricedAt": "2026-09-12T12:51:14.992Z",
+   "rows": 11,
+   "health": "live",
+   "status": "ok",
+   "fails": 0,
+   "failingSince": null,
+   "coldHours": 0,
+   "detail": null,
+   "commodities": [
+    "Corn"
+   ]
+  }
+ ]
+}

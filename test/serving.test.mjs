@@ -41,10 +41,36 @@ test("the page names no host outside the allow-list", () => {
   }
 });
 
-test("prices come from the bids repo, and from nowhere else", () => {
+test("prices come from THIS repository, and from nowhere else", () => {
+  /* IT WAS dnilgis/bids UNTIL 2026-09-12, and this test is the reason the
+     change could not be half-done: it pinned the old address exactly, so the
+     cutover failed here until the screen was moved too. That is the guard
+     working, and it is why the new address is pinned just as exactly. */
   const m = html.match(/FEED_URL\s*=\s*"([^"]+)"/);
   assert.ok(m, "FEED_URL is gone — the price feed has moved or been renamed");
-  assert.equal(m[1], "https://raw.githubusercontent.com/dnilgis/bids/main/data/boyceville.json");
+  assert.equal(m[1],
+    "https://raw.githubusercontent.com/midwestagsupply/emmertadmin/main/data/boyceville.json");
+});
+
+test("and the age of the feed is measured off the index, not off the feed file", () => {
+  /* data/boyceville.json is rewritten when the price MOVES or on a six-hour
+     heartbeat; data/index.json is rewritten on EVERY pass. Against a four-hour
+     threshold, reading the feed file's own checkedAt would put this screen in
+     the red over a quiet market. The two sites already read both for exactly
+     this reason. */
+  const m = html.match(/INDEX_URL\s*=\s*"([^"]+)"/);
+  assert.ok(m, "INDEX_URL is gone — the feed line is back to measuring the wrong clock");
+  assert.equal(m[1],
+    "https://raw.githubusercontent.com/midwestagsupply/emmertadmin/main/data/index.json");
+});
+
+test("the screen withdraws at the same hour the sites withdraw", () => {
+  /* CONSUMER_MAX_H on this screen and FEED_MAX_AGE_H in each site are one
+     fact. If they drift, this panel says the price is fine while the sites have
+     taken it down, or the reverse -- and the office is looking at this panel. */
+  const m = html.match(/CONSUMER_MAX_H\s*=\s*(\d+)/);
+  assert.ok(m, "CONSUMER_MAX_H is gone");
+  assert.equal(Number(m[1]), 4);
 });
 
 test("site state comes from the site repos on GitHub", () => {
@@ -53,9 +79,9 @@ test("site state comes from the site repos on GitHub", () => {
   assert.equal(m[1], "https://raw.githubusercontent.com/midwestagsupply/");
 });
 
-test("EVERY FETCH IS BUILT FROM ONE OF THE THREE NAMED CONSTANTS", () => {
+test("EVERY FETCH IS BUILT FROM ONE OF THE FOUR NAMED CONSTANTS", () => {
   /* Catches the one that matters: a fetch() pointed somewhere new. Each call
-     has to be built from one of the two constants above, never from a literal —
+     has to be built from one of the named constants above, never from a literal —
      not because a literal is insecure today, but because there is then no
      single place to change when the answer moves, and the copy that gets
      forgotten is the one nobody is looking at.
@@ -74,8 +100,11 @@ test("EVERY FETCH IS BUILT FROM ONE OF THE THREE NAMED CONSTANTS", () => {
        address on this screen that is neither the reader nor a site. It is named
        for the same reason as the other two, and it is checked here for the same
        reason: a literal has no single place to change. */
-    assert.ok(/^(FEED_URL|LIVE_BASE|SETTLES_URL)\b/.test(c),
-      "fetch() target is a literal rather than one of the three constants — there are now two " +
+    /* INDEX_URL joined them on 2026-09-12, when the reader moved into this
+       repository. It is the fourth and it is named for the same reason as the
+       other three. */
+    assert.ok(/^(FEED_URL|INDEX_URL|LIVE_BASE|SETTLES_URL)\b/.test(c),
+      "fetch() target is a literal rather than one of the four constants — there are now two " +
       "copies of this address and only one of them will be changed: " + c.replace(/\s+/g, " "));
   }
 });
