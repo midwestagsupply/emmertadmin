@@ -56,6 +56,13 @@ on:
       - "lib/**"
       - "sources/boyceville.json"
       - ".github/workflows/read.yml"
+      # THE GATE COUNTS AS THE READER. The first live pass, 2026-09-12, failed
+      # in test/mirror.test.mjs -- it read a sibling repository that is not
+      # checked out on a runner -- so the board was never fetched and the feed
+      # sat at its seeded timestamp until it went cold. A fix to the gate has to
+      # be able to start a pass, or the only way back is a manual dispatch.
+      - "test/mirror.test.mjs"
+      - "test/fork.test.mjs"
 
 permissions:
   contents: write
