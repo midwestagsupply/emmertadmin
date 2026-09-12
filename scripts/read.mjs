@@ -44,13 +44,14 @@
    script does not reach into them. It just stops claiming a fresh read it
    did not get.
 */
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from "node:fs";
+import { readFileSync, writeFileSync, appendFileSync, mkdirSync } from "node:fs";
 import { buildFile, isRefusal, priceChanged, checkMove, serialise, MAX_MOVE }
   from "../lib/board.mjs";
 
 const SOURCE_PATH = new URL("../sources/boyceville.json", import.meta.url);
 const FEED_PATH   = new URL("../data/boyceville.json", import.meta.url);
 const INDEX_PATH  = new URL("../data/index.json", import.meta.url);
+const DATA_DIR    = new URL("../data/", import.meta.url);
 
 /* The heartbeat. Their board can sit unchanged from Friday afternoon to Monday
    morning and be entirely correct the whole time, so an unchanged file is not
@@ -201,11 +202,21 @@ export function alarm(index, now, { afterH = ALARM_AFTER_H } = {}) {
        + `"Call for today's price". Last message: ${s.detail || "none recorded"}`;
 }
 
+/* THE PATHS ARE ARGUMENTS SO THE WRITE PATH CAN BE TESTED AT ALL.
+ *
+ * They were module constants, which meant the only way to exercise a pass was
+ * against whatever happened to be committed in data/. That is why the first
+ * test written for the pricedAt bug PASSED WITH THE BUG STILL IN: the file on
+ * disk holds 11 rows and the fixture holds 7, so every test pass looked like a
+ * price move and the carry-forward it was meant to check never ran. A test
+ * that cannot reach the state it is about is not a test. */
 export async function run({ now = new Date(), fetchImpl = fetch, log = console.log,
-                            write = true, wait = sleep } = {}) {
+                            write = true, wait = sleep,
+                            feedPath = FEED_PATH, indexPath = INDEX_PATH,
+                            dataDir = DATA_DIR } = {}) {
   const source = JSON.parse(readFileSync(SOURCE_PATH, "utf8"));
-  const previousFeed = readJson(FEED_PATH);
-  const previousIndex = readJson(INDEX_PATH);
+  const previousFeed = readJson(feedPath);
+  const previousIndex = readJson(indexPath);
 
   log(`read: ${source.location} ${source.url}`);
   log(`      ${now.toISOString()}`);
@@ -259,17 +270,37 @@ export async function run({ now = new Date(), fetchImpl = fetch, log = console.l
     const dueH = Number.isFinite(prevChecked)
       ? (now.getTime() - prevChecked) / 36e5 : Infinity;
     const moved = priceChanged(previousFeed, file);
+
+    /* pricedAt IS THEIRS, AND IT IS DECIDED HERE -- NOT INSIDE THE WRITE.
+     *
+     * buildFile stamps pricedAt with `now`, because from where it sits every
+     * read is the first one. Carrying the previous value forward when the rows
+     * have not changed used to happen inside the `if` below, so it only ran on
+     * a pass that actually wrote the file. On every other pass `file.pricedAt`
+     * stayed at `now` -- and buildIndex was handed that.
+     *
+     * Measured live, 2026-09-12 13:35 CT, one hour after the mirror went up:
+     *
+     *     FEED  pricedAt  7:51:14AM     <- correct: when their board last moved
+     *     INDEX pricedAt  1:25:43PM     <- the moment of the last read
+     *
+     * Two files disagreeing about one fact, in a repository whose whole design
+     * is that pricedAt and checkedAt are different questions. Nothing consumed
+     * index.pricedAt yet, which is the only reason it was harmless -- and
+     * exactly why it would have been believed the first time something did.
+     *
+     * The decision belongs to the row comparison, so it is made where the row
+     * comparison is, once, before anything reads it. */
+    if (!moved && previousFeed?.pricedAt) file.pricedAt = iso(previousFeed.pricedAt);
+
     if (moved || dueH >= HEARTBEAT_H) {
-      /* pricedAt is THEIRS: the last time their board showed something
-         different. It survives a heartbeat, or the sites' "as of" line would
-         claim a price is fresher than it is. */
-      if (!moved && previousFeed?.pricedAt) file.pricedAt = previousFeed.pricedAt;
-      if (write) writeFileSync(FEED_PATH, serialise(file));
+      if (write) writeFileSync(feedPath, serialise(file));
       wroteFeed = true;
       log(`      wrote data/boyceville.json (${moved ? "price moved" : `heartbeat, ${dueH.toFixed(1)}h`})`);
     } else {
       log(`      data/boyceville.json unchanged (no move, heartbeat in ${(HEARTBEAT_H - dueH).toFixed(1)}h)`);
     }
+    log(`      their board last moved ${file.pricedAt}${moved ? " (this pass)" : ""}`);
   }
 
   const index = buildIndex({
@@ -280,8 +311,8 @@ export async function run({ now = new Date(), fetchImpl = fetch, log = console.l
     detail: failure?.message ?? null,
   });
   if (write) {
-    mkdirSync(new URL("../data/", import.meta.url), { recursive: true });
-    writeFileSync(INDEX_PATH, JSON.stringify(index, null, 1) + "\n");
+    mkdirSync(dataDir, { recursive: true });
+    writeFileSync(indexPath, JSON.stringify(index, null, 1) + "\n");
   }
   const row = index.sources[0];
   log(`      wrote data/index.json (health ${row.health}, fails ${row.fails}, `
@@ -297,10 +328,41 @@ export async function run({ now = new Date(), fetchImpl = fetch, log = console.l
  *
  * A single failed pass is ordinary -- their site hiccups, GitHub's runner has
  * a bad minute -- and a red run every time one happens trains everybody to
- * ignore red runs. The alarm is the signal that something is actually wrong,
- * and it opens an issue. So: exit 0 on a failed pass with the reason in the
- * log, exit 1 only once the clock says the sites are about to go dark. */
+ * ignore red runs. The alarm is the signal that something is actually wrong.
+ * So: exit 0 on a failed pass with the reason in the log, exit 1 only once the
+ * clock says the sites are about to go dark.
+ *
+ * AND IT SAYS SO IN A WAY THE WORKFLOW CAN TELL APART FROM A CRASH.
+ *
+ * `read.yml` used to open its "the feed is cold" issue on `if: failure()`,
+ * which fires when ANY step fails. So the gate failures of 2026-09-12 -- a test
+ * reading a repository that is not on the runner -- filed an issue announcing
+ * that both sites had withdrawn the price, at a moment when the feed was fine
+ * and nothing had withdrawn. An alarm that cries wolf is worse than no alarm:
+ * the next one gets ignored.
+ *
+ * The alarm is now written to GITHUB_OUTPUT as a fact, so the workflow can act
+ * on the alarm itself rather than on the exit code, which any step can produce
+ * for any reason. */
+function emit(name, value) {
+  const f = process.env.GITHUB_OUTPUT;
+  if (!f) return;
+  try {
+    const delim = "EOF_" + Math.random().toString(36).slice(2);
+    appendFileSync(f, `${name}<<${delim}\n${value}\n${delim}\n`);
+  } catch { /* not fatal: the log still carries it */ }
+}
+
 if (import.meta.url === `file://${process.argv[1]}`) {
-  run().then((r) => process.exit(r.alarm ? 1 : 0))
-       .catch((e) => { console.error("read.mjs itself crashed:", e); process.exit(1); });
+  run().then((r) => {
+    emit("alarm", r.alarm ? "1" : "0");
+    if (r.alarm) emit("alarm_text", r.alarm);
+    process.exit(r.alarm ? 1 : 0);
+  }).catch((e) => {
+    /* A crash is NOT an alarm. The feed may be perfectly warm; this script
+       fell over. Saying otherwise would file the wrong issue again. */
+    emit("alarm", "0");
+    console.error("read.mjs itself crashed:", e);
+    process.exit(1);
+  });
 }

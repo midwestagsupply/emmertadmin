@@ -17,7 +17,7 @@
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { readFileSync, mkdtempSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -341,4 +341,115 @@ test("the index carries what the sites look up, keyed the way they look it up", 
   assert.ok(row, "the sites find their source by id === 'boyceville'; renaming it " +
                  "disconnects both of them silently");
   assert.equal(typeof row.checkedAt, "string");
+});
+
+/* ── pricedAt IS THEIRS ─────────────────────────────────────────────────── */
+
+test("a pass that finds no move does not claim their board just moved", async () => {
+  /* Found live, 2026-09-12 13:35 CT, an hour after the mirror went up:
+     data/boyceville.json said their board last moved at 7:51am and
+     data/index.json said 1:25pm, off the same pass. buildFile stamps pricedAt
+     with `now`, and the carry-forward only ran inside the branch that writes
+     the feed file -- so every quiet pass handed buildIndex the wrong answer.
+
+     THE FIRST VERSION OF THIS TEST PASSED WITH THE BUG STILL IN. It ran
+     against the committed data/boyceville.json, which holds 11 rows while the
+     fixture holds 7 -- so every pass looked like a price move, the quiet path
+     was never reached, and the assertion held for the wrong reason. Mutation
+     testing caught that; nothing else would have. It now builds the quiet
+     state on purpose, in a temp directory. */
+  const { run } = await import("../scripts/read.mjs");
+  const html = readFileSync(join(ROOT, "fixtures/bigriver-2121.html"), "utf8");
+  const fetchImpl = async () => ({ ok: true, status: 200, text: async () => html });
+  const dir = mkdtempSync(join(tmpdir(), "quiet-"));
+  const feedPath = join(dir, "boyceville.json");
+  const indexPath = join(dir, "index.json");
+  const at = (t) => ({ now: new Date(t), fetchImpl, log: () => {}, wait: async () => {},
+                       feedPath, indexPath, dataDir: dir });
+
+  /* 08:00 -- nothing on file, so this pass IS when we first saw the board. */
+  const first = await run(at("2026-09-13T08:00:00Z"));
+  const THEIRS = "2026-09-13T08:00:00.000Z";
+  assert.equal(first.file.pricedAt, THEIRS);
+  assert.equal(first.index.sources[0].pricedAt, THEIRS);
+  assert.ok(first.wroteFeed, "the first pass must write the feed file");
+
+  /* 08:10 -- the same board, unchanged. Their board has not moved since 08:00,
+     whatever our clock says, and no heartbeat is due for another six hours. */
+  const second = await run(at("2026-09-13T08:10:00Z"));
+  assert.equal(second.wroteFeed, false, "a quiet pass must not rewrite the feed file");
+  assert.equal(second.file.pricedAt, THEIRS,
+    "pricedAt is THEIRS -- the last time their board showed something different");
+  assert.equal(second.index.sources[0].pricedAt, THEIRS,
+    "data/index.json claimed their board moved on a pass that found no change");
+  assert.equal(second.index.sources[0].checkedAt, "2026-09-13T08:10:00.000Z",
+    "checkedAt IS ours and must advance -- the two clocks are different questions");
+
+  /* And what is on disk still says 08:00, so the two files agree. */
+  const onDisk = JSON.parse(readFileSync(feedPath, "utf8"));
+  assert.equal(onDisk.pricedAt, THEIRS);
+  const ixDisk = JSON.parse(readFileSync(indexPath, "utf8"));
+  assert.equal(ixDisk.sources[0].pricedAt, onDisk.pricedAt,
+    "the feed file and the index disagree about when their board last moved");
+});
+
+test("and a pass that DOES find a move stamps it", async () => {
+  const { run } = await import("../scripts/read.mjs");
+  const dir = mkdtempSync(join(tmpdir(), "moved-"));
+  const feedPath = join(dir, "boyceville.json"), indexPath = join(dir, "index.json");
+  const serve = (name) => async () => ({ ok: true, status: 200,
+    text: async () => readFileSync(join(ROOT, "fixtures", name + ".html"), "utf8") });
+
+  await run({ now: new Date("2026-09-13T08:00:00Z"), fetchImpl: serve("bigriver-2121"),
+              log: () => {}, wait: async () => {}, feedPath, indexPath, dataDir: dir });
+  /* A different board: the seven-column capture, different rows. */
+  const moved = await run({ now: new Date("2026-09-13T09:00:00Z"),
+              fetchImpl: serve("bigriver-2121-lasttrade"),
+              log: () => {}, wait: async () => {}, feedPath, indexPath, dataDir: dir });
+
+  assert.ok(moved.wroteFeed, "a real move must be written");
+  assert.equal(moved.file.pricedAt, "2026-09-13T09:00:00.000Z",
+    "the rows changed, so THIS pass is when their board moved");
+  assert.equal(moved.index.sources[0].pricedAt, moved.file.pricedAt);
+});
+
+/* ── THE ALARM IS WIRED TO THE ALARM ────────────────────────────────────── */
+
+test("the issue is filed on the alarm, never on 'a step went red'", () => {
+  /* `if: failure()` fires when ANY step fails. On 2026-09-12 the gate failed
+     -- a test reading a repository that is not on a runner -- and the workflow
+     filed an issue announcing that both sites had withdrawn the price, at a
+     moment when the feed was fine. An alarm that cries wolf gets ignored. */
+  const yml = readFileSync(join(ROOT, ".github/workflows/read.yml"), "utf8");
+  const steps = yml.split(/\n      - name: /).slice(1);
+  const find = (frag) => steps.find((s) => s.startsWith(frag));
+
+  const issue = find("Say so, once, if the sites are about to go dark");
+  assert.ok(issue, "the issue step is gone");
+  const cond = (issue.match(/^\s*if: (.+)$/m) || [])[1] || "";
+  assert.match(cond, /steps\.read\.outputs\.alarm/,
+    "the issue must be gated on the reader's own alarm, not on the run's colour");
+  assert.doesNotMatch(cond, /^\s*failure\(\)/, "back to firing on any red step");
+
+  /* And the health file has to survive a reader that exited 1 -- which is
+     exactly the pass whose fails/failingSince/detail somebody needs. */
+  const commit = find("Commit what changed");
+  assert.match((commit.match(/^\s*if: (.+)$/m) || [])[1] || "", /always\(\)/,
+    "a four-hour-cold pass writes its health file and then loses it with the runner");
+
+  /* The reader is allowed to exit 1 without skipping those two steps. */
+  const read = find("Read their board");
+  assert.match(read, /continue-on-error: true/);
+  assert.match(read, /set -o pipefail/,
+    "without pipefail the exit code is tee's, which is always 0");
+});
+
+test("the reader tells the workflow the alarm as a fact, not as an exit code", async () => {
+  /* A crash must not read as an alarm: the feed may be perfectly warm and the
+     script simply fell over. */
+  const src = readFileSync(join(ROOT, "scripts/read.mjs"), "utf8");
+  const tail = src.slice(src.indexOf("if (import.meta.url"));
+  assert.match(tail, /emit\("alarm", r\.alarm \? "1" : "0"\)/);
+  assert.match(tail.slice(tail.indexOf(".catch")), /emit\("alarm", "0"\)/,
+    "a crash writes alarm=0; it is not evidence about their board");
 });

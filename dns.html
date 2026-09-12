@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pointing a domain at the site</title>
+<link rel="icon" href="assets/icon.png">
+<meta name="robots" content="noindex">
+<style>
+  /* FACES:self-hosted */
+  /* The faces already in this repository, used by the staff screen. Nothing
+     here calls out to another company: no font host, no analytics, no CDN.
+     Inter ships at 500 and up, so body text is 500 rather than 400. */
+  @font-face{font-family:"Inter";src:url("fonts/inter-500.woff2") format("woff2"),url("fonts/inter-500.woff") format("woff");font-weight:500;font-style:normal;font-display:swap}
+  @font-face{font-family:"Inter";src:url("fonts/inter-600.woff2") format("woff2"),url("fonts/inter-600.woff") format("woff");font-weight:600;font-style:normal;font-display:swap}
+  @font-face{font-family:"Inter";src:url("fonts/inter-700.woff2") format("woff2"),url("fonts/inter-700.woff") format("woff");font-weight:700;font-style:normal;font-display:swap}
+  /* /FACES:self-hosted */
+
+:root{
+  --sans:"Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --mono:ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  --paper:#eef0f1; --card:#ffffff; --card-2:#f6f7f8;
+  --ink:#13181c; --ink-2:#5b666e; --ink-3:#636d75;
+  --rule:#d3d9dd; --rule-2:#e6eaec;
+  --badger:#b8332a; --midwest:#1c5f52;
+  --flag:#8a5209; --flag-bg:#fdf3e3;
+  --ok:#1c5f52;
+  --shadow:0 1px 0 rgba(19,24,28,.05), 0 1px 3px rgba(19,24,28,.06);
+  color-scheme:light;
+}
+/* THE HANDBOOK IS LIGHT, like the console and both sites.
+     Removed 2026-08-31: "i also hate the dark background." The handbook is
+     read on a phone in the scale house, which is exactly where a page that
+     flips colour under the reader is least wanted. color-scheme:light is
+     declared on :root above so the browser paints its own furniture to match
+     rather than guessing from the system setting. */
+:root[data-theme="dark"]{
+  --paper:#101417; --card:#171d21; --card-2:#1d242a;
+  --ink:#e7ecee; --ink-2:#9ba7ae; --ink-3:#8a969e;
+  --rule:#2a3238; --rule-2:#222a2f;
+  --badger:#e0685c; --midwest:#5cae9b;
+  --flag:#e0aa5c; --flag-bg:#241d10;
+  --ok:#5cae9b;
+  --shadow:none;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px; line-height:1.55; font-weight:500;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1020px; margin:0 auto; padding:40px 24px 96px}
+
+/* ---- masthead ------------------------------------------------------- */
+.mast{border-bottom:2px solid var(--ink); padding-bottom:14px; margin-bottom:8px}
+.mast h1{
+  font-size:clamp(1.6rem,4vw,2.3rem); line-height:1.15; margin:0 0 6px;
+  font-weight:700; letter-spacing:-.015em; text-wrap:balance;
+}
+.mast p{margin:0; color:var(--ink-2); max-width:62ch}
+.stamp{
+  font-family:var(--mono);
+  font-size:.72rem; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-3); display:flex; gap:14px; flex-wrap:wrap;
+  padding:8px 0 0;
+}
+
+/* ---- section scaffolding -------------------------------------------- */
+section{margin-top:46px}
+.sechd{display:flex; align-items:baseline; gap:12px; border-bottom:1px solid var(--rule); padding-bottom:7px; margin-bottom:20px}
+.sechd h2{font-size:1.12rem; font-weight:600; margin:0; letter-spacing:-.005em}
+.sechd .tag{
+  font-family:var(--mono); font-size:.68rem;
+  letter-spacing:.14em; text-transform:uppercase; color:var(--ink-3); white-space:nowrap;
+}
+p{max-width:68ch}
+.lede{color:var(--ink-2)}
+
+/* ---- the three things ----------------------------------------------- */
+.trio{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:14px}
+.thing{background:var(--card); border:1px solid var(--rule); border-radius:3px; padding:16px 16px 14px; box-shadow:var(--shadow)}
+.thing .dot{width:9px;height:9px;border-radius:50%;display:inline-block;vertical-align:middle;margin-right:7px}
+.thing h3{margin:0 0 3px; font-size:1rem; font-weight:600}
+.thing .url{
+  font-family:var(--mono); font-size:.82rem;
+  color:var(--ink-2); word-break:break-all; display:block; margin-bottom:9px;
+}
+.thing dl{margin:0; font-size:.87rem; display:grid; grid-template-columns:auto 1fr; gap:2px 10px}
+.thing dt{color:var(--ink-3); font-family:var(--mono); font-size:.72rem; letter-spacing:.08em; text-transform:uppercase; padding-top:3px}
+.thing dd{margin:0; color:var(--ink)}
+
+/* ---- figure ---------------------------------------------------------- */
+figure{margin:0; background:var(--card); border:1px solid var(--rule); border-radius:3px; padding:20px 18px 12px; box-shadow:var(--shadow)}
+figure .scroll{overflow-x:auto}
+figure svg{display:block; width:100%; min-width:640px; height:auto; color:var(--ink)}
+figcaption{font-size:.85rem; color:var(--ink-2); margin-top:12px; border-top:1px solid var(--rule-2); padding-top:10px; max-width:70ch}
+
+/* ---- tables ---------------------------------------------------------- */
+.tw{overflow-x:auto; background:var(--card); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow)}
+table{border-collapse:collapse; width:100%; min-width:520px; font-size:.88rem}
+th,td{text-align:left; padding:9px 14px; border-bottom:1px solid var(--rule-2); vertical-align:top}
+thead th{
+  font-family:var(--mono); font-size:.68rem;
+  letter-spacing:.12em; text-transform:uppercase; color:var(--ink-3); font-weight:500;
+  border-bottom:1px solid var(--rule); background:var(--card-2);
+}
+tbody tr:last-child td{border-bottom:none}
+td.mono,.mono{font-family:var(--mono); font-variant-numeric:tabular-nums}
+
+/* ---- steps ----------------------------------------------------------- */
+.how{display:grid; grid-template-columns:repeat(auto-fit,minmax(290px,1fr)); gap:14px}
+.card{background:var(--card); border:1px solid var(--rule); border-radius:3px; padding:15px 17px 16px; box-shadow:var(--shadow)}
+.card h3{margin:0 0 10px; font-size:.95rem; font-weight:600}
+.card ol{margin:0; padding-left:0; list-style:none; counter-reset:s}
+.card ol li{counter-increment:s; position:relative; padding-left:27px; margin-bottom:7px; font-size:.89rem}
+.card ol li::before{
+  content:counter(s); position:absolute; left:0; top:1px;
+  font-family:var(--mono); font-size:.7rem; font-weight:600;
+  width:17px; height:17px; border-radius:2px; background:var(--card-2); border:1px solid var(--rule);
+  display:grid; place-items:center; color:var(--ink-2);
+}
+.card ol li:last-child{margin-bottom:0}
+kbd{
+  font-family:var(--mono); font-size:.82em;
+  background:var(--card-2); border:1px solid var(--rule); border-radius:2px; padding:1px 5px;
+}
+
+/* ---- flag ------------------------------------------------------------ */
+.flag{background:var(--flag-bg); border:1px solid var(--flag); border-left-width:3px; border-radius:3px; padding:14px 16px; margin-top:16px}
+.flag h3{margin:0 0 6px; font-size:.9rem; font-weight:600; color:var(--flag)}
+.flag p{margin:0 0 8px; font-size:.89rem}
+.flag p:last-child{margin-bottom:0}
+
+/* ---- faq ------------------------------------------------------------- */
+.faq{background:var(--card); border:1px solid var(--rule); border-radius:3px; box-shadow:var(--shadow)}
+.faq details{border-bottom:1px solid var(--rule-2)}
+.faq details:last-child{border-bottom:none}
+.faq summary{padding:12px 16px; cursor:pointer; font-weight:500; font-size:.92rem; list-style:none; display:flex; gap:10px; align-items:baseline}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"+"; font-family:var(--mono); color:var(--ink-3); font-weight:600}
+.faq details[open] summary::before{content:"\2212"}
+.faq details[open] summary{color:var(--ink); background:var(--card-2)}
+.faq .a{padding:2px 16px 15px 32px; font-size:.89rem; color:var(--ink-2)}
+.faq .a p{margin:0 0 8px; max-width:66ch}
+.faq .a p:last-child{margin-bottom:0}
+.faq .a strong{color:var(--ink)}
+summary:focus-visible,a:focus-visible{outline:2px solid var(--ink); outline-offset:2px}
+
+a{color:inherit; text-decoration-color:var(--ink-3); text-underline-offset:2px}
+a:hover{text-decoration-color:var(--ink)}
+code{font-family:var(--mono); font-size:.86em; background:var(--card-2); border:1px solid var(--rule-2); border-radius:2px; padding:.5px 4px}
+pre{background:var(--card-2); border:1px solid var(--rule); border-radius:3px; padding:12px 14px; overflow-x:auto; font-family:var(--mono); font-size:.8rem; line-height:1.5; margin:10px 0}
+
+.foot{margin-top:56px; border-top:1px solid var(--rule); padding-top:16px; font-size:.83rem; color:var(--ink-3); max-width:70ch}
+
+@media (prefers-reduced-motion: reduce){*{animation:none!important; transition:none!important}}
+@media print{
+  body{background:#fff; color:#000; font-size:11pt}
+  .wrap{max-width:none; padding:0}
+  section{break-inside:avoid; margin-top:22px}
+  .thing,.card,.tw,figure,.faq{box-shadow:none; break-inside:avoid}
+  .faq details{display:block}
+  .faq .a{display:block!important}
+  .faq summary::before{content:""}
+}
+
+.backlink{
+  display:inline-block; font-family:var(--mono); font-size:.74rem;
+  letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2);
+  text-decoration:none; border:1px solid var(--rule); border-radius:2px;
+  padding:5px 10px; margin-bottom:22px; background:var(--card);
+}
+.backlink:hover{color:var(--ink); border-color:var(--ink-3)}
+@media print{.backlink{display:none}}
+</style>
+<style>
+/* THIS PAGE ONLY. The block above is handbook.html's, copied byte for byte so
+   the two look like one document and there is one stylesheet to change. These
+   three rules are what this page's own content needs and the handbook's does
+   not, so they live here rather than being pushed back into the shared block
+   where they would be dead weight on every other page.
+
+   Measured at 320px before and after: the page scrolled sideways by 74px, and
+   a doc that scrolls sideways is a doc somebody reads half of on a phone in a
+   scale house. */
+
+/* 1. AN ADDRESS IS ONE LONG UNBREAKABLE WORD.
+      "midwestagsupply.github.io/badgergrain/" is 38 characters with nowhere to
+      wrap, so it pushed a paragraph 98px past the edge. Only in running text --
+      table cells stay unbroken, because a column of IP addresses that wraps
+      mid-number is harder to type from, and the table already scrolls. */
+p .mono, li .mono, dd .mono{overflow-wrap:anywhere}
+
+/* 2. THREE CARDS THAT WILL NOT GO BELOW 290px, IN 272px OF PHONE.
+      The shared rule is minmax(290px,1fr), which auto-fit cannot shrink past.
+      Under 360 they go to one column and the floor comes off. */
+@media (max-width:360px){
+  .how, .trio{grid-template-columns:1fr}
+  .card, .thing{min-width:0}
+}
+
+/* 3. The four-address table is the one a person types from, so it keeps its
+      own tighter minimum rather than the shared 520 -- less sideways travel
+      inside the box for the table that gets read most. */
+.tw table.addr{min-width:380px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="backlink" href="./">&larr; Back to the staff screen</a>
+
+<header class="mast">
+  <h1>Pointing a domain at the site</h1>
+  <p class="lede">For Kristi. What to change in GoDaddy so a domain you own opens
+  Badger Grain Supply or Midwest Commodity Service instead of a parked page.
+  Everything here is done in a browser. Nothing here can change a price.</p>
+</header>
+<p class="stamp">Written 12 September 2026 &middot; addresses read from GitHub's own documentation the same day</p>
+
+<section>
+  <div class="sechd"><h2>Read this bit first</h2><span class="tag">2 minutes</span></div>
+
+  <p>The sites themselves are already built and already live. They sit at addresses
+  that look like <span class="mono">midwestagsupply.github.io/badgergrain/</span>.
+  What you are doing is telling a domain name you own to open one of them.</p>
+
+  <p>DNS is the phone book of the internet. You are editing one company's entry in
+  it. Two things follow from that, and they are the only two things that can go
+  wrong here:</p>
+
+  <div class="flag">
+    <h3>If the domain is used for email, stop</h3>
+    <p>Look for rows of type <span class="mono">MX</span> before you change anything.
+    If there are any, that domain carries somebody's email. Changing the wrong row
+    stops mail arriving, and it can take a day to notice and a day to undo.</p>
+    <p><strong>Do not guess. Close the tab and ring Sig.</strong> He will tell you
+    in a minute whether it is safe, and nothing is lost by asking.</p>
+  </div>
+
+  <p>The second thing: a change is not instant. Somewhere between a few minutes and
+  a few hours, depending on how long the old answer was told to be remembered. If
+  it has not worked after an hour, that is normal. If it has not worked the next
+  morning, something is wrong and it is worth a call.</p>
+</section>
+
+<section>
+  <div class="sechd"><h2>The three jobs</h2><span class="tag">what you will actually do</span></div>
+
+  <p>Every domain needs one of these three, not all of them. Which one depends on
+  what that domain is for. The table in the next section says which.</p>
+
+  <div class="how">
+    <div class="card">
+      <h3>Job 1 &mdash; the plain domain</h3>
+      <ol>
+        <li>Delete any existing <span class="mono">A</span> row whose Name is
+            <span class="mono">@</span>.</li>
+        <li>Add four new <span class="mono">A</span> rows, Name
+            <span class="mono">@</span>, one for each address in the box below.</li>
+        <li>Leave TTL on whatever GoDaddy suggests. It does not matter here.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Job 2 &mdash; the www version</h3>
+      <ol>
+        <li>Find the row with Name <span class="mono">www</span>.</li>
+        <li>Make it type <span class="mono">CNAME</span> pointing at
+            <span class="mono">midwestagsupply.github.io</span>.</li>
+        <li>If there is no www row, add one.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Job 3 &mdash; a domain that just forwards</h3>
+      <ol>
+        <li>Leave DNS alone entirely.</li>
+        <li>In GoDaddy, open <em>Domain Settings</em> and find
+            <em>Forwarding</em>.</li>
+        <li>Forward to the real address, permanent (301), forward only.</li>
+      </ol>
+    </div>
+  </div>
+
+  <p>Job 3 is for a spare domain that should simply send people to the main one.
+  It does not need any of Job 1 or Job 2, and doing both is how a domain ends up
+  in a loop.</p>
+</section>
+
+<section>
+  <div class="sechd"><h2>The four addresses</h2><span class="tag">type them exactly</span></div>
+
+  <p>These are GitHub's, they are the same for every site they host, and they do not
+  change. Four rows, all Name <span class="mono">@</span>, all type
+  <span class="mono">A</span>.</p>
+
+  <div class="tw">
+  <table class="addr">
+    <thead><tr><th>Type</th><th>Name</th><th>Value</th><th>Why four</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">A</td><td class="mono">@</td><td class="mono">185.199.108.153</td>
+          <td rowspan="4">Four machines in different places. If one is down the domain
+          still opens. Missing one out does not break it today and makes it fragile
+          later, so put in all four.</td></tr>
+      <tr><td class="mono">A</td><td class="mono">@</td><td class="mono">185.199.109.153</td></tr>
+      <tr><td class="mono">A</td><td class="mono">@</td><td class="mono">185.199.110.153</td></tr>
+      <tr><td class="mono">A</td><td class="mono">@</td><td class="mono">185.199.111.153</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>There is a modern kind of address as well, called <span class="mono">AAAA</span>.
+  It is optional. Add it only if you are comfortable; the site works without it.</p>
+
+  <div class="tw">
+  <table class="addr">
+    <thead><tr><th>Type</th><th>Name</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">AAAA</td><td class="mono">@</td><td class="mono">2606:50c0:8000::153</td></tr>
+      <tr><td class="mono">AAAA</td><td class="mono">@</td><td class="mono">2606:50c0:8001::153</td></tr>
+      <tr><td class="mono">AAAA</td><td class="mono">@</td><td class="mono">2606:50c0:8002::153</td></tr>
+      <tr><td class="mono">AAAA</td><td class="mono">@</td><td class="mono">2606:50c0:8003::153</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Which domain gets what</h2><span class="tag">fill this in with Sig</span></div>
+
+  <p>Two of these are already known. The rest of the list is whatever else is in the
+  GoDaddy account, and the right-hand column is a decision, not something this page
+  can work out. Go through it with Sig once and then work down it.</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>Domain</th><th>Should open</th><th>Jobs</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td class="mono">badgergrain.com</td><td>Badger Grain Supply</td>
+          <td>1 and 2</td><td>Already set up. Nothing to do unless it stops working.</td></tr>
+      <tr><td class="mono">midwestcommodity.com</td><td>Midwest Commodity Service</td>
+          <td>1 and 2</td><td>Already set up. Nothing to do unless it stops working.</td></tr>
+      <tr><td class="mono">midwestagsupply.com</td><td colspan="3"><strong>Leave alone.</strong>
+          Do not change any row on this one without talking to Sig first.</td></tr>
+      <tr><td class="mono">&nbsp;</td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">&nbsp;</td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">&nbsp;</td><td></td><td></td><td></td></tr>
+      <tr><td class="mono">&nbsp;</td><td></td><td></td><td></td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <p>Once a domain is decided, one more thing has to happen on our side before it
+  will work: the site has to be told to answer to that name. That is a two-minute
+  job for Sig in the repository settings, and it has to be done for each domain.
+  A domain pointed at us that we have not been told about shows a "404" page.</p>
+</section>
+
+<section>
+  <div class="sechd"><h2>Doing it in GoDaddy</h2><span class="tag">click by click</span></div>
+
+  <div class="how">
+    <div class="card">
+      <h3>Getting to the right screen</h3>
+      <ol>
+        <li>Sign in at <span class="mono">godaddy.com</span>.</li>
+        <li>Your name, top right, then <em>My Products</em>.</li>
+        <li>Find the domain in the list. Press <em>DNS</em> beside it.</li>
+        <li>You are now looking at every row in that domain's phone book entry.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Before you touch anything</h3>
+      <ol>
+        <li>Read down the Type column.</li>
+        <li>See an <span class="mono">MX</span> row? Stop. Ring Sig.</li>
+        <li>Otherwise, take a photo of the screen with your phone. That is your
+            undo, and it costs five seconds.</li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Making the change</h3>
+      <ol>
+        <li><em>Add New Record</em> to add a row; the pencil to change one; the bin
+            to delete one.</li>
+        <li>Do the jobs the table calls for, then <em>Save</em>.</li>
+        <li>GoDaddy sometimes writes the name as <span class="mono">@</span> and
+            sometimes shows the domain itself. Both mean the same thing.</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>How to tell it worked</h2></div>
+
+  <p>Open the domain in a browser. You are looking for the grain board, the hours,
+  and the phone number. Two things that are <em>not</em> failures:</p>
+
+  <div class="tw">
+  <table>
+    <thead><tr><th>What you see</th><th>What it means</th><th>Do</th></tr></thead>
+    <tbody>
+      <tr><td>The old parked page</td>
+          <td>Your computer is still remembering the old answer.</td>
+          <td>Try it on your phone with wi-fi off. If the phone shows the site, it worked.</td></tr>
+      <tr><td>A warning about the connection not being private</td>
+          <td>The security certificate is still being issued. It is automatic and it
+              takes up to a few hours after the DNS change.</td>
+          <td>Leave it. Check again after lunch.</td></tr>
+      <tr><td>A GitHub "404" page</td>
+          <td>DNS worked. The site has not been told to answer to this name yet.</td>
+          <td>Tell Sig which domain. It is a two-minute job at his end.</td></tr>
+      <tr><td>Nothing loads at all, next morning</td>
+          <td>Something in the rows is not right.</td>
+          <td>Send Sig a photo of the DNS screen.</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <div class="sechd"><h2>Questions people ask</h2></div>
+  <div class="faq">
+    <details><summary>Can I break the prices doing this?</summary>
+      <div class="a"><p>No. The prices are read and published by something else
+      entirely. The worst that happens here is that a domain does not open the site,
+      which is where several of them are starting from anyway.</p></div></details>
+    <details><summary>Can I break the email doing this?</summary>
+      <div class="a"><p>Yes, if you delete an <span class="mono">MX</span> row. That
+      is the one real risk on this page, and it is why the rule at the top is to stop
+      and ring rather than to be careful. Nothing else on the screen matters as
+      much.</p></div></details>
+    <details><summary>It has been ten minutes and nothing has changed.</summary>
+      <div class="a"><p>Normal. Anywhere up to a few hours. Check on a phone with
+      wi-fi turned off, because a phone on mobile data has not been told the old
+      answer.</p></div></details>
+    <details><summary>Do I need the AAAA rows?</summary>
+      <div class="a"><p>No. They are the newer kind of address and the site works
+      without them. Add them if you like tidiness.</p></div></details>
+    <details><summary>Should www and the plain domain both work?</summary>
+      <div class="a"><p>Yes, and they will, once Jobs 1 and 2 are both done. The plain
+      one is the real address; www sends people to it.</p></div></details>
+    <details><summary>I changed the wrong thing.</summary>
+      <div class="a"><p>Put it back from the photo you took, then ring Sig. DNS
+      changes are completely reversible. Nothing is lost permanently.</p></div></details>
+  </div>
+</section>
+
+</div>
+</body>
+</html>
