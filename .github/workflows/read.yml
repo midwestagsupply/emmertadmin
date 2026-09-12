@@ -1,0 +1,221 @@
+# Read Boyceville's board. Every ten minutes, all the time.
+#
+# This is the only thing between Big River's page and two elevators' public
+# prices. It used to be dnilgis/bids -- a repository that reads 935 sources
+# through a headless browser, and whose failures were therefore nothing to do
+# with these sites. On 2026-09-11 an unhandled promise rejection in its browser
+# driver killed a pass; on 2026-09-10 a queued run checked out a stale SHA and
+# could not push. Both times the Emmert prices were collateral.
+#
+# So: one HTTP request, no browser, no npm install, no dependency on another
+# repository. Under a second.
+#
+# THE LAYERS, because Sig asked for redundancies on top of redundancies and
+# each of these has caught something real:
+#
+#   1. three fetch attempts, widening, inside one pass -- a torn read or their
+#      error shell clears in seconds
+#   2. the shell check, so a 200 that is not their board is named as that and
+#      not as "your parser is broken"
+#   3. the identity check: cash - basis must equal their own futures quote, or
+#      the columns have moved and nothing publishes
+#   4. the sanity band, 2.00-12.00
+#   5. the max-move rail, against the last committed read -- the one guard that
+#      catches a right column holding a wrong number
+#   6. hold-last-good: a failed pass writes nothing to the feed file and does
+#      NOT advance checkedAt
+#   7. data/index.json rewritten every pass, pass or fail, so health is
+#      observable without reading a log
+#   8. the sites' own FEED_MAX_AGE_H=4 withdrawal, which does not depend on
+#      this workflow running at all
+#   9. each site re-checks the band and the identity independently
+#  10. the by-hand override on each staff screen, which beats all of it
+#  11. checkout pinned to the branch name, not the run's SHA (see below)
+#  12. push with rebase-and-retry
+#
+# WHAT IT DOES NOT DO: it does not reach into the sites to change their copy.
+# After four hours with no successful read they withdraw on their own clock and
+# the panel reads "Call for today's price". That is the degrade, and it works
+# whether or not this workflow ever runs again.
+
+name: Read Boyceville
+
+on:
+  schedule:
+    # TEN MINUTES FLAT, ALL THE TIME. Off the hour mark: :00 is when every cron
+    # on the platform fires at once and delivery is worst. Measured on
+    # dnilgis/bids over 380 requested fires: 17.4% arrived. That is why nothing
+    # here is allowed to depend on a particular pass landing -- the clock is
+    # what the alarm and the withdrawal are both measured against, never a
+    # count of passes.
+    - cron: "3,13,23,33,43,53 * * * *"
+  workflow_dispatch:
+  push:
+    paths:
+      - "scripts/read.mjs"
+      - "lib/**"
+      - "sources/boyceville.json"
+      - ".github/workflows/read.yml"
+
+permissions:
+  contents: write
+  issues: write
+
+concurrency:
+  # NOT cancel-in-progress. A cancelled pass is a pass that read their board and
+  # threw the answer away.
+  group: read-boyceville
+  cancel-in-progress: false
+
+jobs:
+  read:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      # THE CHECKOUT THAT BROKE THE SITES ON 2026-09-10.
+      #
+      # `github.sha` is fixed when the run is CREATED. A bare checkout fetches
+      # that exact commit, so a run that waited in the concurrency queue starts
+      # from whatever HEAD was when it was queued -- and its push is then
+      # rejected as non-fast-forward. Pinning the branch NAME means the job
+      # always starts from current HEAD.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+
+      # THE READER IS TESTED BEFORE IT IS TRUSTED, ON EVERY PASS.
+      # Offline, against three real captures of their board -- including the
+      # afternoon one carrying settle flags and the morning one with a seventh
+      # column. Under a second, no network, and it is the difference between
+      # publishing a number and publishing a number we checked.
+      - name: Test the reader this pass is about to use
+        run: node --test test/mirror.test.mjs test/fork.test.mjs
+
+      - name: Read their board
+        id: read
+        run: node scripts/read.mjs | tee /tmp/read.log
+
+      - name: Commit what changed
+        run: |
+          set -e
+          git config user.name "Emmert Admin Bot"
+          git config user.email "bot@badgergrain.com"
+          BR="${GITHUB_REF_NAME:-main}"
+          for i in 1 2 3 4 5; do
+            git add data/boyceville.json data/index.json 2>/dev/null || true
+            if git diff --staged --quiet; then echo "Nothing changed."; exit 0; fi
+            git commit -m "boyceville: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            if git push origin "HEAD:$BR"; then echo "Pushed on attempt $i."; exit 0; fi
+            echo "Push race on attempt $i; re-reading their board against current HEAD..."
+            git reset --hard "origin/$BR" 2>/dev/null || true
+            git fetch origin "$BR" && git reset --hard "origin/$BR"
+            node scripts/read.mjs || true
+            sleep $((RANDOM % 4 + 2))
+          done
+          echo "::error::could not push after 5 attempts"
+          exit 1
+
+      # TELL THE SITES NOW RATHER THAN WAITING FOR THEIR OWN CRON.
+      #
+      # Optional on purpose. Both sites already poll every ten minutes and
+      # withdraw on their own clock, so this only removes a four-minute lag.
+      # Without the secret it skips and says so -- a missing token must never be
+      # the reason a price is late, and setting one up must never be a step
+      # between this repository working and not working.
+      #
+      # To enable: Settings -> Secrets and variables -> Actions -> New
+      # repository secret, named SITE_DISPATCH_TOKEN, a fine-grained token with
+      # Contents:read and Metadata:read on the two site repositories.
+      # THE EVENT TYPE AND THE PAYLOAD ARE THEIRS, NOT OURS TO CHOOSE.
+      #
+      # Both sites listen for `repository_dispatch: types: [price-moved]`, and
+      # their first step prints `client_payload.from`, `.source`, `.pricedAt`
+      # and `.run` to say why the run happened. A dispatch under any other
+      # event name is accepted by the API, returns 204, and starts nothing --
+      # a silent no-op that looks like success in this log. Sending anything
+      # else here would mean discovering months later that the nudge had never
+      # once worked and the four-minute cron lag had been the real mechanism
+      # all along.
+      - name: Nudge both sites
+        if: success()
+        env:
+          TOK: ${{ secrets.SITE_DISPATCH_TOKEN }}
+        run: |
+          if [ -z "${TOK:-}" ]; then
+            echo "No SITE_DISPATCH_TOKEN; skipping the nudge."
+            echo "Both sites poll every ten minutes anyway, so the price is at most"
+            echo "four minutes behind this read. Nothing is broken."
+            exit 0
+          fi
+          PRICED=$(node -e 'try{process.stdout.write(String(require("./data/boyceville.json").pricedAt??""))}catch{}')
+          BODY=$(node -e '
+            const p = process.argv[1] || null;
+            process.stdout.write(JSON.stringify({
+              event_type: "price-moved",
+              client_payload: {
+                from: "emmertadmin", source: "boyceville",
+                pricedAt: p, run: process.env.GITHUB_RUN_ID || null,
+              },
+            }));
+          ' "$PRICED")
+          for repo in badgergrain midwestcommodity; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+              -H "Authorization: Bearer $TOK" \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              "https://api.github.com/repos/midwestagsupply/$repo/dispatches" \
+              -d "$BODY") || code=000
+            echo "  $repo -> HTTP $code"
+            [ "$code" = "204" ] || echo "::warning::$repo did not accept the nudge (HTTP $code); its own cron will pick the price up within ten minutes"
+          done
+
+      # THE ALARM, ONCE. read.mjs exits 1 only when the clock says the sites are
+      # about to go dark -- four hours with no successful read. A single failed
+      # pass is ordinary and exits 0 with the reason in the log, because a red
+      # run every time their site hiccups is a red run nobody looks at.
+      - name: Say so, once, if the sites are about to go dark
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const title = "Boyceville feed is cold — the sites are withdrawing the price";
+            const { data: open } = await github.rest.issues.listForRepo({
+              ...context.repo, state: "open", labels: "feed",
+            });
+            const existing = open.find((i) => i.title === title);
+            const fs = require("fs");
+            let log = "(no log captured)";
+            try { log = fs.readFileSync("/tmp/read.log", "utf8").slice(-3000); } catch {}
+            const body = [
+              "The reader has had no successful read of https://bigriverbids.com/cashbidssingle-2121",
+              "for over four hours, so `checkedAt` in `data/index.json` is that old and both",
+              "sites have withdrawn the price. Their panels read \"Call for today's price\",",
+              "which is true. Nothing is showing a stale number.",
+              "",
+              "`data/index.json` carries `detail`, `fails` and `failingSince` for this run.",
+              "",
+              "```",
+              log.trim(),
+              "```",
+              "",
+              `Run: ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            ].join("\n");
+            if (existing) {
+              await github.rest.issues.createComment({
+                ...context.repo, issue_number: existing.number, body,
+              });
+            } else {
+              await github.rest.issues.create({
+                ...context.repo, title, body, labels: ["feed"],
+              });
+            }
+
+      - name: Put the pass in the run summary
+        if: always()
+        run: |
+          { echo "### Boyceville"; echo ""; echo '```';
+            cat /tmp/read.log 2>/dev/null || echo "the reader did not run";
+            echo '```'; } >> "$GITHUB_STEP_SUMMARY"
