@@ -1,0 +1,197 @@
+# READ THEIR BOARD MYSELF IF read.yml DID NOT.
+#
+# ── THE FAILURE THIS WAS BUILT FOR, MEASURED 2026-09-14 ──────────────────────
+#
+# read.yml asks for a pass every ten minutes: cron "3,13,23,33,43,53 * * * *".
+# It commits data/index.json whenever anything in it changes, and `attemptedAt`
+# changes on EVERY pass, pass or fail. So a commit is exact evidence that a pass
+# completed, and a missing commit is exact evidence that one did not.
+#
+# Commits to data/index.json on 2026-09-14, the whole day:
+#
+#     00:07:37
+#     04:48:17
+#     10:08:54
+#     16:20:52
+#
+# Four passes against 102 fires due. The gaps are 4h41m, 5h20m and 6h12m.
+#
+# ── WHY THAT TOOK THE PRICE OFF BOTH WEBSITES ────────────────────────────────
+#
+# tools/update-prices.mjs in each site repo withdraws the price when the
+# reader's last successful check is more than FEED_MAX_AGE_H = 4 hours old, and
+# it reads that time out of data/index.json in this repository. Every gap above
+# is longer than four hours, so every gap blanked the panel to "Call for today's
+# price" until the next pass landed:
+#
+#     00:07 ok  ->  04:08 the sites withdrew
+#     04:58 ok  ->  08:58 the sites withdrew
+#     10:18 ok  ->  14:31 the sites withdrew
+#
+# Nothing was broken downstream and nothing published a stale number. The sites
+# did exactly what they are supposed to do with a reader that has gone quiet.
+# The reader had not gone quiet on purpose; its runs were not happening.
+#
+# ── WHAT THIS DOES NOT DO ────────────────────────────────────────────────────
+#
+# It does not explain why the fires are being dropped. GitHub's scheduler is
+# best effort and a dropped fire produces NO RUN AT ALL: nothing red, nothing
+# queued, nothing cancelled, no entry in the run list. There is nothing to
+# diagnose from inside the repository, which is the whole reason a second,
+# independent path has to exist rather than the first one being repaired.
+#
+# It is also NOT a second reader. It runs the same scripts/read.mjs, behind the
+# same test gate, under the SAME concurrency group as read.yml -- so the two can
+# never write data/ at the same time, and whichever gets a runner first wins
+# while the other waits. Everything it publishes has passed every guard the
+# ordinary path applies.
+#
+# ── WHY :08 AND :38 ──────────────────────────────────────────────────────────
+#
+# Clear of read.yml (3,13,23,33,43,53), clear of watch-live.yml (:23), and clear
+# of :00, which is the busiest minute on the platform. TWO FIRES AN HOUR AND NOT
+# ONE, because this file is subject to the same dropped-fire problem it exists
+# to catch. Two independent chances an hour is the cheapest redundancy for the
+# redundancy.
+#
+# ── WHY 45 MINUTES ───────────────────────────────────────────────────────────
+#
+# read.yml asks every ten. Forty-five means four consecutive fires have been
+# dropped before this steps in, so an ordinary late run or a single miss costs
+# nothing and this file stays silent on a healthy day. It is also far inside the
+# sites' four-hour window: a cold spell has to survive this twice over before a
+# farmer could ever see it.
+#
+# On a healthy day this job checks one committed timestamp and exits. That is
+# the intended behaviour and it is not a no-op -- it is the measurement.
+
+name: watchdog
+
+on:
+  schedule:
+    - cron: "8,38 * * * *"
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "Read even if the last pass looks recent"
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+# THE SAME GROUP AS read.yml, ON PURPOSE. Two jobs running scripts/read.mjs at
+# once would both write data/boyceville.json and data/index.json and then race
+# each other to push. cancel-in-progress stays false so a queued cover-up run
+# waits its turn rather than being thrown away.
+concurrency:
+  group: read-boyceville
+  cancel-in-progress: false
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      # ref, not github.sha -- the same lesson read.yml records. A run that sat
+      # in the concurrency queue would otherwise start from whatever HEAD was
+      # when it was created and have its push rejected as non-fast-forward.
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - uses: actions/setup-node@v4
+        with: { node-version: "20" }
+
+      # HOW IT KNOWS, WITHOUT ASKING THE API.
+      #
+      # data/index.json is in the checkout and carries the reader's own
+      # checkedAt. That is a liveness signal with no token, no rate limit and no
+      # second service to be down. It is the SAME field tools/update-prices.mjs
+      # measures in each site repo, so this cannot disagree with the thing it is
+      # protecting.
+      - name: How long since the reader last succeeded
+        id: age
+        shell: bash
+        run: |
+          set -e
+          node -e '
+            const fs = require("fs");
+            let t = null;
+            try {
+              const i = JSON.parse(fs.readFileSync("data/index.json", "utf8"));
+              const s = (i.sources || []).find((x) => x && x.id === "boyceville");
+              if (s && typeof s.checkedAt === "string") t = Date.parse(s.checkedAt);
+            } catch (e) {
+              /* An index that will not parse is not a fresh index. Fall through
+                 to Infinity so the reader runs and rewrites it. */
+            }
+            const mins = Number.isFinite(t)
+              ? Math.round((Date.now() - t) / 60000) : 1e9;
+            console.log(Number.isFinite(t)
+              ? `the reader last succeeded ${mins} minute(s) ago`
+              : "data/index.json carries no readable checkedAt for boyceville");
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, `mins=${mins}\n`);
+          '
+
+      - name: Nothing to do
+        if: steps.age.outputs.mins < 45 && !inputs.force
+        run: echo "last pass ${{ steps.age.outputs.mins }}m ago, inside 45m — read.yml is keeping up."
+
+      # Everything below mirrors read.yml step for step, deliberately. A cover-up
+      # pass that skipped the test gate, or committed differently, would be a
+      # second way to publish a price -- and the one thing worse than a missing
+      # price is two paths to a wrong one.
+      - name: Test the reader this pass is about to use
+        if: steps.age.outputs.mins >= 45 || inputs.force
+        run: node --test test/mirror.test.mjs test/fork.test.mjs
+
+      - name: Read their board
+        id: read
+        if: steps.age.outputs.mins >= 45 || inputs.force
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          echo "covering for a missed run: last pass ${{ steps.age.outputs.mins }} minute(s) ago"
+          node scripts/read.mjs | tee /tmp/read.log
+
+      - name: Commit what changed
+        if: always() && steps.read.outcome != 'skipped'
+        run: |
+          set -e
+          git config user.name "Emmert Admin Bot"
+          git config user.email "bot@badgergrain.com"
+          BR="${GITHUB_REF_NAME:-main}"
+          for i in 1 2 3 4 5; do
+            git add data/boyceville.json data/index.json 2>/dev/null || true
+            if git diff --staged --quiet; then echo "Nothing changed."; exit 0; fi
+            git commit -m "boyceville: $(date -u +%Y-%m-%dT%H:%M:%SZ) (watchdog)"
+            if git push origin "HEAD:$BR"; then echo "Pushed on attempt $i."; exit 0; fi
+            echo "Push race on attempt $i; re-reading their board against current HEAD..."
+            git reset --hard "origin/$BR" 2>/dev/null || true
+            git fetch origin "$BR" && git reset --hard "origin/$BR"
+            node scripts/read.mjs || true
+            sleep $((RANDOM % 4 + 2))
+          done
+          echo "::error::could not push after 5 attempts"
+          exit 1
+
+      # SAY SO WHEN IT HAD TO STEP IN. A watchdog that quietly covers for a
+      # broken scheduler forever is a watchdog that hides the problem it was
+      # built to survive. This does not fail the run -- the price is on the page,
+      # which is the point -- it writes a line into the run summary that is there
+      # to be read when somebody asks why the reader looks fine and is not.
+      - name: Say that it had to cover
+        if: steps.read.outcome != 'skipped'
+        shell: bash
+        run: |
+          {
+            echo "### The watchdog read their board"
+            echo ""
+            echo "read.yml's last successful pass was **${{ steps.age.outputs.mins }} minutes** ago."
+            echo "It asks for one every ten, so its scheduled fires are being dropped."
+            echo ""
+            echo "The price is on both websites. This file is why. If it keeps"
+            echo "appearing, the fix is read.yml's delivery, not this."
+          } >> "$GITHUB_STEP_SUMMARY"
