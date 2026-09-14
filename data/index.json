@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-14T22:54:52.962Z",
+ "generated": "2026-09-14T23:12:24.738Z",
  "note": "One source. This file is rewritten on EVERY pass, pass or fail, which is why the sites measure the feed's age against it rather than against data/boyceville.json -- that one is only rewritten when the price moves.",
  "counts": {
   "total": 1,
@@ -14,8 +14,8 @@
    "operator": "Big River Resources",
    "location": "Boyceville",
    "usState": "WI",
-   "checkedAt": "2026-09-14T22:54:52.962Z",
-   "attemptedAt": "2026-09-14T22:54:52.962Z",
+   "checkedAt": "2026-09-14T23:12:24.738Z",
+   "attemptedAt": "2026-09-14T23:12:24.738Z",
    "pricedAt": "2026-09-14T18:32:29.600Z",
    "rows": 11,
    "health": "live",
