@@ -26,5 +26,81 @@
   "email": null,
   "website": "https://bigriverbids.com/cashbidssingle-2121",
   "inMerge": false,
-  "inMergeWhy": "Barchart already carries Boyceville, and more fully (beans plus a second corn program). Read for the Emmert sites, which consume data/boyceville.json directly; excluded from the AGSIST map so one elevator is not two rows."
+  "inMergeWhy": "Barchart already carries Boyceville, and more fully (beans plus a second corn program). Read for the Emmert sites, which consume data/boyceville.json directly; excluded from the AGSIST map so one elevator is not two rows.",
+  "routesNote": "MORE THAN ONE WAY TO THE SAME NUMBER -- 2026-09-18. This board had exactly one route: the url above, asked three times with the same method and the same headers. One layout change, one 403, one bad DNS answer and there was no other attempt at a price sitting in public. These are now RACED rather than walked: the url above starts first and gets a head start to itself, and each route below starts 1500ms after the one before it if nothing has answered yet. The FIRST answer whose board passes every guard wins and the rest are aborted, so an ordinary day still makes exactly one request and publishes exactly what it publishes today, while a primary that has gone quiet costs about a second and a half instead of the whole pass. `trust` is how sure anybody is that the URL serves this board: `verified` means it was read off a real capture of their page or is this manifest's own, `inferred` means it is derived from how this vendor's platform behaves on OTHER hosts this project reads successfully, or that a page this project fetched named it without this project ever asking it. bigriverbids.com could not be reached from the sandbox these were derived in -- the egress proxy answers 403 to CONNECT -- so NOT ONE of them below has been confirmed against the real host. None is described here as known-good. GATED 2026-09-18 AND UNGATED THE SAME DAY. The fallbacks were briefly held behind a failure count and an hour of sustained failure and the run was capped at sixteen requests. The owner, who holds the arrangement, has said he wants no throttle and as much redundant scraping as this repository can manage, so every route is available on every pass. What is left is a wall-clock deadline, ROUTE_BUDGET_MS, which exists so a black-holed host cannot wedge a pass that fires every ten minutes. `tier` below still records where a route came from, because that is true and worth knowing; it decides nothing. See lib/routes.mjs.",
+  "routes": [
+    {
+      "url": "https://www.bigriverbids.com/cashbidssingle-2121",
+      "trust": "verified",
+      "tier": "alias",
+      "why": "The same path on the www spelling of the same host. dnilgis/bids adds the apex/www twin to every source it reads (lib/sources.mjs urlsFor) and its poller tries it whenever the bare host fails, because one of the two failing DNS is not the elevator being down; test/multisource.test.mjs asserts that twin for THIS url by name. The hostname is not a guess: on 2026-09-08 urlfinder asked bigriverunitedenergy.com, was redirected, and 283 KB came back with a 200 from the bigriverbids host -- recorded in its ledger and reconstructed in test/urlfinder.test.mjs with the landing url https://www.bigriverbids.com/. That observation was at / and not at this path, so what is established is that the host answers, not that this exact URL does."
+    },
+    {
+      "url": "https://bigriverbids.com/cashbidssingle-2162",
+      "trust": "verified",
+      "tier": "break-glass",
+      "why": "Dyersville's own page. The URL is verbatim in fixtures/bigriver-2121.html, a real capture of their board -- <a href='/cashbidssingle-2162'>Dyersville</a> in their own nav -- so the page exists. What is INFERRED is that it carries Boyceville's rows: one page on this platform holds every location as a tab panel, which is why filterLocation and locationId exist at all, and the 2121 capture demonstrably carries panels keyed 2162 and 2165 beside its own. Boyceville's rows are keyed 2121 and nothing else on the page is published, so a page that does NOT carry them refuses with 'none for location 2121' rather than publishing Dyersville's. Tier break-glass: this is not the arranged URL. That is a note about where the route came from, not a gate -- it is raced with all the others on every pass."
+    },
+    {
+      "url": "https://bigriverbids.com/cashbidssingle-2165",
+      "trust": "verified",
+      "tier": "break-glass",
+      "why": "Monmouth's own page, on the same evidence as 2162: the href is verbatim in the capture, and the capture's third rendered panel is keyed 2165, so Monmouth and Boyceville are demonstrably served by one page in at least one direction. Two siblings rather than all six: they are the two whose panels were captured beside Boyceville's, and a third adds nothing the first two do not already cover. Tier break-glass: this is not the arranged URL. That is a note about where the route came from, not a gate -- it is raced with all the others on every pass."
+    },
+    {
+      "url": "https://bigriverbids.com/cashbidssingle-",
+      "trust": "inferred",
+      "tier": "break-glass",
+      "why": "The id-less form of the same path. Twenty-one enabled sources in dnilgis/bids read exactly this shape on this same platform -- every scoularview.com source is 'https://scoularview.com/cashbidssingle-' with the location carried in locationId instead of the path -- and they were read successfully on 2026-09-18 at 15:01Z, four to seven rows each. So the platform serves an all-locations board at the bare path on at least one host. It has never been asked of bigriverbids.com. Tier break-glass: this is not the arranged URL. That is a note about where the route came from, not a gate -- it is raced with all the others on every pass."
+    },
+    {
+      "url": "https://bigriverbids.com/",
+      "trust": "inferred",
+      "tier": "break-glass",
+      "why": "The site root. Six enabled cashbidssingle sources in dnilgis/bids read the bare root of their elevator's site and nothing else -- agassizvalleygrain.com, countrygraincooperative.com, encompassgrain.com, hartgrain.com, hillsdaleelevator.com, revillofarmers.com -- all read successfully on 2026-09-18 at 15:01Z with four to eleven rows, so this platform commonly puts the whole board on the front page. Their own capture points here too: the nav's Home link and the form action are both '/'. And the 283 KB that came back from this host on 2026-09-08 came back from the root and is board-sized, which is consistent with a board being there but does not show one. Tier break-glass: this is not the arranged URL. That is a note about where the route came from, not a gate -- it is raced with all the others on every pass."
+    },
+    {
+      "url": "https://bigriverbids.com/cashbidssingle-2163",
+      "trust": "verified",
+      "tier": "break-glass",
+      "why": "Another of their own location pages. The URL is verbatim in fixtures/bigriver-2121.html -- <a href='/cashbidssingle-2163'> in their own nav, beside /cashbidssingle-2162 and /cashbidssingle-2165 which already ship here -- so the page exists. What is INFERRED is that it carries Boyceville's rows: one page on this platform holds several locations as tab panels, which is why filterLocation and locationId exist at all, and the 2121 capture demonstrably carries panels keyed 2162 and 2165 beside its own. Boyceville's rows are keyed 2121 and nothing else on the page is published, so a page that does NOT carry them refuses with 'none for location 2121' rather than publishing somebody else's. These four were left out while the fallbacks were gated and each extra door had a price; raced and ungated they cost no wall clock at all. Tier break-glass: this is not the arranged URL."
+    },
+    {
+      "url": "https://bigriverbids.com/cashbidssingle-2164",
+      "trust": "verified",
+      "tier": "break-glass",
+      "why": "Another of their own location pages. The URL is verbatim in fixtures/bigriver-2121.html -- <a href='/cashbidssingle-2164'> in their own nav, beside /cashbidssingle-2162 and /cashbidssingle-2165 which already ship here -- so the page exists. What is INFERRED is that it carries Boyceville's rows: one page on this platform holds several locations as tab panels, which is why filterLocation and locationId exist at all, and the 2121 capture demonstrably carries panels keyed 2162 and 2165 beside its own. Boyceville's rows are keyed 2121 and nothing else on the page is published, so a page that does NOT carry them refuses with 'none for location 2121' rather than publishing somebody else's. These four were left out while the fallbacks were gated and each extra door had a price; raced and ungated they cost no wall clock at all. Tier break-glass: this is not the arranged URL."
+    },
+    {
+      "url": "https://bigriverbids.com/cashbidssingle-2166",
+      "trust": "verified",
+      "tier": "break-glass",
+      "why": "Another of their own location pages. The URL is verbatim in fixtures/bigriver-2121.html -- <a href='/cashbidssingle-2166'> in their own nav, beside /cashbidssingle-2162 and /cashbidssingle-2165 which already ship here -- so the page exists. What is INFERRED is that it carries Boyceville's rows: one page on this platform holds several locations as tab panels, which is why filterLocation and locationId exist at all, and the 2121 capture demonstrably carries panels keyed 2162 and 2165 beside its own. Boyceville's rows are keyed 2121 and nothing else on the page is published, so a page that does NOT carry them refuses with 'none for location 2121' rather than publishing somebody else's. These four were left out while the fallbacks were gated and each extra door had a price; raced and ungated they cost no wall clock at all. Tier break-glass: this is not the arranged URL."
+    },
+    {
+      "url": "https://bigriverbids.com/cashbidssingle-2167",
+      "trust": "verified",
+      "tier": "break-glass",
+      "why": "Another of their own location pages. The URL is verbatim in fixtures/bigriver-2121.html -- <a href='/cashbidssingle-2167'> in their own nav, beside /cashbidssingle-2162 and /cashbidssingle-2165 which already ship here -- so the page exists. What is INFERRED is that it carries Boyceville's rows: one page on this platform holds several locations as tab panels, which is why filterLocation and locationId exist at all, and the 2121 capture demonstrably carries panels keyed 2162 and 2165 beside its own. Boyceville's rows are keyed 2121 and nothing else on the page is published, so a page that does NOT carry them refuses with 'none for location 2121' rather than publishing somebody else's. These four were left out while the fallbacks were gated and each extra door had a price; raced and ungated they cost no wall clock at all. Tier break-glass: this is not the arranged URL."
+    },
+    {
+      "url": "https://www.bigriverbids.com/",
+      "trust": "verified",
+      "tier": "break-glass",
+      "why": "The site root at the www spelling. This is the ONE url in this list that a real response has actually been seen from: on 2026-09-08 dnilgis/bids' urlfinder asked bigriverunitedenergy.com, was redirected, and 283 KB came back with a 200 from https://www.bigriverbids.com/ -- recorded in its ledger and reconstructed in that repo's test/urlfinder.test.mjs by that exact landing url. 283 KB is board-sized and six enabled cashbidssingle sources in dnilgis/bids read the bare root of their elevator's site and nothing else, so a board at the root is how this platform commonly behaves -- but what the 2026-09-08 observation establishes is that this URL answers, not that a board is on it. Tier break-glass: this is not the arranged URL."
+    },
+    {
+      "url": "https://www.bigriverresources.com/cashbidssingle-2163",
+      "trust": "inferred",
+      "tier": "break-glass",
+      "why": "The same platform, the same operator, a different host of theirs. This exact URL is verbatim in dnilgis/bids probe-lists/national-2026-08-26.txt, whose header records that every line in it came from a search result or a directory page actually fetched and that nothing in it is a guessed URL; it is labelled there 'UNVERIFIED cashbidssingle -- Big River Resources'. So a real page names bigriverresources.com as running this platform, and this is that page's own spelling of it. It has never been fetched by anybody: dnilgis/bids recorded it as a candidate and did not ask it. If it does not carry Boyceville's rows it refuses with 'none for location 2121'. Tier break-glass: this is not the arranged URL, and it is not even the arranged host."
+    },
+    {
+      "url": "https://www.bigriverresources.com/cashbidssingle-2164",
+      "trust": "inferred",
+      "tier": "break-glass",
+      "why": "The same platform, the same operator, a different host of theirs. This exact URL is verbatim in dnilgis/bids probe-lists/national-2026-08-26.txt, whose header records that every line in it came from a search result or a directory page actually fetched and that nothing in it is a guessed URL; it is labelled there 'UNVERIFIED cashbidssingle -- Big River Resources'. So a real page names bigriverresources.com as running this platform, and this is that page's own spelling of it. It has never been fetched by anybody: dnilgis/bids recorded it as a candidate and did not ask it. If it does not carry Boyceville's rows it refuses with 'none for location 2121'. Tier break-glass: this is not the arranged URL, and it is not even the arranged host."
+    }
+  ],
+  "arrangement": "READ BY ARRANGEMENT, AND ONLY ONE URL IS ARRANGED. `url` above is that URL: one page, one location, read for the two Emmert sites. bigriverbids.com is robots-disallowed to crawlers -- dnilgis/bids records it in scripts/urlfinder.mjs line 91, with THE ONE ARRANGED URL exempt -- so every entry in `routes` that is not `url` is a path this project has no arrangement for. THAT IS RECORDED HERE AS HISTORY, NOT AS A GATE. On 2026-09-18 the owner, who holds the arrangement, said he does not want the fallbacks throttled or limited: Big River publishes this price for the public to read and he wants as much redundant reading of it as this repository can manage. So every route is raced on every pass. `tier` still says which a route is -- `alias` for the arranged path at another spelling of the arranged host, checked as one by lib/routes.mjs, `break-glass` for everything else -- because a year from now the difference between 'the arranged page under another name' and 'a URL somebody added' is worth being able to read off the file. routesFor() still refuses a route that does not declare its tier and still refuses one that records no evidence for itself. Neither check limits when a route runs."
 }
