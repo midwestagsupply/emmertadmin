@@ -64,6 +64,48 @@
 #
 # On a healthy day this job checks one committed timestamp and exits. That is
 # the intended behaviour and it is not a no-op -- it is the measurement.
+#
+# ── HOW WELL IT ACTUALLY COVERED, 2026-09-12 17:58Z TO 2026-09-18 14:54Z ──────
+#
+# Measured the same way the incident above was measured, off the commits to
+# data/index.json:
+#
+#     40 gaps ran past this file's 45-minute threshold
+#     16 of them were ended by a watchdog commit         40%
+#     median gap that this file ended: 146 minutes
+#
+# It works. It is also, on its own numbers, three times slower than its
+# threshold, and for the same reason the thing it covers for is slow: its own
+# fires are dropped at the same rate. Every one of those 16 covers landed at a
+# staleness between 61 and 271 minutes, never at 45. A file that asks twice an
+# hour and gets one ask in four is checking about every two hours, whatever the
+# cron says, and that is why eight gaps still crossed four hours with this file
+# in place the whole time.
+#
+# ── WHY NEITHER NUMBER CHANGES, 2026-09-18 ───────────────────────────────────
+#
+# The 40% is not a threshold problem and cannot be fixed by lowering 45. The
+# missed 60% are fires that never happened; a smaller number would have been
+# compared against the same missing runs. More fires do not help either --
+# dnilgis/bids measured that asking more often does not deliver more often --
+# and this file exists precisely for the case where the scheduler is dropping
+# things, so paying it more asks is paying the broken thing.
+#
+# What changes instead is above this file. read.yml can now be started by the
+# two site repositories as well as by this account's cron, and those
+# repositories are served far better than this one: over the same 845
+# ten-minute slots, badgergrain and midwestcommodity each put a run into 479 of
+# them, 56.7%, against this repository's 186, 22.0%. Same account, same
+# organisation, same six fires an hour, same week. So read.yml should now be
+# started in roughly three slots in five rather than one in five, and the 45
+# minutes below should be reached only when every one of those tickets has lost
+# four times running.
+#
+# This file becomes what it was always supposed to be -- the cover for the day
+# the cover is needed -- rather than the thing quietly holding the feed up
+# sixteen times a week. If it keeps writing commits at the old rate, that is
+# the signal that the sites are not getting through, and the next section is
+# what it has to say about it.
 
 name: watchdog
 
@@ -91,7 +133,12 @@ concurrency:
 jobs:
   watchdog:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    # THE SAME CEILINGS AS read.yml, FOR THE SAME REASONS AND BECAUSE IT RUNS
+    # THE SAME SCRIPT. They share a concurrency group, so a wedged run of
+    # either one is a wedged run of both, and a ceiling that differed between
+    # them would mean the shared group was held for whichever number was
+    # larger. test/mirror.test.mjs pins them to each other.
+    timeout-minutes: 5
     steps:
       # ref, not github.sha -- the same lesson read.yml records. A run that sat
       # in the concurrency queue would otherwise start from whatever HEAD was
@@ -144,11 +191,18 @@ jobs:
       # price is two paths to a wrong one.
       - name: Test the reader this pass is about to use
         if: steps.age.outputs.mins >= 45 || inputs.force
-        run: node --test test/mirror.test.mjs test/fork.test.mjs
+        timeout-minutes: 2
+        run: node --test test/mirror.test.mjs test/fork.test.mjs test/routes.test.mjs test/reconstruct.test.mjs
 
+      # Two minutes against lib/routes.mjs's own ROUTE_BUDGET_MS of 60_000, the
+      # absolute wall-clock deadline for the whole pass however many routes are
+      # in the air at once. A read still
+      # running at two minutes has broken its own library's deadline and is
+      # stuck, not slow, and killing it here leaves the commit below its turn.
       - name: Read their board
         id: read
         if: steps.age.outputs.mins >= 45 || inputs.force
+        timeout-minutes: 2
         continue-on-error: true
         shell: bash
         run: |
@@ -156,22 +210,36 @@ jobs:
           echo "covering for a missed run: last pass ${{ steps.age.outputs.mins }} minute(s) ago"
           node scripts/read.mjs | tee /tmp/read.log
 
+      # Three, because the push race loop can still read their board again --
+      # only when the commits it lost to changed the feed, and then only
+      # against the arranged URL. read.yml carries the long version of why;
+      # this file is deliberately the same loop step for step.
       - name: Commit what changed
         if: always() && steps.read.outcome != 'skipped'
+        timeout-minutes: 3
         run: |
           set -e
           git config user.name "Emmert Admin Bot"
           git config user.email "bot@badgergrain.com"
           BR="${GITHUB_REF_NAME:-main}"
+          KEEP="${RUNNER_TEMP:-/tmp}/boyceville-keep"
+          mkdir -p "$KEEP"
           for i in 1 2 3 4 5; do
             git add data/boyceville.json data/index.json 2>/dev/null || true
             if git diff --staged --quiet; then echo "Nothing changed."; exit 0; fi
             git commit -m "boyceville: $(date -u +%Y-%m-%dT%H:%M:%SZ) (watchdog)"
             if git push origin "HEAD:$BR"; then echo "Pushed on attempt $i."; exit 0; fi
-            echo "Push race on attempt $i; re-reading their board against current HEAD..."
-            git reset --hard "origin/$BR" 2>/dev/null || true
+            echo "Push race on attempt $i; rebasing this pass onto current HEAD."
+            cp data/boyceville.json data/index.json "$KEEP/" 2>/dev/null || true
+            WAS=$(git rev-parse "origin/$BR" 2>/dev/null || true)
             git fetch origin "$BR" && git reset --hard "origin/$BR"
-            node scripts/read.mjs || true
+            if [ -n "$WAS" ] && git diff --quiet "$WAS" "origin/$BR" -- data/boyceville.json data/index.json; then
+              echo "  the commits we lost to left the feed alone; putting this pass's read back, no request to their host"
+              cp "$KEEP/boyceville.json" "$KEEP/index.json" data/ 2>/dev/null || true
+            else
+              echo "  the feed moved underneath this pass; re-reading against the new baseline"
+              node scripts/read.mjs || true
+            fi
             sleep $((RANDOM % 4 + 2))
           done
           echo "::error::could not push after 5 attempts"
@@ -182,6 +250,16 @@ jobs:
       # built to survive. This does not fail the run -- the price is on the page,
       # which is the point -- it writes a line into the run summary that is there
       # to be read when somebody asks why the reader looks fine and is not.
+      #
+      # IT NAMES BOTH CAUSES NOW, 2026-09-18. It used to say "its scheduled
+      # fires are being dropped", which was the only possible cause when GitHub
+      # cron was the only trigger. Since the Cloudflare Worker took the ten
+      # minutes there are two, and they need opposite fixes: GitHub dropping
+      # fires is a known 24.4% and nothing to do, while the Worker failing is a
+      # lapsed or unscoped token, a bad deploy, or a workflow_dispatch line
+      # deleted from read.yml -- all of which are fixable in minutes by someone
+      # who is told to go and look. Asserting the first cause would send that
+      # person to the one place there is nothing to find.
       - name: Say that it had to cover
         if: steps.read.outcome != 'skipped'
         shell: bash
@@ -190,7 +268,26 @@ jobs:
             echo "### The watchdog read their board"
             echo ""
             echo "read.yml's last successful pass was **${{ steps.age.outputs.mins }} minutes** ago."
-            echo "It asks for one every ten, so its scheduled fires are being dropped."
+            echo "It is asked for every ten by three separate repositories, so at least"
+            echo "four consecutive asks were not delivered by any of them."
+            echo ""
+            echo "Three things can cause that and they need different fixes:"
+            echo ""
+            echo "1. **The sites are not getting through.** Their prices.yml pokes"
+            echo "   read.yml on every run they get. Look in a recent badgergrain or"
+            echo "   midwestcommodity run for the \`Start the reader\` step: it prints the"
+            echo "   HTTP code it got. 404 or 403 from BOTH doors means"
+            echo "   \`ADMIN_DISPATCH_TOKEN\` has lapsed or was never scoped"
+            echo "   (Actions: read and write, or Contents: read and write, on this"
+            echo "   repository). 'no token' means the secret is not set there at all."
+            echo "2. **This repository's own cron is dropping fires.** Measured at 22.0%"
+            echo "   of ten-minute slots over the six days to 2026-09-18, against 56.7%"
+            echo "   for each of the two sites in the same week. Expected, not fixable"
+            echo "   from inside this repository, and the reason 1 exists."
+            echo "3. **The sites' schedules are being dropped too.** They were served"
+            echo "   two and a half times better than this repository when that was"
+            echo "   measured, but nothing guarantees they still are. Their own run"
+            echo "   lists say whether they are running."
             echo ""
             echo "The price is on both websites. This file is why. If it keeps"
             echo "appearing, the fix is read.yml's delivery, not this."

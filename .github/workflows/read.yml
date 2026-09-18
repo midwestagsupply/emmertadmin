@@ -32,6 +32,35 @@
 #  10. the by-hand override on each staff screen, which beats all of it
 #  11. checkout pinned to the branch name, not the run's SHA (see below)
 #  12. push with rebase-and-retry
+#  13. THE TRIGGER ITSELF, ADDED 2026-09-18. Every layer above is started by
+#      GitHub's cron, and over the 140.94 hours to 2026-09-18 14:54Z this
+#      repository's cron put a read into 186 of 845 ten-minute slots: 22.0%.
+#      A layer that is never started is not a layer. The two site repositories
+#      now start this workflow from their own schedulers as well, because the
+#      dropped fires are per repository and not per account -- measured, see
+#      the note on the schedule. That is layer 13 and it is the only one that
+#      changes how often layers 1 to 12 happen at all.
+#  14. THE SECOND DOOR INTO THIS WORKFLOW. A site may start it by
+#      workflow_dispatch or by repository_dispatch, and it tries the second
+#      when the first is refused. One token scope going stale must not take
+#      the trigger with it.
+#  15. THIRTEEN ROUTES, RACED, WITH NOTHING HELD BACK, 2026-09-18. The
+#      fallbacks were briefly earned -- held behind a failure count and an hour
+#      of failing -- and the run was capped at sixteen requests. The owner, who
+#      holds the arrangement with Big River, has said he wants no throttle and
+#      as much redundant reading of a price they publish for the public as this
+#      repository can manage. So: every route is available on every pass, the
+#      arranged URL starts first and gets 1500ms to itself, and if it has not
+#      answered every other route starts at once. First answer past every guard
+#      wins; the rest are aborted. Measured against a local server that logged
+#      every hit: a healthy pass still makes ONE request, and a total outage
+#      makes 39 and takes about six seconds.
+#  16. A SECOND WAY TO THE NUMBER THAT COSTS NO REQUEST. cash - basis =
+#      futures is the identity the guards already check, so a row with one
+#      unreadable column and two good ones is derivable rather than lost. It is
+#      marked as reconstructed in the published file, in data/index.json and in
+#      the log, it faces the band and the max-move rail like any other number,
+#      and two unreadable columns is still a refusal. See lib/reconstruct.mjs.
 #
 # WHAT IT DOES NOT DO: it does not reach into the sites to change their copy.
 # After four hours with no successful read they withdraw on their own clock and
@@ -48,8 +77,107 @@ on:
     # here is allowed to depend on a particular pass landing -- the clock is
     # what the alarm and the withdrawal are both measured against, never a
     # count of passes.
+    #
+    # AND IT DID NOT ARRIVE HERE EITHER. MEASURED ON THIS REPOSITORY,
+    # 2026-09-12 17:58Z TO 2026-09-18 14:54Z, 140.94 hours.
+    #
+    # Every pass rewrites data/index.json -- `generated` and `attemptedAt` both
+    # carry the pass's own clock -- so the commit step never finds an empty
+    # stage and a commit is an exact record of a pass that ran. Counted that
+    # way:
+    #
+    #     206 passes landed against 846 asked        24.4%
+    #     186 of 845 ten-minute slots held a read    22.0%
+    #     median gap 11.6 minutes                    when it runs, it runs
+    #     8 gaps over four hours, worst 6.20h
+    #
+    # Four hours is where both sites withdraw the price. That 6.20h gap, Monday
+    # the 14th, held the panels at "Call for today's price" from 09:08 to 11:20
+    # Central -- inside the trading morning, with nothing red anywhere. Over the
+    # window the sites were withdrawn for 7.17 hours in total, 2.87 of them
+    # between 8am and 3pm Central on a weekday.
+    #
+    # AND THE TRADING DAY IS THE WORST PART OF IT, WHICH IS THE OPPOSITE OF
+    # WHAT 22% AVERAGED OVER THE CLOCK SUGGESTS. Of the 179 ten-minute slots
+    # that fall inside 8am to 3pm Central on a weekday in that window, 17 held
+    # a read. 9.5%. The median wait between reads inside the trading day was
+    # 97 minutes and the worst was 372.
+    #
+    # THE CADENCE HERE IS NOT CHANGED, AND THAT IS THE DECISION, NOT AN
+    # OVERSIGHT.
+    #
+    # Asking more often does not deliver more often. dnilgis/bids measured both
+    # directions of that: six fires an hour delivered 17.4%, and cutting to one
+    # fire an hour with a loop inside it made things worse, not better --
+    # weekday hours producing any read at all fell from 81% to 31%. Doubling
+    # this to twelve an hour would be guessing against a measurement, and
+    # halving it would be guessing without one. Neither has a number behind it,
+    # so neither happens here.
+    #
+    # WHAT DOES CHANGE IS WHO ELSE MAY START THIS WORKFLOW, AND THE REASON IS
+    # A MEASUREMENT THIS REPOSITORY COULD NOT HAVE MADE ON ITS OWN.
+    #
+    # Over the same 845 ten-minute slots, counted off the `prices:` commits in
+    # the two site repositories, which rebuild and commit on essentially every
+    # run they get:
+    #
+    #     midwestagsupply/emmertadmin       186 slots   22.0%
+    #     midwestagsupply/badgergrain       479 slots   56.7%
+    #     midwestagsupply/midwestcommodity  479 slots   56.7%
+    #
+    # Three repositories, one organisation, one account, the same six fires an
+    # hour, the same week. Two of them were served two and a half times better
+    # than this one. WHATEVER IS DROPPING THIS REPOSITORY'S FIRES IS NOT
+    # DROPPING THEIRS, so it is not account-wide and it is not the platform
+    # having a bad week. That is the whole basis for the change, and it is a
+    # measurement rather than a belief about how GitHub schedules.
+    #
+    # AND THE DROPS ARE NOT A COIN FLIP, WHICH MATTERS MORE THAN THE 22%.
+    # If each fire failed independently at 22-24%, the gap between reads would
+    # be geometric and a four-hour gap would need 24 consecutive misses:
+    # expected 0.33 of them in this window. There were 8. At five hours the
+    # model expects 0.06 and there were 2. Gaps SHORTER than 30 minutes are
+    # meanwhile only 0.4 times as common as the model says. The scheduler does
+    # not sprinkle misses; it serves this repository in blocks and stops
+    # serving it in blocks. An average of 22% is what a run of good hours and a
+    # run of dark hours average to, and no amount of asking inside a dark block
+    # produces a run.
+    #
+    # THE CRON STAYS EXACTLY AS IT WAS. It is one of three tickets now rather
+    # than the only one, and a ticket that wins one slot in five is worth
+    # keeping and is not worth changing without a number.
     - cron: "3,13,23,33,43,53 * * * *"
+
+  # LOAD-BEARING SINCE 2026-09-18, NOT A CONVENIENCE.
+  #
+  # This is the door badgergrain and midwestcommodity come in by. Each of them
+  # gets a schedule from GitHub that this repository does not, so on every run
+  # of their own prices.yml they ask this workflow to read the board, and the
+  # read happens on their luck instead of only on ours.
+  #
+  # The workflow-dispatch API refuses with 404 for a workflow that does not
+  # declare workflow_dispatch -- the same 404 an unscoped token returns, which
+  # is why the sites print the reason they think they got. Remove this line and
+  # the reads silently revert to whatever GitHub cron feels like delivering to
+  # this repository alone, and the only sign is eight four-hour gaps a week.
   workflow_dispatch:
+
+  # THE SECOND DOOR, AND IT EXISTS BECAUSE THE FIRST ONE DEPENDS ON A TOKEN
+  # SCOPE RATHER THAN ON A SECRET BEING PRESENT.
+  #
+  # workflow_dispatch needs a fine-grained token with Actions: read and write
+  # on this repository. repository_dispatch needs Contents: read and write.
+  # A token that has one and not the other gets a 403 or a 404 from the door it
+  # lacks and a 204 from the other, and there is no way to tell from inside the
+  # sites which one the owner granted. So both doors are open and the sites try
+  # the second when the first is refused. Sig asked for backups on top of
+  # backups; a trigger with one accepted token scope is not one.
+  #
+  # `read-now` and not `price-moved`: price-moved is the event the SITES
+  # listen for, and pointing this repository at the same name would make a
+  # dispatch loop the moment anything forwarded the wrong way.
+  repository_dispatch:
+    types: [read-now]
   push:
     paths:
       - "scripts/read.mjs"
@@ -77,7 +205,31 @@ concurrency:
 jobs:
   read:
     runs-on: ubuntu-latest
-    timeout-minutes: 6
+    # FIVE, AND EVERY STEP THAT CAN HANG HAS ITS OWN CEILING UNDER IT.
+    #
+    # It was six, with no step ceilings at all, so ONE wedged step could spend
+    # the whole job and the run would be killed with its health file still in
+    # the runner's working tree -- the exact loss the `continue-on-error` and
+    # `always()` below were added to prevent. A job ceiling cannot choose which
+    # step to kill; it kills whatever is running when the clock runs out, which
+    # is the last step rather than the stuck one.
+    #
+    # WHAT A HEALTHY PASS ACTUALLY COSTS: checkout and setup-node about fifteen
+    # seconds, the gate under a second against three offline captures, the read
+    # itself under a second on an ordinary day, the commit and push a few
+    # seconds. Call it ninety seconds with every slow part slow at once.
+    #
+    # WHAT A WEDGED PASS COSTS is set by lib/routes.mjs's ROUTE_BUDGET_MS,
+    # which is 60_000 and is an absolute wall-clock deadline for the whole
+    # pass, whatever the routes are doing. So
+    # the reader cannot legitimately spend more than about seventy seconds, and
+    # a read step still running at two minutes is not slow, it is stuck.
+    #
+    # Sig's point about a purpose-built scraper is right and this is where it
+    # is enforced from outside read.mjs: the pass either works quickly or it is
+    # broken, and a broken one must free the concurrency group -- which
+    # watchdog.yml shares -- rather than sit in it.
+    timeout-minutes: 5
     steps:
       # THE CHECKOUT THAT BROKE THE SITES ON 2026-09-10.
       #
@@ -98,8 +250,18 @@ jobs:
       # afternoon one carrying settle flags and the morning one with a seventh
       # column. Under a second, no network, and it is the difference between
       # publishing a number and publishing a number we checked.
+      # Two minutes for a gate measured in hundredths of a second. It is here
+      # so that a test that hangs -- an unresolved promise, a fixture read that
+      # blocks -- is named as the hang it is instead of quietly eating the pass.
+      #
+      # THE RACE AND THE RECONSTRUCTION ARE IN THE GATE TOO, 2026-09-18. The
+      # reader no longer walks one list: it races thirteen routes and it can
+      # derive a figure from cash - basis = futures when one of their cells
+      # does not render. Both are things this pass is about to do, so both are
+      # tested before it does them. Eighty-two tests, 1.7 seconds, no network.
       - name: Test the reader this pass is about to use
-        run: node --test test/mirror.test.mjs test/fork.test.mjs
+        timeout-minutes: 2
+        run: node --test test/mirror.test.mjs test/fork.test.mjs test/routes.test.mjs test/reconstruct.test.mjs
 
       # continue-on-error, so the two steps below still run when the reader
       # exits 1. It exits 1 only at the four-hour alarm -- which is precisely
@@ -111,33 +273,130 @@ jobs:
       #
       # `pipefail` so the reader's own exit code survives the pipe into tee;
       # without it the step reports the exit code of tee, which is always 0.
+      #
+      # TWO MINUTES, AGAINST THE READER'S OWN SIXTY-SECOND DEADLINE.
+      # lib/routes.mjs's ROUTE_BUDGET_MS = 60_000 is the wall-clock ceiling for
+      # a whole pass however many routes are in the air at once, so double it is
+      # generous and still less than half this job. Measured against the local
+      # rig: a healthy pass 0.17s, every route answering 503 6.2s, and a host
+      # that accepts and never answers 64.6s, which is the deadline doing its
+      # job. A
+      # step killed here is a step that broke the deadline its own library
+      # sets, and the commit and the health file below still get their turn --
+      # which is the entire reason this is a STEP ceiling and not more job.
       - name: Read their board
         id: read
+        timeout-minutes: 2
         continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
           node scripts/read.mjs | tee /tmp/read.log
 
+      # DID THEIR NUMBER MOVE, AND IS THE FEED GOING COLD. Asked here, before
+      # the commit stages anything, because afterwards there is nothing left to
+      # compare against.
+      #
+      # WHY IT IS ASKED AT ALL. The nudge below used to fire on every
+      # successful pass, so every read of this board started a run in each of
+      # the two site repositories whether or not there was anything new to
+      # render. That was affordable while this repository got 1.5 passes an
+      # hour. With the sites starting this workflow too it is about eight an
+      # hour, and sixteen pointless site runs an hour is how a repository
+      # starts to look like a persistent server to Actions -- the shape that
+      # cost dnilgis/bids two thirds of its coverage on 2026-08-27.
+      #
+      # data/boyceville.json is written by read.mjs ONLY when the price moved,
+      # a route changed, or the heartbeat came due. So "did that file change"
+      # is exactly "is there something for the sites to show", which is what
+      # their own prices.yml comment has always claimed the nudge meant.
+      #
+      # COLD IS THE OTHER REASON TO WAKE THEM, and it is the one that stops a
+      # wrong number rather than a late one. A site withdraws the price by
+      # RENDERING the withdrawal, so a site whose own cron has been dropped
+      # goes on showing a price that this repository already knows is stale.
+      # Telling them at three hours gives them an hour of chances to rebuild
+      # before the four-hour line.
+      - name: Is there anything the sites need to know
+        id: news
+        if: always() && steps.read.outcome != 'skipped'
+        shell: bash
+        run: |
+          set -e
+          if git diff --quiet -- data/boyceville.json; then MOVED=0; else MOVED=1; fi
+          COLD=$(node -e '
+            const fs = require("fs");
+            let t = null;
+            try {
+              const i = JSON.parse(fs.readFileSync("data/index.json", "utf8"));
+              const s = (i.sources || []).find((x) => x && x.id === "boyceville");
+              if (s && typeof s.checkedAt === "string") t = Date.parse(s.checkedAt);
+            } catch { /* an index that will not parse is not a fresh index */ }
+            const h = Number.isFinite(t) ? (Date.now() - t) / 3600000 : Infinity;
+            process.stdout.write(h >= 3 ? "1" : "0");
+          ')
+          echo "moved=$MOVED" >> "$GITHUB_OUTPUT"
+          echo "cold=$COLD"   >> "$GITHUB_OUTPUT"
+          echo "price moved this pass: $MOVED; feed three hours or older: $COLD"
+
       # always(), so a reader that exited 1 still gets its health file pushed --
       # but not when the gate failed and the reader never ran, where there is
       # nothing to commit and "Nothing changed." is just noise.
+      #
+      # THREE MINUTES, BECAUSE THIS STEP CAN STILL READ THEIR BOARD AGAIN. It
+      # does so only when the commits we lost the race to actually changed the
+      # feed, and when it does it is an ordinary pass with every route
+      # available to it. Left unbounded under a six-minute job this
+      # was the step most likely to be the one the job ceiling killed, and
+      # being killed here means the read is lost after it succeeded.
+      #
+      # WHY THE RE-READ IS NOT WHAT IT WAS, 2026-09-18. It ran on EVERY failed
+      # push, whether or not the commits it lost to had touched the feed at
+      # all. One thing is wrong with that, and it is not the request count:
+      #
+      #   - Hunting for the board is not this loop's job when the pass already
+      #     read it. What the rejected push means is that HEAD moved, and what a
+      #     rebase needs is this pass's two files on top of the new HEAD.
+      #   - The races this loop actually loses are almost never to another
+      #     reader. read.yml and watchdog.yml share the concurrency group, so
+      #     they cannot run at once; the commits that land underneath are staff
+      #     updates and site rebuilds, which do not touch data/. Re-reading
+      #     their board to rebase onto a commit that changed index.html is
+      #     spending a partner's bandwidth on nothing.
+      #
+      # So the files are kept across the reset and put back. The one case that
+      # does need a fresh read is the one where the incoming commits changed
+      # the feed itself: then this pass's number was checked against a baseline
+      # that is no longer the last committed read, and the max-move rail has to
+      # run again. That re-read is an ordinary pass: if the arranged URL has
+      # stopped answering between the first read and the rebase, the re-read
+      # should find the board the same way the first one would have.
       - name: Commit what changed
         if: always() && steps.read.outcome != 'skipped'
+        timeout-minutes: 3
         run: |
           set -e
           git config user.name "Emmert Admin Bot"
           git config user.email "bot@badgergrain.com"
           BR="${GITHUB_REF_NAME:-main}"
+          KEEP="${RUNNER_TEMP:-/tmp}/boyceville-keep"
+          mkdir -p "$KEEP"
           for i in 1 2 3 4 5; do
             git add data/boyceville.json data/index.json 2>/dev/null || true
             if git diff --staged --quiet; then echo "Nothing changed."; exit 0; fi
             git commit -m "boyceville: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
             if git push origin "HEAD:$BR"; then echo "Pushed on attempt $i."; exit 0; fi
-            echo "Push race on attempt $i; re-reading their board against current HEAD..."
-            git reset --hard "origin/$BR" 2>/dev/null || true
+            echo "Push race on attempt $i; rebasing this pass onto current HEAD."
+            cp data/boyceville.json data/index.json "$KEEP/" 2>/dev/null || true
+            WAS=$(git rev-parse "origin/$BR" 2>/dev/null || true)
             git fetch origin "$BR" && git reset --hard "origin/$BR"
-            node scripts/read.mjs || true
+            if [ -n "$WAS" ] && git diff --quiet "$WAS" "origin/$BR" -- data/boyceville.json data/index.json; then
+              echo "  the commits we lost to left the feed alone; putting this pass's read back, no request to their host"
+              cp "$KEEP/boyceville.json" "$KEEP/index.json" data/ 2>/dev/null || true
+            else
+              echo "  the feed moved underneath this pass; re-reading against the new baseline"
+              node scripts/read.mjs || true
+            fi
             sleep $((RANDOM % 4 + 2))
           done
           echo "::error::could not push after 5 attempts"
@@ -150,6 +409,14 @@ jobs:
       # Without the secret it skips and says so -- a missing token must never be
       # the reason a price is late, and setting one up must never be a step
       # between this repository working and not working.
+      #
+      # NOT ON EVERY SUCCESSFUL PASS ANY MORE, SINCE 2026-09-18. See the
+      # `news` step above for why: with the sites starting this workflow, a
+      # nudge per pass is sixteen site runs an hour that render a file nothing
+      # changed in. It fires when their number moved, and when the feed is
+      # three hours old so the sites still have an hour of chances to rebuild
+      # and withdraw before the four-hour line. On a pass that is neither, the
+      # sites' own schedule is the mechanism and it is enough.
       #
       # To enable: Settings -> Secrets and variables -> Actions -> New
       # repository secret, named SITE_DISPATCH_TOKEN, a fine-grained token with
@@ -165,7 +432,10 @@ jobs:
       # once worked and the four-minute cron lag had been the real mechanism
       # all along.
       - name: Nudge both sites
-        if: steps.read.outcome == 'success'
+        if: >-
+          always() && steps.news.outcome == 'success' &&
+          (steps.news.outputs.moved == '1' || steps.news.outputs.cold == '1')
+        timeout-minutes: 2
         env:
           TOK: ${{ secrets.SITE_DISPATCH_TOKEN }}
         run: |
@@ -187,9 +457,19 @@ jobs:
             }));
           ' "$PRICED")
           for repo in badgergrain midwestcommodity; do
-            code=$(curl -sS -o /dev/null -w '%{http_code}' -X POST \
+            # --max-time, because curl has no deadline of its own and a
+            # hanging api.github.com would otherwise spend this step's whole
+            # ceiling on a nudge that is optional by design.
+            #
+            # Content-Type SAID OUT LOUD. The body below is JSON; curl's -d
+            # announces form encoding unless told otherwise, and the API is
+            # entitled to answer 415 to that. It has been accepting this
+            # endpoint without the header, which is a courtesy and not a
+            # contract, and a 415 here would look exactly like a token problem.
+            code=$(curl -sS --max-time 20 -o /dev/null -w '%{http_code}' -X POST \
               -H "Authorization: Bearer $TOK" \
               -H "Accept: application/vnd.github+json" \
+              -H "Content-Type: application/json" \
               -H "X-GitHub-Api-Version: 2022-11-28" \
               "https://api.github.com/repos/midwestagsupply/$repo/dispatches" \
               -d "$BODY") || code=000
