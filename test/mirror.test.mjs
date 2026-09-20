@@ -679,31 +679,69 @@ test("read.yml and watchdog.yml hold the shared group for the same length of tim
     "the two workflows that share `read-boyceville` no longer share a ceiling");
 });
 
-test("the sites are told when there is something to tell, not on every pass", () => {
-  /* It used to be `if: steps.read.outcome == 'success'`, so every read started
-     a run in each site whether or not anything had changed. That was 1.5 passes
-     an hour. With the sites starting this workflow too it is about eight, and
-     sixteen pointless site runs an hour is the persistent-server shape that
-     cost dnilgis/bids two thirds of its coverage on 2026-08-27.
+test("the sites are told when there is something to tell, or when their page is behind", () => {
+  /* IT USED TO BE `if: steps.read.outcome == 'success'`, so every read started a
+     run in each site whether or not anything had changed: about eight passes an
+     hour, sixteen site runs, which is how a repository starts to look like a
+     persistent server to Actions -- the shape that cost dnilgis/bids two thirds
+     of its coverage on 2026-08-27. That is why the moved/cold gate exists.
 
-     COLD IS THE OTHER HALF AND IT IS THE ONE THAT STOPS A WRONG NUMBER. A site
-     withdraws by RENDERING the withdrawal, so a site whose own cron has been
-     dropped goes on showing a price this repository already knows is stale. */
-  const at = READ_YML.indexOf("- name: Nudge both sites");
+     2026-09-20 ADDED A THIRD REASON, and it is the one Sig asked for: the page
+     prints the time of the LAST READ, and it only reprints it when its own build
+     runs. GitHub delivered 22% of the sites' asked fires over the six days to
+     2026-09-18, so on a quiet Sunday midwestcommodity.com sat at 9:55am while the
+     board had been read at 5:25pm. A page whose stamp is older than the age in
+     that step is now nudged on an ordinary pass too.
+
+     The gate is still a gate: on an ordinary pass only the page that is actually
+     behind is told, so this cannot drift back to every-pass-times-two. */
+  const at = READ_YML.indexOf("- name: Nudge the sites");
   assert.ok(at > 0, "the nudge step is gone");
-  const block = READ_YML.slice(at, at + 400);
+  const block = READ_YML.slice(at, at + 600);
   assert.match(block, /steps\.news\.outputs\.moved == '1'/,
     "the nudge no longer asks whether their price moved");
   assert.match(block, /steps\.news\.outputs\.cold == '1'/,
     "the nudge no longer wakes the sites when the feed is going cold, so a site whose " +
     "own cron was dropped would keep a stale price on the page past four hours");
+  assert.match(block, /steps\.behind\.outputs\.list != ''/,
+    "the nudge no longer wakes a site whose page is showing an old 'as of'");
   assert.doesNotMatch(block, /if: steps\.read\.outcome == 'success'\s*$/m,
-    "the nudge fires on every successful pass again");
-  /* And the step that answers those two questions has to run BEFORE the commit
-     stages anything, or there is nothing left to compare against. */
+    "the nudge fires on every successful pass again, for both sites, whatever the pages say");
+
+  /* And the two questions it asks have to be answered BEFORE the commit stages
+     anything, or there is nothing left to compare against. */
   assert.ok(READ_YML.indexOf("- name: Is there anything the sites need to know")
             < READ_YML.indexOf("- name: Commit what changed"),
     "the move check now runs after the commit, where data/boyceville.json always looks unchanged");
+});
+
+test("an ordinary pass tells only the page that is behind, and an unreadable page counts as behind", () => {
+  const at = READ_YML.indexOf("- name: Are the sites showing an old stamp");
+  assert.ok(at > 0, "the step that reads the sites' own stamps is gone");
+  const step = READ_YML.slice(at, READ_YML.indexOf("- name: Nudge the sites"));
+
+  /* The age is Sig's ten-minute rule, and it is a number a person can move.
+     Zero is deliberately meaningful: every pass. */
+  const max = /MAX_AGE_MIN:\s*"(\d+)"/.exec(step);
+  assert.ok(max, "the staleness age is not declared where anybody can find it");
+  assert.ok(Number(max[1]) <= 10,
+    `the pages may sit ${max[1]} minutes behind the last read; the promise is ten`);
+
+  assert.match(step, /badgergrain\.com/, "badgergrain's page is not asked");
+  assert.match(step, /midwestcommodity\.com/, "midwestcommodity's page is not asked");
+  assert.match(step, /bids\.json/,
+    "it reads something other than the file the page's own stamp comes from");
+  assert.match(step, /behind unreadable/,
+    "a page that cannot be read is not treated as behind, so the one failure this " +
+    "exists to catch would look like a fresh page");
+
+  /* The nudge must send an ordinary pass ONLY to the behind list. */
+  const nudge = READ_YML.slice(READ_YML.indexOf("- name: Nudge the sites"));
+  assert.match(nudge, /TARGETS="\$\{BEHIND:-\}"/,
+    "an ordinary pass no longer narrows to the site that is behind");
+  assert.match(nudge, /REASON=checked/,
+    "the payload no longer says why the run happened, so a site's log cannot tell a " +
+    "stamp refresh from a price move");
 });
 
 /* ── the sites' half of it ─────────────────────────────────────────────────
@@ -740,6 +778,43 @@ test("each site starts this reader, and does it before anything in it can fail",
        unread. The board is what the four-hour withdrawal clock measures. */
     assert.ok(y.indexOf("- name: Start the reader") < y.indexOf("uses: actions/checkout"),
       `${name}/prices.yml pokes the reader after its checkout, so a bad checkout silences the poke`);
+  }
+  if (!checked) {
+    console.log("    (skipped: no site repositories beside this one and no SITE_REPOS. " +
+                "test.yml checks them out and runs this for real.)");
+  }
+});
+
+test("every reason this repository can send is a reason the sites can say out loud", () => {
+  /* The payload gained `reason` when the nudge stopped meaning "the price
+     moved": an ordinary pass now tells a site whose stamp has gone stale, and
+     the site's own log has to be able to say which it was. The failure this
+     guards is silent and one-sided -- add a fourth reason here, and both sites
+     print `reason <the-new-word>` forever, looking like a bug in the payload.
+     So the words are checked across the repositories, from here, where they
+     are minted. */
+  const read = readFileSync(join(ROOT, ".github/workflows/read.yml"), "utf8");
+  const nudge = read.slice(read.indexOf("- name: Nudge the sites"));
+  const reasons = [...new Set([...nudge.matchAll(/^\s*(?:\[[^\]]*\]\s*&&\s*)?REASON=([a-z]+)\b/gm)]
+                              .map((m) => m[1]))];
+  assert.ok(reasons.length >= 3,
+    `expected at least three reasons in the nudge, found ${JSON.stringify(reasons)}`);
+
+  let checked = 0;
+  for (const name of ["badgergrain", "midwestcommodity"]) {
+    const y = sitePrices(name);
+    if (y === undefined) continue;
+    checked++;
+    assert.match(y, /REASON: \$\{\{ github\.event\.client_payload\.reason \}\}/,
+      `${name}/prices.yml never reads client_payload.reason, so every nudge still reads as a price move`);
+    for (const r of reasons) {
+      assert.ok(new RegExp(`^\\s*${r}\\)`, "m").test(y),
+        `${name}/prices.yml has no case arm for reason "${r}", so it would print the raw word`);
+    }
+    /* The default matters as much: a payload from before this field existed,
+       or from a hand-fired dispatch, is a price move and must read as one. */
+    assert.match(y, /case "\$\{REASON:-moved\}"/,
+      `${name}/prices.yml does not default a missing reason to "moved"`);
   }
   if (!checked) {
     console.log("    (skipped: no site repositories beside this one and no SITE_REPOS. " +
