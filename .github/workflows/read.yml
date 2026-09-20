@@ -339,6 +339,113 @@ jobs:
           echo "cold=$COLD"   >> "$GITHUB_OUTPUT"
           echo "price moved this pass: $MOVED; feed three hours or older: $COLD"
 
+      # ── AND IS EITHER PAGE SHOWING AN OLD "as of"? ────────────────────────
+      #
+      # 2026-09-20, Sig: "i want the price to show the last time it was checked
+      # not the last time the price moved, even if the price doesn't move i want
+      # it to refresh the site with the most recent time it was looked at."
+      #
+      # The pages ALREADY print checkedAt -- "as of 12:25pm" is when we last read
+      # their board, not when the price last moved. What went wrong is upstream of
+      # the wording: a page only reprints that stamp when its own build runs, the
+      # nudge below only fired on a move or a cold feed, and GitHub delivered 22%
+      # of the sites' asked fires over the six days to 2026-09-18.
+      #
+      # MEASURED, from the three repositories' own commit history, 2026-09-19
+      # 00:00Z to 2026-09-20 20:33Z. 53 passes of this reader landed. Minutes
+      # from a read being committed here to the page reprinting its stamp:
+      #
+      #                      median   p90    worst
+      #   badgergrain          9.8   31.7    88.2
+      #   midwestcommodity     9.8   31.7   107.0
+      #
+      # Every read did reach both pages eventually -- nothing was lost, it was
+      # late. At 20:33Z both pages were showing 20:14:46Z, 19.2 minutes old,
+      # with a price that had not moved since 2026-09-19 13:04Z.
+      #
+      # So this asks the pages themselves. Each site publishes bids.json beside
+      # its index.html, carrying the same `observed` stamp the page prints. If a
+      # site's stamp is older than MAX_AGE_MIN, it gets nudged whether or not the
+      # price moved.
+      #
+      # WHY AN AGE AND NOT SIMPLY EVERY PASS, AND WHAT IT ACTUALLY SAVES.
+      #
+      # The 2026-09-18 cut-back assumed eight passes an hour, so a nudge per pass
+      # was sixteen site runs an hour -- the persistent-server shape. Replayed
+      # against the real history above, this reader LANDED 1.2 passes an hour,
+      # and the gate costs:
+      #
+      #   MAX_AGE_MIN=0 (every pass)   106 site runs / 44.0h = 2.41 an hour
+      #   MAX_AGE_MIN=8                 94 site runs / 44.0h = 2.13 an hour
+      #
+      # So the saving today is 11%, not half, and neither number is near the one
+      # the cut-back was about. The gate is kept because the arithmetic changes
+      # the moment delivery improves -- which is the entire point of the sites
+      # starting this workflow -- and at eight passes an hour it is the
+      # difference between sixteen runs and two. Eight minutes also holds every
+      # page inside Sig's own ten-minute rule.
+      #
+      # SET MAX_AGE_MIN TO 0 FOR LITERALLY EVERY PASS -- the arithmetic below is
+      # written so that 0 means "always behind". Today that costs 12 extra runs
+      # in two days.
+      #
+      # A page we cannot read is treated as behind. The failure this exists to
+      # catch looks exactly like an unreachable page, and a wasted 20-second run
+      # is cheaper than a stale stamp nobody notices.
+      - name: Are the sites showing an old stamp
+        id: behind
+        if: always() && steps.read.outcome != 'skipped'
+        timeout-minutes: 2
+        shell: bash
+        env:
+          MAX_AGE_MIN: "8"
+        run: |
+          set -uo pipefail
+          FEED=$(node -e '
+            const fs = require("fs");
+            let t = "";
+            try {
+              const i = JSON.parse(fs.readFileSync("data/index.json", "utf8"));
+              const s = (i.sources || []).find((x) => x && x.id === "boyceville");
+              if (s && typeof s.checkedAt === "string") t = s.checkedAt;
+            } catch {}
+            process.stdout.write(t);
+          ')
+          LIST=""
+          for pair in "badgergrain:badgergrain.com" "midwestcommodity:midwestcommodity.com"; do
+            repo=${pair%%:*}; host=${pair##*:}
+            # -L: if the apex ever redirects to www (or back), a bare curl
+            # returns an empty body and this page reads as unreachable forever.
+            # The query string is the cache bust: GitHub Pages sits behind a CDN
+            # that keys on the full URL, so a fresh second here is a fresh read.
+            # (raw.githubusercontent does NOT behave that way -- see the
+            # 2026-09-18 note in the sites' own prices.yml.) Without it we would
+            # be reading a copy up to ten minutes old and calling a page behind
+            # that had just rebuilt.
+            body=$(curl -sSL --max-time 15 -H "Cache-Control: no-cache" \
+                   "https://$host/bids.json?t=$(date +%s)") || body=""
+            age=$(FEED="$FEED" MAXA="$MAX_AGE_MIN" node -e '
+              let body = ""; try { body = require("fs").readFileSync(0, "utf8"); } catch {}
+              let seen = NaN;
+              try { seen = Date.parse(JSON.parse(body).observed); } catch {}
+              const feed = Date.parse(process.env.FEED || "");
+              /* A page we cannot read, or one with no stamp, is behind. */
+              if (!Number.isFinite(seen)) { process.stdout.write("behind unreadable"); }
+              else {
+                const mins = (Number.isFinite(feed) ? feed - seen : Date.now() - seen) / 60000;
+                const max = Number(process.env.MAXA);
+                process.stdout.write(
+                  (mins >= (Number.isFinite(max) ? max : 8) ? "behind " : "fresh ") + mins.toFixed(1) + "m");
+              }
+            ' <<< "$body")
+            echo "  $host -> $age"
+            case "$age" in behind*) LIST="$LIST $repo";; esac
+          done
+          LIST=$(echo "$LIST" | xargs || true)
+          echo "list=$LIST" >> "$GITHUB_OUTPUT"
+          [ -n "$LIST" ] && echo "behind: $LIST" || echo "both pages are inside $MAX_AGE_MIN minutes"
+          exit 0
+
       # always(), so a reader that exited 1 still gets its health file pushed --
       # but not when the gate failed and the reader never ran, where there is
       # nothing to commit and "Nothing changed." is just noise.
@@ -410,13 +517,30 @@ jobs:
       # the reason a price is late, and setting one up must never be a step
       # between this repository working and not working.
       #
-      # NOT ON EVERY SUCCESSFUL PASS ANY MORE, SINCE 2026-09-18. See the
-      # `news` step above for why: with the sites starting this workflow, a
-      # nudge per pass is sixteen site runs an hour that render a file nothing
-      # changed in. It fires when their number moved, and when the feed is
-      # three hours old so the sites still have an hour of chances to rebuild
-      # and withdraw before the four-hour line. On a pass that is neither, the
-      # sites' own schedule is the mechanism and it is enough.
+      # WHEN IT FIRES, AND WHY THAT CHANGED TWICE.
+      #
+      # It fired on every successful pass until 2026-09-18, when the sites
+      # started this workflow themselves: a nudge per pass was then sixteen
+      # site runs an hour rendering a file nothing had changed in, which is the
+      # persistent-server shape. So it was cut back to the price moving, or the
+      # feed going cold.
+      #
+      # That was wrong about what the page says. The stamp under the price is
+      # the time of the last CHECK, not the last move -- update-prices.mjs
+      # builds it from checkedAt, deliberately, since 2026-08-20. A page whose
+      # price has not moved since yesterday still has to reprint to say it was
+      # looked at four minutes ago, and it only reprints when something starts
+      # its build. Gated on moves, that left both pages showing a stamp as old
+      # as the sites' own dropped crons: 19 minutes, measured 2026-09-20 20:33Z,
+      # with the reader's own last check 20:14:46Z and both sites already
+      # holding it.
+      #
+      # So it fires on three things now: the price moved, the feed went cold,
+      # or the `behind` step above found a page whose printed stamp is more
+      # than MAX_AGE_MIN behind this pass's check. The last of those is the
+      # ordinary case, and it goes only to the page that is actually behind --
+      # a page rebuilt two minutes ago by its own cron is left alone, so this
+      # is not the every-pass-times-two count the cut-back was about.
       #
       # To enable: Settings -> Secrets and variables -> Actions -> New
       # repository secret, named SITE_DISPATCH_TOKEN, a fine-grained token with
@@ -431,32 +555,54 @@ jobs:
       # else here would mean discovering months later that the nudge had never
       # once worked and the four-minute cron lag had been the real mechanism
       # all along.
-      - name: Nudge both sites
+      - name: Nudge the sites
         if: >-
           always() && steps.news.outcome == 'success' &&
-          (steps.news.outputs.moved == '1' || steps.news.outputs.cold == '1')
+          (steps.news.outputs.moved == '1' || steps.news.outputs.cold == '1' ||
+           steps.behind.outputs.list != '')
         timeout-minutes: 2
         env:
           TOK: ${{ secrets.SITE_DISPATCH_TOKEN }}
+          MOVED: ${{ steps.news.outputs.moved }}
+          COLD: ${{ steps.news.outputs.cold }}
+          BEHIND: ${{ steps.behind.outputs.list }}
         run: |
           if [ -z "${TOK:-}" ]; then
             echo "No SITE_DISPATCH_TOKEN; skipping the nudge."
-            echo "Both sites poll every ten minutes anyway, so the price is at most"
-            echo "four minutes behind this read. Nothing is broken."
+            echo "The sites' own schedules are the only thing left, and GitHub delivered"
+            echo "22% of their asked fires over the six days to 2026-09-18, so the 'as of'"
+            echo "on the page will drift behind this read. Nothing is WRONG on the page --"
+            echo "it prints the time of the read it was built from -- it is just late."
             exit 0
           fi
           PRICED=$(node -e 'try{process.stdout.write(String(require("./data/boyceville.json").pricedAt??""))}catch{}')
+          # WHY THIS RUN IS BEING STARTED, in the payload, because the site prints
+          # it in its own log. "moved" is a new price, "cold" is a feed going
+          # stale, "checked" is the ordinary case this step now exists for: the
+          # board was read, the price did not move, and the page's "as of" is
+          # older than it should be.
+          REASON=checked
+          [ "${COLD:-0}" = "1" ] && REASON=cold
+          [ "${MOVED:-0}" = "1" ] && REASON=moved
           BODY=$(node -e '
             const p = process.argv[1] || null;
             process.stdout.write(JSON.stringify({
               event_type: "price-moved",
               client_payload: {
                 from: "emmertadmin", source: "boyceville",
+                reason: process.env.REASON || "checked",
                 pricedAt: p, run: process.env.GITHUB_RUN_ID || null,
               },
             }));
           ' "$PRICED")
-          for repo in badgergrain midwestcommodity; do
+          # A move or a cold feed goes to BOTH; an ordinary pass goes only to the
+          # page that is actually behind, which is what keeps this off the
+          # every-pass-times-two count the note above is about.
+          TARGETS="badgergrain midwestcommodity"
+          if [ "${MOVED:-0}" != "1" ] && [ "${COLD:-0}" != "1" ]; then TARGETS="${BEHIND:-}"; fi
+          [ -n "$TARGETS" ] || { echo "nothing to tell either site"; exit 0; }
+          echo "reason=$REASON; telling: $TARGETS"
+          for repo in $TARGETS; do
             # --max-time, because curl has no deadline of its own and a
             # hanging api.github.com would otherwise spend this step's whole
             # ceiling on a nudge that is optional by design.
