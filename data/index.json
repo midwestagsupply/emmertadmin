@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T21:00:20.536Z",
+ "generated": "2026-09-22T21:10:16.541Z",
  "note": "One source. This file is rewritten on EVERY pass, pass or fail, which is why the sites measure the feed's age against it rather than against data/boyceville.json -- that one is only rewritten when the price moves.",
  "counts": {
   "total": 1,
@@ -14,8 +14,8 @@
    "operator": "Big River Resources",
    "location": "Boyceville",
    "usState": "WI",
-   "checkedAt": "2026-09-22T21:00:20.536Z",
-   "attemptedAt": "2026-09-22T21:00:20.536Z",
+   "checkedAt": "2026-09-22T21:10:16.541Z",
+   "attemptedAt": "2026-09-22T21:10:16.541Z",
    "pricedAt": "2026-09-22T18:30:17.226Z",
    "rows": 11,
    "health": "live",
@@ -30,62 +30,62 @@
     {
      "url": "https://www.bigriverbids.com/cashbidssingle-2121",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2162",
      "trust": "verified",
-     "why": "parsed 12 bids but none for location 2121. The page contained: Dyersville (2162)"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2165",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2163",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2164",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2166",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2167",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://www.bigriverbids.com/",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-",
      "trust": "inferred",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/",
      "trust": "inferred",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2163",
      "trust": "inferred",
-     "why": "parsed 13 bids but none for location 2121. The page contained: Galva (2163)"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2164",
      "trust": "inferred",
-     "why": "parsed 15 bids but none for location 2121. The page contained: West Burlington (2164)"
+     "why": "not started: an earlier route had already answered"
     }
    ],
    "reconstructed": [],
