@@ -1,5 +1,5 @@
 {
- "generated": "2026-09-22T11:40:15.143Z",
+ "generated": "2026-09-22T11:50:16.038Z",
  "note": "One source. This file is rewritten on EVERY pass, pass or fail, which is why the sites measure the feed's age against it rather than against data/boyceville.json -- that one is only rewritten when the price moves.",
  "counts": {
   "total": 1,
@@ -14,9 +14,9 @@
    "operator": "Big River Resources",
    "location": "Boyceville",
    "usState": "WI",
-   "checkedAt": "2026-09-22T11:40:15.143Z",
-   "attemptedAt": "2026-09-22T11:40:15.143Z",
-   "pricedAt": "2026-09-22T11:40:15.143Z",
+   "checkedAt": "2026-09-22T11:50:16.038Z",
+   "attemptedAt": "2026-09-22T11:50:16.038Z",
+   "pricedAt": "2026-09-22T11:50:16.038Z",
    "rows": 11,
    "health": "live",
    "status": "ok",
@@ -24,68 +24,68 @@
    "failingSince": null,
    "coldHours": 0,
    "detail": null,
-   "via": "https://www.bigriverbids.com/cashbidssingle-2121",
-   "viaTrust": "verified",
+   "via": "https://bigriverbids.com/cashbidssingle-2121",
+   "viaTrust": "primary",
    "routesTried": [
     {
-     "url": "https://bigriverbids.com/cashbidssingle-2121",
-     "trust": "primary",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "url": "https://www.bigriverbids.com/cashbidssingle-2121",
+     "trust": "verified",
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2162",
      "trust": "verified",
-     "why": "parsed 12 bids but none for location 2121. The page contained: Dyersville (2162)"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2165",
      "trust": "verified",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2163",
      "trust": "verified",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2164",
      "trust": "verified",
-     "why": "parsed 15 bids but none for location 2121. The page contained: West Burlington (2164)"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2166",
      "trust": "verified",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2167",
      "trust": "verified",
-     "why": "0 bids parsed; their page layout has changed, or that URL is no longer a bid board"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://www.bigriverbids.com/",
      "trust": "verified",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-",
      "trust": "inferred",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://bigriverbids.com/",
      "trust": "inferred",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2163",
      "trust": "inferred",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2164",
      "trust": "inferred",
-     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "not started: an earlier route had already answered"
     }
    ],
    "reconstructed": [],
