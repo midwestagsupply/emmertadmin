@@ -686,7 +686,7 @@ main#content { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: col
 .sheet .cell .lag { font: 600 .62rem/1 var(--font, inherit); color: #a6702a; }
 .sheet .cell.pub { align-items: flex-start; }
 .sheet .cell.pay { align-items: flex-end; font-weight: 800; font-size: .84rem; color: var(--site); }
-.sheet .cell.pay.off { color: #bcc3c8; font-weight: 500; }
+.sheet .cell.pay.off { color: #6b7278; font-weight: 500; }
 .sheet .row-on { background: #fffdf0; }
 
 /* The left edge of an elevator's block, so the eye can find where one stops. */
@@ -1051,7 +1051,7 @@ body[data-tab="hours"] .sheet [data-tab="basis"] { display: none !important; }
   border-color: var(--m-ink); color: #fff; }
 .sheet .cell .prev-notice { background: #fdf6d8; color: var(--m-ink); }
 .sheet .cell.pay { color: var(--site); }
-.sheet .cell.pay.off { color: #bcc3c8; }
+.sheet .cell.pay.off { color: #6b7278; }
 .sheet .cell.col-save, .sheet .cell.foot-note { background: var(--m-band);
   border-top: 1px solid var(--m-line); }
 .sheet .cell.col-save .btn-go { background: var(--site); border-color: var(--site);
@@ -1134,7 +1134,7 @@ body > header .livechips .lv.prev, body > header .livechips .lv.where,
 body > header .livechips .lv.when { position: absolute; width: 1px; height: 1px;
   overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 body > header .feednote { font: 500 .68rem var(--font, inherit); color: #5d666e;
-  white-space: nowrap; max-width: 34ch; overflow: hidden; text-overflow: ellipsis; }
+  white-space: nowrap; max-width: 60ch; overflow: hidden; text-overflow: ellipsis; }
 body > header .feednote.is-bad { color: #a1341f; font-weight: 700; }
 body > header .feednote.is-warn { color: #8a5a12; }
 body > header .railclock { font: 500 .68rem var(--font, inherit); color: #5d666e;
@@ -1528,3 +1528,10 @@ body[data-board="off"] .sheet [data-row="91"] .lab-when-down { display: block; }
    lets the line wrap inside the bar rather than overflow it. */
 .sheet .cell.col-save { min-width: 0; }
 .sheet .cell.col-save .saved { min-width: 0; overflow-wrap: anywhere; }
+
+/* ---- 2026-09-25 audit: things a thumb and a tired eye trip on -------------
+   The two tabs were 25px tall; the finger needs 44. Only on a touch screen, so
+   the desktop bar keeps its shape. */
+@media (pointer: coarse) {
+  body > header .tabs .rail-b, .rail .rail-b { min-height: 44px; display: inline-flex; align-items: center; }
+}
