@@ -1,10 +1,10 @@
 {
- "generated": "2026-10-01T17:10:18.718Z",
+ "generated": "2026-10-01T17:20:16.762Z",
  "note": "One source. This file is rewritten on EVERY pass, pass or fail, which is why the sites measure the feed's age against it rather than against data/boyceville.json -- that one is only rewritten when the price moves.",
  "counts": {
   "total": 1,
-  "live": 1,
-  "refused": 0,
+  "live": 0,
+  "refused": 1,
   "broken": 0,
   "skipped": 0
  },
@@ -15,77 +15,82 @@
    "location": "Boyceville",
    "usState": "WI",
    "checkedAt": "2026-10-01T17:10:18.718Z",
-   "attemptedAt": "2026-10-01T17:10:18.718Z",
+   "attemptedAt": "2026-10-01T17:20:16.762Z",
    "pricedAt": "2026-10-01T17:10:18.718Z",
    "rows": 10,
-   "health": "live",
-   "status": "ok",
-   "fails": 0,
-   "failingSince": null,
-   "coldHours": 0,
-   "detail": null,
+   "health": "refused",
+   "status": "refused",
+   "fails": 1,
+   "failingSince": "2026-10-01T17:20:16.762Z",
+   "coldHours": 0.17,
+   "detail": "no route produced a board that passes every guard. 13 tried:\n1. https://bigriverbids.com/cashbidssingle-2121 (primary) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n2. https://www.bigriverbids.com/cashbidssingle-2121 (verified) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n3. https://bigriverbids.com/cashbidssingle-2162 (verified) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n4. https://bigriverbids.com/cashbidssingle-2165 (verified) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n5. https://bigriverbids.com/cashbidssingle-2163 (verified) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n6. https://bigriverbids.com/cashbidssingle-2164 (verified) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n7. https://bigriverbids.com/cashbidssingle-2166 (verified) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n8. https://bigriverbids.com/cashbidssingle-2167 (verified) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n9. https://www.bigriverbids.com/ (verified) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n10. https://bigriverbids.com/cashbidssingle- (inferred) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n11. https://bigriverbids.com/ (inferred) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n12. https://www.bigriverresources.com/cashbidssingle-2163 (inferred) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504\n13. https://www.bigriverresources.com/cashbidssingle-2164 (inferred) -- attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504",
    "via": "https://bigriverbids.com/cashbidssingle-2121",
    "viaTrust": "primary",
    "routesTried": [
     {
+     "url": "https://bigriverbids.com/cashbidssingle-2121",
+     "trust": "primary",
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
+    },
+    {
      "url": "https://www.bigriverbids.com/cashbidssingle-2121",
      "trust": "verified",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2162",
      "trust": "verified",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2165",
      "trust": "verified",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2163",
      "trust": "verified",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2164",
      "trust": "verified",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2166",
      "trust": "verified",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2167",
      "trust": "verified",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://www.bigriverbids.com/",
      "trust": "verified",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-",
      "trust": "inferred",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://bigriverbids.com/",
      "trust": "inferred",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2163",
      "trust": "inferred",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2164",
      "trust": "inferred",
-     "why": "not started: an earlier route had already answered"
+     "why": "attempt 1: HTTP 504; attempt 2: HTTP 504; attempt 3: HTTP 504"
     }
    ],
    "reconstructed": [],
