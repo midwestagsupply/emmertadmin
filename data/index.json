@@ -1,5 +1,5 @@
 {
- "generated": "2026-10-03T22:11:48.014Z",
+ "generated": "2026-10-03T22:20:17.031Z",
  "note": "One source. This file is rewritten on EVERY pass, pass or fail, which is why the sites measure the feed's age against it rather than against data/boyceville.json -- that one is only rewritten when the price moves.",
  "counts": {
   "total": 1,
@@ -14,9 +14,9 @@
    "operator": "Big River Resources",
    "location": "Boyceville",
    "usState": "WI",
-   "checkedAt": "2026-10-03T22:11:48.014Z",
-   "attemptedAt": "2026-10-03T22:11:48.014Z",
-   "pricedAt": "2026-10-03T12:50:15.795Z",
+   "checkedAt": "2026-10-03T22:20:17.031Z",
+   "attemptedAt": "2026-10-03T22:20:17.031Z",
+   "pricedAt": "2026-10-03T22:20:17.031Z",
    "rows": 10,
    "health": "live",
    "status": "ok",
@@ -88,7 +88,15 @@
      "why": "not started: an earlier route had already answered"
     }
    ],
-   "reconstructed": [],
+   "reconstructed": [
+    {
+     "commodity": "Corn",
+     "delivery": "July",
+     "field": "cash",
+     "value": 4.7075,
+     "why": "their Bid cell reads 0.1925, outside the 2 to 12 corn band"
+    }
+   ],
    "commodities": [
     "Corn"
    ]
