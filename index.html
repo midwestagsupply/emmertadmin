@@ -11,7 +11,7 @@
 <body>
 
 <header>
-  <b class="brand">EMMERT</b>
+  <h1 class="brand">EMMERT</h1>
   <nav class="tabs" id="rail" aria-label="Screens">
     <button type="button" class="rail-b" data-go="basis" aria-current="true">
       <span class="rail-t">Basis</span><span class="rail-s">What we post under Bids</span>
@@ -137,7 +137,7 @@
      the column and its form lifts their cells into this grid, so the DOM keeps
      the shape the forms need and the screen keeps the shape a person reads.
      The roles below carry the table semantics the layout gave up. -->
-<div class="sheet" id="floor" role="table" aria-label="Both elevators">
+<div class="sheet" id="floor" role="group" aria-label="Both elevators">
 
   <div class="cell hd grp" data-row="1" data-tab="basis" style="grid-column:1/7" role="columnheader">Market &amp; Bids &middot; Boyceville</div>
   <div class="cell hd grp" data-row="1" data-tab="hours" style="grid-column:1/7" role="columnheader">What you are setting</div>
@@ -361,6 +361,8 @@
       <div class="cell ctl" data-row="4" data-tab="hours" data-col="bc">
         <textarea data-id="msg" name="message" maxlength="160">Harvest hours start Monday. We will run until 8:00p and open Sundays as the crop demands.</textarea>
         <div class="counter">Two lines on a phone.</div>
+        <label class="until">Hide after <input type="date" name="banner_until" value=""></label>
+        <span class="hint until-hint">Shows through the end of this day. Leave empty to keep it up.</span>
       </div>
 
       <div class="cell ctl" data-row="5" data-tab="hours" data-col="a">
@@ -954,6 +956,7 @@
      is exactly what the page shows today. So saving without touching anything
      publishes what is already published. */
   var MONTHS = {};        // site -> { Month: {basis: string, publish: bool} }
+  var BASELINE = {};      // site -> MONTHS as the site's own pricing.json had it on load
   var MONTH_ORDER = [];   // board order
 
   function monthsField(site) {
@@ -1319,6 +1322,7 @@
       .then(function (pr) {
         MONTHS[site] = {};
         seedMonths(site, pr);
+        BASELINE[site] = JSON.parse(JSON.stringify(MONTHS[site]));
         MONTH_ORDER.forEach(function (m) {
           var st = MONTHS[site][m];
           if (!st) return;
@@ -2330,6 +2334,85 @@
       flagged = [];
     }
 
+    /* ---- WHAT IS ABOUT TO GO LIVE, BEFORE IT DOES --------------------------
+       2026-10-13, borrowed from Flash Grain's staff screen. The issue body is
+       the whole form, so a typo in one month box was only visible as one line
+       among forty. Save now lists the price changes first, in words
+       ("October: basis -0.62 to -0.70, pays $4.21 to $4.13"), and warns on a
+       basis that moves more than 25 cents or turns positive. Press Save a
+       second time to open GitHub. A save with no price change (hours, the
+       banner, the notes) opens GitHub on the first press, as before. Nothing
+       about the issue itself changes.
+
+       "Before" is what the site's own pricing.json says (BASELINE, read with
+       the ticks); a blank box means "same", exactly as the applier reads it. */
+    var JUMP = 0.25;
+    var reviewed = null;
+    var reviewNote = document.createElement("div");
+    reviewNote.className = "sanity review";
+    reviewNote.hidden = true;
+    reviewNote.setAttribute("role", "status");
+    reviewNote.setAttribute("tabindex", "-1");
+    if (checkNote.parentNode) checkNote.parentNode.insertBefore(reviewNote, checkNote);
+    function quoteOf(m) {
+      var c = floor && floor.querySelector('.basis-cell[data-month="' + m + '"]');
+      var q = c ? parseFloat(c.getAttribute("data-quote")) : NaN;
+      return isFinite(q) ? q : null;
+    }
+    function payOf(q, b) {
+      if (q == null || b == null) return null;
+      var x = Math.round((q + b) * 10000), sg = x < 0 ? -1 : 1;
+      return sg * Math.floor((Math.abs(x) + 50) / 100) / 100;
+    }
+    function numOr(v) { var n = parseFloat(String(v == null ? "" : v).replace(/^\+/, "")); return isFinite(n) ? n : null; }
+    function sgn(v) { return v == null ? "none" : (v < 0 ? "\u2212" : "+") + Math.abs(v).toFixed(2); }
+    function usd(v) { return v == null ? "no price" : "$" + v.toFixed(2); }
+    function review() {
+      var lines = [], warns = [];
+      var now = MONTHS[site] || {}, was = BASELINE[site] || null;
+      MONTH_ORDER.forEach(function (m) {
+        var n = now[m], w = was && was[m];
+        if (!n) return;
+        var wb = w ? numOr(w.basis) : null;
+        var nb = String(n.basis == null ? "" : n.basis).trim() === "" ? wb : numOr(n.basis);
+        var wp = !!(w && w.publish), np = !!n.publish;
+        var q = quoteOf(m);
+        if (!wp && !np) return;
+        if (np && !wp) lines.push(m + ": now shown, basis " + sgn(nb) + ", pays " + usd(payOf(q, nb)));
+        else if (wp && !np) lines.push(m + ": taken off the page");
+        else if (wb !== nb) lines.push(m + ": basis " + sgn(wb) + " to " + sgn(nb) + ", pays " +
+          usd(payOf(q, wb)) + " to " + usd(payOf(q, nb)));
+        if (np && nb != null && wb != null && Math.abs(nb - wb) > JUMP + 1e-9)
+          warns.push(m + " basis moves " + Math.round(Math.abs(nb - wb) * 100) + " cents. Is that right?");
+        if (np && nb != null && nb > 0 && !(wb != null && wb > 0))
+          warns.push(m + " basis is over the board (+" + nb.toFixed(2) + "). Is the minus missing?");
+      });
+      [["manual_cash", "Cash price by hand"], ["manual_harvest", "Harvest price by hand"]].forEach(function (p) {
+        var el = byName(p[0]);
+        if (!el) return;
+        var a = String(el.defaultValue || "").trim(), b = el.value.trim();
+        if (a === b) return;
+        lines.push(p[1] + ": " + (a ? "$" + a : "none") + " to " + (b ? "$" + b : "none (back to the board)"));
+      });
+      return { lines: lines, warns: warns, known: !!was };
+    }
+    function showReview(rv) {
+      var esc = function (t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;"); };
+      var h = "<b>Check before it goes live on " + esc(name) + ".</b>";
+      if (!rv.known) h += " <span>Could not read what the site shows now, so these are the new figures only.</span>";
+      h += rv.lines.length ? "<ul>" + rv.lines.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + "</ul>"
+                           : "<p>No price changes. Hours, banner or notes only.</p>";
+      if (rv.warns.length)
+        h += "<ul class=\"risk\">" + rv.warns.map(function (l) { return "<li>" + esc(l) + "</li>"; }).join("") + "</ul>";
+      h += "<p>Press <b>Save</b> again to open GitHub, or fix a box first.</p>";
+      reviewNote.innerHTML = h;
+      reviewNote.classList.toggle("is-bad", rv.warns.length > 0);
+      reviewNote.hidden = false;
+    }
+    if (form) form.addEventListener("input", function () {
+      if (reviewed !== null) { reviewed = null; reviewNote.hidden = true; }
+    });
+
     function problems() {
       clearBad();
       var out = [];
@@ -2527,6 +2610,13 @@
         var picked = qs('input[name="banner"]:checked');
         var box = byName("message");
         if (!picked || !box) return;
+        var untilEl = byName("banner_until");
+        var todayC = new Date().toLocaleDateString("en-CA", { timeZone: "America/Chicago" });
+        if (picked.value === "on" && untilEl && untilEl.value && untilEl.value < todayC &&
+            untilEl.value !== untilEl.defaultValue) {
+          out.push("The banner\u2019s hide-after date has already passed. Pick today or later, or clear it.");
+          markBad(untilEl);
+        }
         if (picked.value === "on" && box.value.trim() === "") {
           out.push("The banner is set to show with nothing written in it. " +
             "Type a message, or choose Hide it.");
@@ -2602,6 +2692,17 @@
         e.preventDefault();
         checkNote.hidden = true;
         clearBad();
+        /* FIRST PRESS SHOWS THE CHANGES; THE SECOND, ON THE SAME FORM, SAVES. */
+        var rv = review(), sig = issueBody(form);
+        if ((rv.lines.length || rv.warns.length) && reviewed !== sig) {
+          reviewed = sig;
+          showReview(rv);
+          reviewNote.focus();
+          reviewNote.scrollIntoView({ block: "center" });
+          return;
+        }
+        reviewed = null;
+        reviewNote.hidden = true;
         /* dirty IS NOT CLEARED HERE. It used to be, three lines before the
            window was opened -- so the "you have unsaved changes" guard was
            already off while the work was still unsaved, and closing the
@@ -2677,6 +2778,7 @@
       form.addEventListener("reset", function () {
         setTimeout(function () {
           sync(); checkNote.hidden = true; clearBad(); dirty = false;
+          reviewed = null; reviewNote.hidden = true;
           var how = byId("saveHow");
           /* Put the STANDING wording back, not just the colour. Removing the
              class alone left "Not finished yet. A GitHub tab has opened..."
@@ -2737,6 +2839,7 @@
     var LABELS = {
       today: "Are you open today?", open: "Opens", close: "Closes",
       banner: "The notice banner", message: "Message",
+      banner_until: "Hide the banner after",
       /* Kept level with the visible label. It said "Our basis under Big
          River" while the box holds the SPREAD -- the exact wording that
          confused Jessie -- and the GitHub issue the office reads afterwards
@@ -2779,7 +2882,7 @@
     /* The fields the office can legitimately empty, and which must therefore
        send an empty heading rather than no heading. A radio or a checkbox is
        never in here: those always have an answer. */
-    var CLEARABLE = ["message", "hoursnote", "price_note", "spread_harvest",
+    var CLEARABLE = ["message", "banner_until", "hoursnote", "price_note", "spread_harvest",
                    "manual_cash", "manual_harvest", "manual_basis",
                    "manual_harvest_basis"];
 
@@ -3234,6 +3337,7 @@
         if ("weekday"  in h) putDay(h.weekday,  "wk_open",  "wk_close",  "wk_closed");
         if ("saturday" in h) putDay(h.saturday, "sat_open", "sat_close", "sat_closed");
         if ("sunday"   in h) putDay(h.sunday,   "sun_open", "sun_close", "sun_closed");
+        if (!touched.banner_until) put("banner_until", h.banner_until || "");
         if ("banner" in h && !touched.message) {
           put("message", h.banner == null ? "" : h.banner);
           var wantB = qs('input[name="banner"][value="' +
@@ -3579,9 +3683,21 @@
     function tick() {
       var el = document.getElementById("railClock");
       if (!el) return;
-      el.textContent = new Date().toLocaleTimeString("en-US", {
+      /* CBOT OPEN OR CLOSED, beside the clock (2026-10-13). Corn trades
+         Sunday to Friday 7:00pm to 7:45am and 8:30am to 1:20pm on weekdays,
+         Central. A basis typed while the market is shut prices off a quote
+         that will not move until it opens. Exchange holidays are not known. */
+      var now = new Date(), p = {};
+      new Intl.DateTimeFormat("en-US", { timeZone: "America/Chicago", weekday: "short",
+        hour: "numeric", minute: "numeric", hourCycle: "h23" }).formatToParts(now)
+        .forEach(function (x) { p[x.type] = x.value; });
+      var d = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(p.weekday);
+      var m = (+p.hour % 24) * 60 + (+p.minute), wk = d >= 0 && d <= 4;
+      var open = (wk && m >= 510 && m < 800) || (wk && m < 465) ||
+                 ((d === 6 || (d >= 0 && d <= 3)) && m >= 1140);
+      el.textContent = now.toLocaleTimeString("en-US", {
         timeZone: "America/Chicago", hour: "numeric", minute: "2-digit"
-      }) + " Central";
+      }) + " Central \u00b7 CBOT " + (open ? "open" : "closed");
     }
     tick();
     setInterval(tick, 20000);

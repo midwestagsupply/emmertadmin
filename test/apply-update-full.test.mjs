@@ -149,6 +149,7 @@ test("EVERY CONTROL ON THE SCREEN HAS SOMEWHERE TO GO", () => {
        table they wrote. */
     months: "Months — what we publish",
     banner: "The notice banner", message: "Message",
+    banner_until: "Hide the banner after",
     spread: "Our basis under Big River — cash",
     spread_harvest: "Our basis under Big River — new crop",
     manual_cash: "Price by hand — cash", manual_basis: "Price by hand — cash basis",
@@ -177,6 +178,7 @@ test("EVERY CONTROL ON THE SCREEN HAS SOMEWHERE TO GO", () => {
     "Opens": { "Are you open today?": "Open, different hours", "Closes": "17:00" },
     "Closes": { "Are you open today?": "Open, different hours", "Opens": "8:00" },
     "Message": { "The notice banner": "Show it" },
+    "Hide the banner after": { "The notice banner": "Show it", "Message": "There is something on the bar to take down." },
     "Price by hand — cash basis": { "Price by hand — cash": "3.97" },
     "Price by hand — new crop basis": { "Price by hand — new crop": "4.20" },
     "Mon to Fri — opens": { "Mon to Fri — closes": "17:00" },
@@ -258,4 +260,30 @@ test("an empty pricing.json is not given a stamp it would have to carry alone", 
   const r = applyUpdate({ "Are you open today?": "Closed today" },
     { hours: { weekday: "8:00a to 5:00p" }, pricing: {}, by: "j", whenISO: "2026-08-22T14:05:00Z" });
   assert.equal("updated_at" in r.pricing, false);
+});
+
+/* ---- the banner's "Hide after" date (2026-10-13) ------------------------- */
+const showUntil = (until, hours = HOURS) => applyUpdate(
+  { "The notice banner": "Show it", "Message": "Accepting corn 8am to 4:30pm", "Hide the banner after": until },
+  { hours: { ...hours }, pricing: { ...PRICING }, todayISO: "2026-10-13" });
+
+test("A HIDE-AFTER DATE IS STORED WITH THE BANNER, AND EMPTY MEANS NO END", () => {
+  assert.equal(showUntil("2026-10-14").hours.banner_until, "2026-10-14");
+  assert.equal(showUntil("2026-10-13").hours.banner_until, "2026-10-13", "today is allowed");
+  assert.equal(showUntil(null, { ...HOURS, banner_until: "2026-10-20" }).hours.banner_until, null,
+    "an emptied box clears the end date");
+});
+
+test("a hide-after date that is not a date, or is newly in the past, is refused", () => {
+  assert.throws(() => showUntil("10/14/26"), (e) => e instanceof Refused && /not a date/.test(e.message));
+  assert.throws(() => showUntil("2026-10-01"), (e) => e instanceof Refused && /already passed/.test(e.message));
+  /* The same past date already in hours.json is not new; saving the hours must still work. */
+  assert.doesNotThrow(() => showUntil("2026-10-01", { ...HOURS, banner: "old", banner_until: "2026-10-01" }));
+});
+
+test("hiding the banner clears its end date so it cannot take down the next one", () => {
+  const r = applyUpdate({ "The notice banner": "Hide it" },
+    { hours: { ...HOURS, banner: "x", banner_until: "2026-10-20" }, pricing: { ...PRICING }, todayISO: "2026-10-13" });
+  assert.equal(r.hours.banner, null);
+  assert.equal(r.hours.banner_until, null);
 });

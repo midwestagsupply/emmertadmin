@@ -242,6 +242,28 @@ export function applyUpdate(form, { hours, pricing, todayISO, by, whenISO }) {
     }
   }
 
+  /* "HIDE AFTER", 2026-10-13. A Central date, YYYY-MM-DD; the site shows the
+     bar through the end of that day and takes it down the next morning (see
+     bannerShowing in the sites' tools/today-core.mjs). An empty box means no
+     end date. Hiding the banner clears it, so an old date cannot take down
+     the next notice. A date already past is refused only when it is new: the
+     screen fills the box from hours.json, and yesterday's date sitting there
+     must not stop somebody saving the hours. */
+  const until = form["Hide the banner after"];
+  if (banner === "Hide it") {
+    if (h.banner_until != null) h.banner_until = null;
+  } else if (until !== undefined) {
+    const v = until == null ? null : String(until).trim() || null;
+    if (v !== null && !/^\d{4}-\d{2}-\d{2}$/.test(v))
+      throw new Refused(`“${v}” is not a date. Pick one from the calendar, or leave the box empty.`);
+    if (v !== null && todayISO && v < todayISO && v !== (h.banner_until ?? null))
+      throw new Refused(`the hide-after date ${v} has already passed. Pick today or later, or leave it empty.`);
+    if ((h.banner_until ?? null) !== v) {
+      h.banner_until = v;
+      did.push(v ? `Banner hides after ${v}.` : "Banner has no end date.");
+    }
+  }
+
   /* THREE NAMES, NEWEST FIRST. The screen's label changed when "Our basis
      under Big River" was corrected to "Under Big River" -- it holds the
      spread, not the basis. Issues already open on GitHub carry the older

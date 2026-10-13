@@ -488,9 +488,22 @@ export async function press(page, selector) {
    being tested is that the office ends up in front of a filled-in issue on the
    right repository, and a stub cannot tell a blocked window from a built URL.
    The wait is bounded so "no issue" is an answer rather than a hang. */
+/* Is the "check before it goes live" list on screen for this column? */
+export async function reviewing(page, site) {
+  return page.evaluate((s) => {
+    const n = document.querySelector(`.col[data-elev="${s}"] .sanity.review`);
+    return !!n && !n.hidden;
+  }, site);
+}
+
 export async function save(page, site, { wait = 900 } = {}) {
   const before = page.popups.length;
   await press(page, `${col(site)} .btn-go`);
+  /* 2026-10-13: a save that changes a price first lists what is going live,
+     and the second press on the same form opens GitHub. */
+  await page.waitForTimeout(80);
+  if (page.popups.length === before && await reviewing(page, site))
+    await press(page, `${col(site)} .btn-go`);
   const until = Date.now() + wait;
   while (Date.now() < until && page.popups.length === before) await page.waitForTimeout(50);
   if (page.popups.length === before) return null;

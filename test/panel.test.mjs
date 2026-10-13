@@ -145,7 +145,8 @@ test("a save whose window really was blocked still says so", { skip: NB }, async
   const p = await open({});
   await p.evaluate(() => { window.open = () => null; });
   await p.fill(mbox("badger", NEAR), "0.14");
-  await press(p, `${col("badger")} .btn-go`);
+  await press(p, `${col("badger")} .btn-go`);   // lists the change
+  await press(p, `${col("badger")} .btn-go`);   // opens, and is blocked
   const text = await refusalOf(p, "badger");
   await p.done();
   assert.ok(text, "a genuinely blocked popup went unreported");
@@ -509,4 +510,43 @@ test("THE WEEKLY HOURS AND THE SMALL PRINT ARE ON SCREEN WITHOUT ASKING",
     "part of the weekly table is not on screen on the hours screen");
   assert.ok(r.note, "the small print under the hours is not on screen");
   assert.ok(r.priceNote, "the small print under the prices is not on screen");
+});
+/* ══════════════════════════════════════════════════════════════════════════
+   THE SAVE SHOWS WHAT GOES LIVE BEFORE IT GOES (2026-10-13)
+   ══════════════════════════════════════════════════════════════════════════
+   The first press on a form that changes a price lists the change in words and
+   opens nothing. A basis that moves more than 25 cents, or turns positive, is
+   called out. The second press on the same form opens GitHub. */
+test("THE FIRST SAVE LISTS THE PRICE CHANGE AND WARNS ON A BIG JUMP", { skip: NB }, async () => {
+  const p = await open({});
+  await p.evaluate(() => { window.__opened = 0; window.open = () => { window.__opened++; return null; }; });
+  await p.fill(mbox("badger", NEAR), "0.14");
+  await press(p, `${col("badger")} .btn-go`);
+  const r = await p.evaluate(() => {
+    const n = document.querySelector('.col[data-elev="badger"] .sanity.review');
+    return { shown: !!n && !n.hidden, text: n ? n.textContent : "", warn: n ? n.querySelectorAll(".risk li").length : 0,
+             opened: window.__opened };
+  });
+  assert.equal(r.opened, 0, "the first press must not open GitHub when a price changes");
+  assert.ok(r.shown, "no list of what is going live");
+  assert.match(r.text, new RegExp(NEAR + ": .*basis"), "the month and its basis are named");
+  assert.match(r.text, /pays/, "the price it will post is named");
+  assert.match(r.text, /over the board|cents/, "a positive basis or a big move is not called out");
+  assert.ok(r.warn >= 1);
+  await press(p, `${col("badger")} .btn-go`);
+  assert.equal(await p.evaluate(() => window.__opened), 1, "the second press opens GitHub");
+  await p.done();
+});
+
+test("an edit after the list clears it, so the next save lists again", { skip: NB }, async () => {
+  const p = await open({});
+  await p.evaluate(() => { window.__opened = 0; window.open = () => { window.__opened++; return null; }; });
+  await p.fill(mbox("badger", NEAR), "-0.40");
+  await press(p, `${col("badger")} .btn-go`);
+  await p.fill(mbox("badger", NEAR), "-0.41");
+  const hidden = await p.evaluate(() => document.querySelector('.col[data-elev="badger"] .sanity.review').hidden);
+  assert.equal(hidden, true, "the list for the old figure stays up after the box changed");
+  await press(p, `${col("badger")} .btn-go`);
+  assert.equal(await p.evaluate(() => window.__opened), 0, "a changed form went straight to GitHub without a new list");
+  await p.done();
 });

@@ -1108,7 +1108,7 @@ body > header {
   padding: 4px 10px; background: #fff; border-bottom: 1px solid #d7dde2;
   font: 400 15px/1.4 var(--font, inherit); color: #12161a;
 }
-body > header .brand { font: 800 .82rem/1 var(--font, inherit); letter-spacing: .06em; }
+body > header .brand { font: 800 .82rem/1 var(--font, inherit); letter-spacing: .06em; margin: 0; }
 body > header .tabs { display: flex; gap: 4px; }
 body > header .tabs .rail-b { font: 700 .76rem var(--font, inherit); color: #5d666e;
   background: none; border: 1px solid transparent; border-radius: 5px;
@@ -1535,3 +1535,40 @@ body[data-board="off"] .sheet [data-row="91"] .lab-when-down { display: block; }
 @media (pointer: coarse) {
   body > header .tabs .rail-b, .rail .rail-b { min-height: 44px; display: inline-flex; align-items: center; }
 }
+
+/* The save review: what is about to go live, shown before GitHub opens. */
+.sanity.review ul{margin:8px 0 8px 20px;padding:0}
+.sanity.review li{margin:2px 0}
+.sanity.review ul.risk{font-weight:700}
+.sanity.review p{margin:6px 0 0}
+.sanity.review[hidden]{display:none}
+
+/* ---- phones: 14px text, 44px targets (2026-10-13) -------------------------
+   Measured at 390: the cash and new-crop tags were 10.5px, the feed line,
+   clock and "last change" lines 12.9px, the header links 13.7px and 16px
+   tall, the screen tabs 25px tall and Save 42px. The ? key stays off here on
+   purpose (phones always show the explanation, see above); the Handbook link
+   is the help a phone reaches, so it gets a full-size target. */
+@media (max-width: 700px) {
+  body > header .feednote, body > header .railclock, body > header .docs,
+  .sheet .cell .tag, .sheet .cell.col-save .saved, .saved, .tag { font-size: 14px; }
+  .sheet .cell.mo { flex-wrap: wrap; row-gap: 2px; }
+  .sheet .cell .tag { letter-spacing: .02em; }
+  body > header .docs { min-height: 44px; display: inline-flex; align-items: center; padding: 0; }
+  body > header .rail-b, .tabs .rail-b { min-height: 44px; }
+  .sheet .btn, .btn { min-height: 44px; }
+  .sheet .cell input.mbasis, input.mbasis { min-height: 44px; }
+  .sheet .cell.pub input[type="checkbox"] { width: 28px; height: 28px; }
+  .sheet .cell.pub label.cl { min-width: 44px; min-height: 44px; display: inline-flex;
+    align-items: center; justify-content: center; }
+}
+
+/* The banner's "Hide after" date, under the message box. */
+.sheet .cell label.until{display:flex;align-items:center;gap:8px;margin-top:8px;font-weight:700;font-size:.95rem}
+.sheet .cell label.until input{min-height:40px;font:inherit;font-weight:400}
+.sheet .cell .until-hint{font-size:.85rem;color:var(--grey)}
+@media (max-width: 700px){ .sheet .cell label.until input{min-height:44px} .sheet .cell .until-hint{font-size:14px} }
+
+/* The feed line wraps instead of ending in "..." (2026-10-13): the part cut
+   off was the part that said how many rows were read. */
+body > header .feednote { white-space: normal; overflow: visible; text-overflow: clip; }
