@@ -14,20 +14,14 @@
       "email": null,
       "website": "https://bigriverbids.com/cashbidssingle-2121"
     },
-    "url": "https://www.bigriverbids.com/",
+    "url": "https://bigriverbids.com/cashbidssingle-2121",
     "note": "Their posted cash board, read by arrangement. Cash and basis are their own commercial numbers. The futures quote is carried only so a consumer can re-check cash minus basis; it is not redistributed as a price feed."
   },
-  "checkedAt": "2026-10-27T18:32:20.049Z",
+  "checkedAt": "2026-10-27T18:40:14.966Z",
   "pricedAt": "2026-10-27T18:32:20.049Z",
   "status": "ok",
   "count": 10,
-  "otherLocationsOnPage": [
-    "Dyersville (2162)",
-    "Galva (2163)",
-    "West Burlington (2164)",
-    "Monmouth (2165)",
-    "Aledo/Edgington (2166)"
-  ],
+  "otherLocationsOnPage": [],
   "bids": [
     {
       "seq": 0,
