@@ -1,10 +1,10 @@
 {
- "generated": "2026-10-27T18:30:17.481Z",
+ "generated": "2026-10-27T18:32:20.049Z",
  "note": "One source. This file is rewritten on EVERY pass, pass or fail, which is why the sites measure the feed's age against it rather than against data/boyceville.json -- that one is only rewritten when the price moves.",
  "counts": {
   "total": 1,
-  "live": 0,
-  "refused": 1,
+  "live": 1,
+  "refused": 0,
   "broken": 0,
   "skipped": 0
  },
@@ -14,83 +14,78 @@
    "operator": "Big River Resources",
    "location": "Boyceville",
    "usState": "WI",
-   "checkedAt": "2026-10-27T18:21:18.374Z",
-   "attemptedAt": "2026-10-27T18:30:17.481Z",
-   "pricedAt": "2026-10-27T18:20:17.951Z",
+   "checkedAt": "2026-10-27T18:32:20.049Z",
+   "attemptedAt": "2026-10-27T18:32:20.049Z",
+   "pricedAt": "2026-10-27T18:32:20.049Z",
    "rows": 10,
-   "health": "refused",
-   "status": "refused",
-   "fails": 2,
-   "failingSince": "2026-10-27T18:29:46.918Z",
-   "coldHours": 0.15,
-   "detail": "no route produced a board that passes every guard. 13 tried:\n1. https://bigriverbids.com/cashbidssingle-2121 (primary) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n2. https://www.bigriverbids.com/cashbidssingle-2121 (verified) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n3. https://bigriverbids.com/cashbidssingle-2162 (verified) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n4. https://bigriverbids.com/cashbidssingle-2165 (verified) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n5. https://bigriverbids.com/cashbidssingle-2163 (verified) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n6. https://bigriverbids.com/cashbidssingle-2164 (verified) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n7. https://bigriverbids.com/cashbidssingle-2166 (verified) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n8. https://bigriverbids.com/cashbidssingle-2167 (verified) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n9. https://www.bigriverbids.com/ (verified) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n10. https://bigriverbids.com/cashbidssingle- (inferred) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n11. https://bigriverbids.com/ (inferred) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n12. https://www.bigriverresources.com/cashbidssingle-2163 (inferred) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503\n13. https://www.bigriverresources.com/cashbidssingle-2164 (inferred) -- attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503",
-   "via": "https://bigriverbids.com/cashbidssingle-2121",
-   "viaTrust": "primary",
+   "health": "live",
+   "status": "ok",
+   "fails": 0,
+   "failingSince": null,
+   "coldHours": 0,
+   "detail": null,
+   "via": "https://www.bigriverbids.com/",
+   "viaTrust": "verified",
    "routesTried": [
     {
      "url": "https://bigriverbids.com/cashbidssingle-2121",
      "trust": "primary",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "aborted: https://www.bigriverbids.com/ answered first and passed every guard"
     },
     {
      "url": "https://www.bigriverbids.com/cashbidssingle-2121",
      "trust": "verified",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "aborted: https://www.bigriverbids.com/ answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2162",
      "trust": "verified",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "parsed 13 bids but none for location 2121. The page contained: Dyersville (2162)"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2165",
      "trust": "verified",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "parsed 16 bids but none for location 2121. The page contained: Monmouth (2165)"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2163",
      "trust": "verified",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "parsed 15 bids but none for location 2121. The page contained: Galva (2163)"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2164",
      "trust": "verified",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "aborted: https://www.bigriverbids.com/ answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2166",
      "trust": "verified",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "aborted: https://www.bigriverbids.com/ answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2167",
      "trust": "verified",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
-    },
-    {
-     "url": "https://www.bigriverbids.com/",
-     "trust": "verified",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "0 bids parsed; their page layout has changed, or that URL is no longer a bid board"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-",
      "trust": "inferred",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "aborted: https://www.bigriverbids.com/ answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/",
      "trust": "inferred",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "aborted: https://www.bigriverbids.com/ answered first and passed every guard"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2163",
      "trust": "inferred",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "parsed 15 bids but none for location 2121. The page contained: Galva (2163)"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2164",
      "trust": "inferred",
-     "why": "attempt 1: HTTP 503; attempt 2: HTTP 503; attempt 3: HTTP 503"
+     "why": "aborted: https://www.bigriverbids.com/ answered first and passed every guard"
     }
    ],
    "reconstructed": [],
