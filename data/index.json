@@ -1,5 +1,5 @@
 {
- "generated": "2026-11-04T05:40:16.523Z",
+ "generated": "2026-11-04T05:50:14.845Z",
  "note": "One source. This file is rewritten on EVERY pass, pass or fail, which is why the sites measure the feed's age against it rather than against data/boyceville.json -- that one is only rewritten when the price moves.",
  "counts": {
   "total": 1,
@@ -14,9 +14,9 @@
    "operator": "Big River Resources",
    "location": "Boyceville",
    "usState": "WI",
-   "checkedAt": "2026-11-04T05:40:16.523Z",
-   "attemptedAt": "2026-11-04T05:40:16.523Z",
-   "pricedAt": "2026-11-04T05:40:16.523Z",
+   "checkedAt": "2026-11-04T05:50:14.845Z",
+   "attemptedAt": "2026-11-04T05:50:14.845Z",
+   "pricedAt": "2026-11-04T05:50:14.845Z",
    "rows": 9,
    "health": "live",
    "status": "ok",
@@ -24,33 +24,33 @@
    "failingSince": null,
    "coldHours": 0,
    "detail": null,
-   "via": "https://bigriverbids.com/cashbidssingle-2121",
-   "viaTrust": "primary",
+   "via": "https://www.bigriverbids.com/cashbidssingle-2121",
+   "viaTrust": "verified",
    "routesTried": [
     {
-     "url": "https://www.bigriverbids.com/cashbidssingle-2121",
-     "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "url": "https://bigriverbids.com/cashbidssingle-2121",
+     "trust": "primary",
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2162",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2165",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "parsed 14 bids but none for location 2121. The page contained: Monmouth (2165)"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2163",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2164",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-2166",
@@ -60,32 +60,32 @@
     {
      "url": "https://bigriverbids.com/cashbidssingle-2167",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://www.bigriverbids.com/",
      "trust": "verified",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/cashbidssingle-",
      "trust": "inferred",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://bigriverbids.com/",
      "trust": "inferred",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2163",
      "trust": "inferred",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     },
     {
      "url": "https://www.bigriverresources.com/cashbidssingle-2164",
      "trust": "inferred",
-     "why": "aborted: https://bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
+     "why": "aborted: https://www.bigriverbids.com/cashbidssingle-2121 answered first and passed every guard"
     }
    ],
    "reconstructed": [],
