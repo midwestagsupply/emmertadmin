@@ -17,8 +17,8 @@
     "url": "https://bigriverbids.com/cashbidssingle-2121",
     "note": "Their posted cash board, read by arrangement. Cash and basis are their own commercial numbers. The futures quote is carried only so a consumer can re-check cash minus basis; it is not redistributed as a price feed."
   },
-  "checkedAt": "2026-11-17T02:07:40.911Z",
-  "pricedAt": "2026-11-17T02:07:40.911Z",
+  "checkedAt": "2026-11-17T02:10:17.991Z",
+  "pricedAt": "2026-11-17T02:10:17.991Z",
   "status": "ok",
   "count": 9,
   "otherLocationsOnPage": [],
@@ -78,40 +78,40 @@
       "commodity": "Corn",
       "delivery": "April",
       "futuresMonth": "May 27",
-      "cash": 4.1275,
+      "cash": 4.125,
       "basisDollars": -0.54,
       "basisCents": -54,
-      "futuresPriceCents": 466.75
+      "futuresPriceCents": 466.5
     },
     {
       "seq": 6,
       "commodity": "Corn",
       "delivery": "May",
       "futuresMonth": "May 27",
-      "cash": 4.1475,
+      "cash": 4.145,
       "basisDollars": -0.52,
       "basisCents": -52,
-      "futuresPriceCents": 466.75
+      "futuresPriceCents": 466.5
     },
     {
       "seq": 7,
       "commodity": "Corn",
       "delivery": "June",
       "futuresMonth": "Jul 27",
-      "cash": 4.2175,
+      "cash": 4.215,
       "basisDollars": -0.52,
       "basisCents": -52,
-      "futuresPriceCents": 473.75
+      "futuresPriceCents": 473.5
     },
     {
       "seq": 8,
       "commodity": "Corn",
       "delivery": "July",
       "futuresMonth": "Jul 27",
-      "cash": 4.2175,
+      "cash": 4.215,
       "basisDollars": -0.52,
       "basisCents": -52,
-      "futuresPriceCents": 473.75
+      "futuresPriceCents": 473.5
     }
   ]
 }
