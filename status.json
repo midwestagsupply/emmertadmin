@@ -1,6 +1,6 @@
 {
  "schema": "emmert-admin-status/1",
- "generated": "2026-11-26T22:23:31.948Z",
+ "generated": "2026-11-27T22:02:24.014Z",
  "ok": true,
  "blocking": 0,
  "findings": [],
@@ -11,11 +11,11 @@
    "reached": true,
    "httpStatus": 200,
    "stampField": "observed",
-   "observedAt": "2026-11-26T22:20:15.826Z",
+   "observedAt": "2026-11-27T22:00:21.857Z",
    "rows": 2,
    "showsPrice": true,
    "callForPrice": true,
-   "ageMinutes": 3,
+   "ageMinutes": 2,
    "maxAgeH": 14,
    "hasWeekdayHours": true,
    "spread": 0,
@@ -27,17 +27,17 @@
    "reached": true,
    "httpStatus": 200,
    "stampField": "observed",
-   "observedAt": "2026-11-26T22:20:15.826Z",
+   "observedAt": "2026-11-27T22:00:21.857Z",
    "rows": 2,
    "showsPrice": true,
    "callForPrice": true,
-   "ageMinutes": 3,
+   "ageMinutes": 2,
    "maxAgeH": 14,
    "hasWeekdayHours": true,
    "spread": 0.1,
    "manualPrice": null
   }
  ],
- "run": "https://github.com/midwestagsupply/emmertadmin/actions/runs/45904471617",
+ "run": "https://github.com/midwestagsupply/emmertadmin/actions/runs/46074096509",
  "note": "Written by tools/watch-live.mjs on every run of watch-live.yml, whether it passed or failed. `generated` moves every run on purpose: a stamp that only advances when something is wrong cannot tell a quiet week from a watchdog that has stopped."
 }
